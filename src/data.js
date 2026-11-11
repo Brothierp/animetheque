@@ -31,7 +31,7 @@ export function loadCatalogue() {
   if (!catPromise) catPromise = fetch("/data.json").then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }).then(d => {
     T = d.tables;
     A = d.items.map((x, i) => ({ id: x[0], mal: x[1], romaji: x[2], english: x[3], native: x[4], syn: x[5], format: x[6], status: x[7], eps: x[8], dur: x[9],
-      season: x[10], year: x[11], genres: x[12], tags: x[13], studios: x[14], score: x[15], pop: x[16], country: x[17], source: x[18], desc: x[19],
+      season: x[10], year: x[11], genres: x[12], tags: x[13], studios: x[14], score: x[15], pop: x[16], country: x[17], source: x[18], hasDesc: !!x[19], desc: typeof x[19] === "string" ? x[19] : null,
       plats: x[20], lang: x[21], adult: x[22] === 1, cov: x[23], rank: i, chars: [], charHay: "",
       hay: norm([x[2], x[3], x[4], ...x[5]].join(" ")), studioHay: x[14].map(j => norm(d.tables.studios[j])).join("|") }));
     for (const a of A) byId.set(a.id, a);
@@ -46,6 +46,15 @@ export function loadChars() {
     ready.chars = true;
   });
   return charPromise;
+}
+
+/** Synopsis, chargé à la demande (64 petits fichiers). */
+const descP = new Map();
+export function loadDesc(a) {
+  if (a.desc != null || !a.hasDesc) return Promise.resolve(a.desc || "");
+  const n = a.rank % 64;
+  if (!descP.has(n)) descP.set(n, fetch(`/dshards/${n}.json`).then(r => r.json()).catch(e => { descP.delete(n); throw e; }));
+  return descP.get(n).then(d => (a.desc = d[a.rank] || ""));
 }
 
 export const titleOf = a => a.english || a.romaji;

@@ -1,6 +1,6 @@
 // Vue « Personnages » : recherche, étiquettes (barre rapide + panneau complet), grille de portraits.
 import { norm, titleOf } from "../data.js";
-import { CH, TAGS, CATS, loadCharacters, chReady, imgUrl, visibleApps, mainAnime } from "../chars.js";
+import { CH, TAGS, CATS, loadCharacters, chReady, imgUrl, visibleApps, mainAnime, onCharsComplete } from "../chars.js";
 import { adultAllowed } from "../state.js";
 import { $, esc, fmt } from "../ui.js";
 
@@ -66,7 +66,7 @@ function renderMore() {
 function refresh() {
   if (!root || !root.isConnected || !chReady.loaded) return;
   compute();
-  $("chCount").innerHTML = `<b>${fmt(view.length)}</b> personnage${view.length > 1 ? "s" : ""}`;
+  countText();
   $("chQuick").innerHTML = quickBar(); $("chActive").innerHTML = active();
   $("chFilt").innerHTML = `<span aria-hidden="true">⚙</span> Étiquettes${S.tags.size ? ` <b class="cnt">${S.tags.size}</b>` : ""}`;
   const dc = $("chDrCount"); if (dc) dc.textContent = `Voir ${fmt(view.length)} personnage${view.length > 1 ? "s" : ""}`;
@@ -74,6 +74,15 @@ function refresh() {
   shown = 0; $("chGrid").innerHTML = ""; $("chEmpty").hidden = !!view.length;
   renderMore();
 }
+function countText() {
+  $("chCount").innerHTML = `<b>${fmt(view.length)}</b> personnage${view.length > 1 ? "s" : ""}` + (chReady.full ? "" : ` <span class="hint">· chargement des ${fmt(chReady.total - CH.length)} autres…</span>`);
+}
+// Quand le reste de l'index arrive : sans filtre, on complète la liste sans la redessiner (l'ordre ne change pas).
+onCharsComplete(() => {
+  if (!root || !root.isConnected) return;
+  if (!S.q && !S.tags.size && S.sort === "fav") { compute(); countText(); $("chEmpty").hidden = !!view.length; }
+  else refresh();
+});
 function toggleTag(i) { S.tags.has(i) ? S.tags.delete(i) : S.tags.add(i); refresh(); }
 
 function openDrawer() {

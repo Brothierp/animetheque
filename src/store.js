@@ -5,6 +5,11 @@ import { supabase } from "./supabase.js";
 
 const PAGE = 1000; // limite par défaut de PostgREST
 
+/** Fonctions qui dépendent du script SQL 20261112000000 (détectées au chargement). */
+export const FEATURES = { progress: true, favChars: true };
+const missingColumn = err => err && (err.code === "42703" || err.code === "PGRST204" || /column .* does not exist|could not find the .* column/i.test(err.message || ""));
+const missingTable = err => err && (err.code === "42P01" || err.code === "PGRST205" || /relation .* does not exist|could not find the table/i.test(err.message || ""));
+
 async function fetchAll(table, columns) {
   const rows = [];
   for (let from = 0; ; from += PAGE) {
@@ -20,16 +25,21 @@ async function fetchAll(table, columns) {
  * Renvoie { entries: Map<animeId, {f, r, c, s, t, l}>, lists: { [listId]: { n, t } } }
  */
 export async function loadCollection() {
-  const [entries, lists, items] = await Promise.all([
-    fetchAll("collection_entries", "anime_id, favorite, rating, comment, status, updated_at"),
-    fetchAll("lists", "id, name, created_at"),
-    fetchAll("list_items", "list_id, anime_id, added_at")
-  ]);
+  const entriesP = fetchAll("collection_entries", "anime_id, favorite, rating, comment, status, progress, updated_at").catch(err => {
+    if (!missingColumn(err)) throw err;
+    FEATURES.progress = false;
+    return fetchAll("collection_entries", "anime_id, favorite, rating, comment, status, updated_at");
+  });
+  const favP = fetchAll("favorite_characters", "character_id, created_at").catch(err => {
+    if (!missingTable(err)) throw err;
+    FEATURES.favChars = false; return [];
+  });
+  const [entries, lists, items, favs] = await Promise.all([entriesP, fetchAll("lists", "id, name, created_at"), fetchAll("list_items", "list_id, anime_id, added_at"), favP]);
   const map = new Map();
-  const get = id => map.get(id) || (map.set(id, { f: false, r: 0, c: "", s: "", t: 0, l: {} }), map.get(id));
+  const get = id => map.get(id) || (map.set(id, { f: false, r: 0, c: "", s: "", p: 0, t: 0, l: {} }), map.get(id));
   for (const e of entries) {
     const x = get(e.anime_id);
-    Object.assign(x, { f: e.favorite, r: e.rating || 0, c: e.comment || "", s: e.status || "", t: Math.max(x.t, Date.parse(e.updated_at)) });
+    Object.assign(x, { f: e.favorite, r: e.rating || 0, c: e.comment || "", s: e.status || "", p: e.progress || 0, t: Math.max(x.t, Date.parse(e.updated_at)) });
   }
   for (const it of items) {
     const x = get(it.anime_id);
@@ -38,21 +48,42 @@ export async function loadCollection() {
   }
   const L = {};
   for (const l of lists) L[l.id] = { n: l.name, t: Date.parse(l.created_at) };
-  return { entries: map, lists: L };
+  const favChars = new Map(favs.map(f => [f.character_id, Date.parse(f.created_at)]));
+  return { entries: map, lists: L, favChars };
 }
 
 /** Enregistre la partie « fiche » d'un titre (cœur, note, commentaire, statut). Supprime la ligne si elle est vide. */
 export async function saveEntry(userId, animeId, e) {
-  const empty = !e.f && !e.r && !e.c && !e.s;
+  const empty = !e.f && !e.r && !e.c && !e.s && !e.p;
   if (empty) {
     const { error } = await supabase.from("collection_entries").delete().eq("anime_id", animeId);
     if (error) throw error;
     return;
   }
-  const { error } = await supabase.from("collection_entries").upsert({
-    user_id: userId, anime_id: animeId, favorite: !!e.f, rating: e.r || null,
-    comment: e.c ? e.c.slice(0, 280) : null, status: e.s || null
-  }, { onConflict: "user_id,anime_id" });
+  const { error } = await supabase.from("collection_entries").upsert(row(userId, animeId, e), { onConflict: "user_id,anime_id" });
+  if (error) throw error;
+}
+function row(userId, animeId, e) {
+  const r = { user_id: userId, anime_id: animeId, favorite: !!e.f, rating: e.r || null, comment: e.c ? e.c.slice(0, 280) : null, status: e.s || null };
+  if (FEATURES.progress) r.progress = e.p || null;
+  return r;
+}
+
+/** Import en masse : fiches (par paquets de 500). entries = [{ id, f, r, c, s, p }] */
+export async function bulkUpsertEntries(userId, entries, onProgress) {
+  for (let i = 0; i < entries.length; i += 500) {
+    const chunk = entries.slice(i, i + 500).map(e => row(userId, e.id, e));
+    const { error } = await supabase.from("collection_entries").upsert(chunk, { onConflict: "user_id,anime_id" });
+    if (error) throw error;
+    if (onProgress) onProgress(Math.min(i + 500, entries.length));
+  }
+}
+
+/** Personnages favoris. */
+export async function setFavChar(userId, charId, on) {
+  const q = on ? supabase.from("favorite_characters").upsert({ user_id: userId, character_id: charId }, { onConflict: "user_id,character_id", ignoreDuplicates: true })
+    : supabase.from("favorite_characters").delete().eq("character_id", charId);
+  const { error } = await q;
   if (error) throw error;
 }
 

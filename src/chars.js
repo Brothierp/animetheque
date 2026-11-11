@@ -5,30 +5,55 @@ export let CH = [];               // personnages, triés par popularité (nombre
 export const charById = new Map();
 export const charsByAnime = new Map();   // id animé → [{ c, role }]
 export let TAGS = [], CATS = [], IMG = "";
-export const chReady = { loaded: false };
-let p = null;
+export const chReady = { loaded: false, full: false, total: 0 };
+let p = null, pAll = null;
+const fullListeners = new Set();
+/** Appelé quand les personnages restants (au-delà des 3 000 premiers) sont chargés. */
+export const onCharsComplete = fn => { fullListeners.add(fn); return () => fullListeners.delete(fn); };
 
-export function loadCharacters() {
-  if (!p) p = Promise.all([loadCatalogue(), fetch("/characters.json").then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })]).then(([, d]) => {
-    IMG = d.img; CATS = d.cats;
-    TAGS = d.tags.map(([cat, label, n], i) => ({ i, cat, label, n }));
-    CH = d.chars.map(([id, name, native, img, fav, tags, apps, alt], rank) => ({
-      id, name, native, img, fav, tags, rank, alt: alt || [],
-      apps: decodeApps(apps),
-      hay: norm([name, native, ...(alt || [])].join(" "))
-    }));
-    for (const c of CH) {
-      charById.set(c.id, c);
-      for (const { a, role } of c.apps) {
-        if (!charsByAnime.has(a.id)) charsByAnime.set(a.id, []);
-        charsByAnime.get(a.id).push({ c, role });
-      }
+const getJSON = url => fetch(url).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); });
+function ingest(rows, startRank) {
+  const added = rows.map(([id, name, native, img, fav, tags, apps, alt], k) => ({
+    id, name, native, img, fav, tags, rank: startRank + k, alt: alt || [],
+    apps: decodeApps(apps), hay: norm([name, native, ...(alt || [])].join(" "))
+  }));
+  for (const c of added) {
+    CH.push(c); charById.set(c.id, c);
+    for (const { a, role } of c.apps) {
+      if (!charsByAnime.has(a.id)) charsByAnime.set(a.id, []);
+      charsByAnime.get(a.id).push({ c, role });
     }
-    const order = { M: 0, S: 1, B: 2 };
-    for (const l of charsByAnime.values()) l.sort((x, y) => order[x.role] - order[y.role] || x.c.rank - y.c.rank);
+  }
+  const order = { M: 0, S: 1, B: 2 };
+  for (const l of charsByAnime.values()) l.sort((x, y) => order[x.role] - order[y.role] || x.c.rank - y.c.rank);
+}
+
+/** Charge les 3 000 personnages les plus aimés (rapide), puis lance le chargement des autres en arrière-plan. */
+export function loadCharacters() {
+  if (!p) p = Promise.all([loadCatalogue(), getJSON("/characters.json")]).then(([, d]) => {
+    IMG = d.img; CATS = d.cats; chReady.total = d.total || d.chars.length;
+    TAGS = d.tags.map(([cat, label, n], i) => ({ i, cat, label, n }));
+    ingest(d.chars, 0);
     chReady.loaded = true;
+    setTimeout(loadAllCharacters, 0);
   }).catch(e => { p = null; throw e; });
   return p;
+}
+/** Tous les personnages (≈ 90 000). */
+export function loadAllCharacters() {
+  if (!pAll) pAll = loadCharacters().then(() => getJSON("/characters-more.json")).then(d => {
+    // découpe le traitement pour ne pas figer la page
+    return new Promise(res => {
+      const rows = d.chars, start = CH.length; let i = 0;
+      const step = () => {
+        const end = Math.min(rows.length, i + 8000);
+        ingest(rows.slice(i, end), start + i); i = end;
+        if (i < rows.length) setTimeout(step, 0); else { chReady.full = true; fullListeners.forEach(f => f()); res(); }
+      };
+      step();
+    });
+  }).catch(e => { pAll = null; throw e; });
+  return pAll;
 }
 
 const ROLES = ["M", "S", "B"];
@@ -48,7 +73,7 @@ export function loadTopCharacters() {
 /** Personnages d'un animé (fichier découpé, léger). Renvoie [{ c: {id, name, img}, role }]. */
 const shardP = new Map();
 export function charsOfAnime(anime) {
-  if (chReady.loaded) return Promise.resolve(charsByAnime.get(anime.id) || []);
+  if (chReady.full) return Promise.resolve(charsByAnime.get(anime.id) || []);
   const n = anime.rank % 64;
   if (!shardP.has(n)) shardP.set(n, fetch(`/cshards/${n}.json`).then(r => r.json()).catch(e => { shardP.delete(n); throw e; }));
   return shardP.get(n).then(d => {
@@ -57,7 +82,12 @@ export function charsOfAnime(anime) {
   });
 }
 
-export const imgUrl = (c, size = "large") => c && c.img ? (c.img.startsWith("http") ? c.img : IMG.replace("/medium/", `/${size}/`) + c.img) : "";
+/** URL de l'image ; « b~xx.jpg » signifie « b<id>-xx.jpg » (identifiant retiré pour alléger les fichiers). */
+export const imgUrl = (c, size = "large") => {
+  if (!c || !c.img) return "";
+  if (c.img.startsWith("http")) return c.img;
+  return IMG.replace("/medium/", `/${size}/`) + c.img.replace("~", c.id + "-");
+};
 export const ROLE_FR = { M: "Principal", S: "Secondaire", B: "Figurant" };
 /** Un personnage n'est visible que s'il apparaît dans au moins un animé visible (contenu adulte réservé aux majeurs). */
 export const visibleApps = (c, adultOk) => c.apps.filter(x => !x.a.adult || adultOk);

@@ -149,6 +149,7 @@ rows = []
 for cid, c in sorted(chars.items(), key=lambda kv: -(kv[1].get("favourites") or 0)):
     img = c["image"]["medium"] or ""
     img = "" if "default" in img else img.replace(IMG, "") if img.startswith(IMG) else img
+    img = re.sub(rf"^([a-z]?){cid}-", r"\1~", img)        # l'identifiant est déjà connu : « b40882-xx.jpg » → « b~xx.jpg »
     nm = c["name"]
     alt = [a for a in (nm.get("alternative") or []) if a and len(a) <= 40][:3]
     fav = c.get("favourites") or 0
@@ -156,8 +157,11 @@ for cid, c in sorted(chars.items(), key=lambda kv: -(kv[1].get("favourites") or 
     R = {"M": 0, "S": 1, "B": 2}
     rows.append([cid, nm.get("full") or "", nm.get("native") or "", img, fav,
                  sorted(tix[t] for t in per[cid] if t in tix), [ai * 4 + R[r] for ai, r in sorted(apps[cid], key=lambda x: x[0])], alt])
-out = {"img": IMG, "cats": CATS, "tags": [[CATS.index(t[0]), t[1], tagset[t]] for t in tags], "chars": rows}
+# Deux fichiers : les 3 000 plus aimés (affichage immédiat), puis tous les autres (chargés en arrière-plan).
+FIRST = 3000
+out = {"img": IMG, "cats": CATS, "tags": [[CATS.index(t[0]), t[1], tagset[t]] for t in tags], "total": len(rows), "chars": rows[:FIRST]}
 json.dump(out, open(OUT, "w"), ensure_ascii=False, separators=(",", ":"))
+json.dump({"chars": rows[FIRST:]}, open(OUT.replace(".json", "-more.json"), "w"), ensure_ascii=False, separators=(",", ":"))
 # visages par animé, découpés en 64 fichiers (fiche d'un animé sans charger l'index complet)
 import os
 SH = 64

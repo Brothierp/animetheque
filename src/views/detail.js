@@ -1,5 +1,5 @@
 // Fiche d'un animé, ouverte dans une fenêtre par-dessus la page (#/anime/<id>).
-import { byId, T, tr, titleOf, altTitles, coverStyle, extLink, similar, ready, loadChars } from "../data.js";
+import { byId, T, tr, titleOf, altTitles, coverStyle, extLink, similar, ready, loadChars, loadDesc } from "../data.js";
 import { ME, ent, STATUSES, setEntry, setInList, clearAnime, adultAllowed, requireUser, onChange } from "../state.js";
 import { $, esc, cover, row, starsHTML, openAddMenu } from "../ui.js";
 import { charsOfAnime, imgUrl, ROLE_FR } from "../chars.js";
@@ -53,7 +53,7 @@ function html(a) {
     <div class="d-main">
       <section class="d-mine" id="dMine">${mineHTML(a)}</section>
       ${plats ? `<section><h2>Où regarder</h2><div class="plats">${plats}</div><p class="hint">FR / EN indique qu'au moins une plateforme propose en général cette langue (doublage ou sous-titres) ; cela peut varier selon le pays.</p></section>` : ""}
-      ${a.desc ? `<section><h2>Synopsis</h2><p class="syn">${esc(a.desc)}</p></section>` : ""}
+      ${a.hasDesc ? `<section><h2>Synopsis</h2><p class="syn" id="dSyn">${a.desc ? esc(a.desc) : `<span class="hint">Chargement…</span>`}</p></section>` : ""}
       <section><h2>Personnages</h2><div id="dChars">${chars || (ready.chars ? `<p class="hint">Aucun personnage référencé.</p>` : `<p class="hint">Chargement…</p>`)}</div></section>
     </div>
     <aside class="d-side">
@@ -84,6 +84,7 @@ export function openDetail(id, onClose) {
   el.classList.add("open"); document.body.classList.add("noscroll");
   panel.focus({ preventScroll: true });
   setTimeout(() => { if (curId === id) $("dSim").innerHTML = row("Dans le même esprit", similar(a, 14, adultAllowed())); }, 30);
+  if (a.hasDesc && a.desc == null) loadDesc(a).then(t => { if (curId === id && $("dSyn")) $("dSyn").textContent = t; }).catch(() => { if ($("dSyn")) $("dSyn").textContent = "Synopsis indisponible pour le moment."; });
   charsOfAnime(a).then(L => { if (curId === id) renderFaces(L); })
     .catch(() => { if (!ready.chars) loadChars().then(() => { if (curId === id) $("dChars").innerHTML = a.chars.map(c => `<a class="ch ${c[2]}" href="#/catalogue?chara=${encodeURIComponent(c[0] || c[1])}">${esc(c[0] || c[1])}</a>`).join("") || `<p class="hint">Aucun personnage référencé.</p>`; }); });
   return true;

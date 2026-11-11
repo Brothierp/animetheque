@@ -1,6 +1,6 @@
 // Fiche d'un personnage, ouverte dans une fenêtre (#/personnage/<id>).
 import { titleOf } from "../data.js";
-import { charById, TAGS, CATS, loadCharacters, imgUrl, visibleApps, similarChars, fetchCharacter, descHTML, ROLE_FR, GENDER_FR, MONTHS } from "../chars.js";
+import { charById, TAGS, CATS, loadCharacters, loadAllCharacters, imgUrl, visibleApps, similarChars, fetchCharacter, descHTML, ROLE_FR, GENDER_FR, MONTHS } from "../chars.js";
 import { adultAllowed } from "../state.js";
 import { $, esc, fmt, card } from "../ui.js";
 import { charCard } from "./characters.js";
@@ -58,6 +58,7 @@ function facts(d, c) {
 
 export async function openCharacter(id, onClose) {
   await loadCharacters().catch(() => {});
+  if (!charById.has(id)) await loadAllCharacters().catch(() => {});   // personnage moins connu : second fichier
   const c = charById.get(id);
   if (!c) return false;
   if (!visibleApps(c, adultAllowed()).length) return false;

@@ -1,5 +1,5 @@
 // Vue « Accueil » : animé à la une, rangées thématiques, recommandations, genres.
-import { A, T, UP, RELEASING, byId, tr, titleOf, coverStyle } from "../data.js";
+import { A, T, UP, RELEASING, byId, tr, titleOf, coverStyle, loadDesc } from "../data.js";
 import { ME, ent, inCollection, onChange } from "../state.js";
 import { esc, fmt, row, cover } from "../ui.js";
 import { loadTopCharacters } from "../chars.js";
@@ -32,7 +32,7 @@ function recommendations(n = 20) {
 
 const safe = a => !a.adult;
 function pickFeatured() {
-  const pool = A.filter(a => safe(a) && a.status === RELEASING && a.desc && a.cov >= 0).slice(0, 12);
+  const pool = A.filter(a => safe(a) && a.status === RELEASING && a.hasDesc && a.cov >= 0).slice(0, 12);
   return pool[Math.floor(Math.random() * pool.length)] || A.find(safe);
 }
 
@@ -47,7 +47,7 @@ function hero(a) {
         <span class="kicker">À la une · en cours de diffusion</span>
         <h1>${esc(titleOf(a))}</h1>
         <p class="hero-meta">${esc(meta)}</p>
-        <p class="hero-syn">${esc((a.desc || "").slice(0, 260))}${(a.desc || "").length > 260 ? "…" : ""}</p>
+        <p class="hero-syn" id="heroSyn">${a.desc ? esc(a.desc.slice(0, 260)) + (a.desc.length > 260 ? "…" : "") : ""}</p>
         <div class="hero-act"><a class="btn primary" href="#/anime/${a.id}">Voir la fiche</a>
           <button type="button" class="btn" data-quick-add="${a.id}">+ Ajouter à ma collection</button></div>
       </div>
@@ -81,6 +81,7 @@ export function render(el) {
     ${genreTiles()}
   </div>`;
   renderPersonal();
+  if (featured.desc == null) loadDesc(featured).then(t => { const h = el.querySelector("#heroSyn"); if (h) h.textContent = t.slice(0, 260) + (t.length > 260 ? "…" : ""); }).catch(() => {});
   loadTopCharacters().then(list => {
     const h = el.querySelector("#homeChars"); if (!h) return;
     const top = list.slice(0, 24);

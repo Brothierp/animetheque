@@ -7,22 +7,23 @@ import { toast } from "./toast.js";
 export const STATUSES = { plan: "Je veux regarder", watching: "En cours", watched: "Regardé", dropped: "Abandonné" };
 export const STATUS_SHORT = { plan: "À voir", watching: "En cours", watched: "Vu", dropped: "Abandonné" };
 
-export const ME = { user: null, profile: null, entries: new Map(), lists: {}, ready: false, loading: false };
+export const ME = { user: null, profile: null, entries: new Map(), lists: {}, favChars: new Map(), ready: false, loading: false };
+export { FEATURES } from "./store.js";
 
 const listeners = new Set();
 export const onChange = fn => { listeners.add(fn); return () => listeners.delete(fn); };
 const emit = (what, id) => listeners.forEach(fn => { try { fn(what, id); } catch (e) { console.error(e); } });
 
 export const ent = id => ME.entries.get(id) || EMPTY;
-const EMPTY = Object.freeze({ f: false, r: 0, c: "", s: "", t: 0, l: {} });
-export const isEmpty = e => !e.f && !e.r && !e.c && !e.s && !Object.values(e.l || {}).some(Boolean);
+const EMPTY = Object.freeze({ f: false, r: 0, c: "", s: "", p: 0, t: 0, l: {} });
+export const isEmpty = e => !e.f && !e.r && !e.c && !e.s && !e.p && !Object.values(e.l || {}).some(Boolean);
 export const inCollection = id => !isEmpty(ent(id));
 export const adultAllowed = () => !!(ME.user && ME.profile && isAdultYear(ME.profile.birth_year));
 export const sortedLists = () => Object.entries(ME.lists).filter(([, v]) => v && v.n).sort((a, b) => a[1].t - b[1].t);
 export const listItems = lid => [...ME.entries.entries()].filter(([, e]) => e.l[lid]).sort((a, b) => b[1].t - a[1].t).map(([id]) => id);
 
 function local(id) {
-  if (!ME.entries.has(id)) ME.entries.set(id, { f: false, r: 0, c: "", s: "", t: 0, l: {} });
+  if (!ME.entries.has(id)) ME.entries.set(id, { f: false, r: 0, c: "", s: "", p: 0, t: 0, l: {} });
   return ME.entries.get(id);
 }
 function prune(id) { const e = ME.entries.get(id); if (e && isEmpty(e)) ME.entries.delete(id); }
@@ -53,11 +54,49 @@ export function setEntry(id, patch) {
   if (!requireUser() || !ME.ready) return;
   const e = local(id);
   Object.assign(e, patch, { t: Date.now() });
-  const snap = { f: e.f, r: e.r, c: e.c, s: e.s };
+  const snap = { f: e.f, r: e.r, c: e.c, s: e.s, p: e.p };
   prune(id); emit("entry", id);
   const uid = ME.user.id;
   return enqueue(id, () => store.saveEntry(uid, id, snap)).catch(fail);
 }
+/**
+ * Épisodes vus. Passe automatiquement en « En cours » au premier épisode et en « Regardé » au dernier.
+ * Renvoie le statut appliqué automatiquement (ou "").
+ */
+export function setProgress(id, n, total) {
+  if (!requireUser() || !ME.ready || !FEATURES_REF.progress) return "";
+  n = Math.max(0, Math.min(total || 5000, Math.round(n)));
+  const cur = ent(id), patch = { p: n };
+  let auto = "";
+  if (total && n >= total && cur.s !== "watched") { patch.s = "watched"; auto = "watched"; }
+  else if (n > 0 && (!cur.s || cur.s === "plan")) { patch.s = "watching"; auto = "watching"; }
+  setEntry(id, patch);
+  return auto;
+}
+export async function toggleFavChar(cid) {
+  if (!requireUser() || !ME.ready) return;
+  if (!FEATURES_REF.favChars) { toast("Les personnages favoris seront disponibles après la mise à jour de la base de données."); return; }
+  const on = !ME.favChars.has(cid);
+  if (on) ME.favChars.set(cid, Date.now()); else ME.favChars.delete(cid);
+  emit("favchar", cid);
+  try { await store.setFavChar(ME.user.id, cid, on); }
+  catch (err) { fail(err); }
+  return on;
+}
+/** Import en masse (MyAnimeList / AniList). items = [{ id, f, r, c, s, p }] ; fusion avec la collection existante. */
+export async function importEntries(items, onProgress) {
+  if (!requireUser() || !ME.ready) return 0;
+  const merged = items.map(it => {
+    const e = ent(it.id);
+    return { id: it.id, f: e.f || !!it.f, r: it.r || e.r || 0, c: e.c || it.c || "", s: it.s || e.s || "", p: Math.max(e.p || 0, it.p || 0) };
+  });
+  await store.bulkUpsertEntries(ME.user.id, merged, onProgress);
+  for (const m of merged) Object.assign(local(m.id), { f: m.f, r: m.r, c: m.c, s: m.s, p: m.p, t: Date.now() });
+  emit("collection");
+  return merged.length;
+}
+const FEATURES_REF = store.FEATURES;
+
 export function setInList(id, lid, on) {
   if (!requireUser() || !ME.ready) return;
   const e = local(id);
@@ -113,7 +152,7 @@ async function reload() {
   try {
     const [col, profile] = await Promise.all([store.loadCollection(), loadProfile()]);
     if (!ME.user || ME.user.id !== uid) return;
-    ME.entries = col.entries; ME.lists = col.lists; ME.profile = profile; ME.ready = true;
+    ME.entries = col.entries; ME.lists = col.lists; ME.favChars = col.favChars; ME.profile = profile; ME.ready = true;
     emit("collection");
     if (first) emit("profile-loaded");
   } catch (err) {
@@ -124,7 +163,7 @@ async function reload() {
 function onSession(session) {
   const user = session ? session.user : null;
   if (user && ME.user && ME.user.id === user.id) { ME.user = user; return; } // simple rafraîchissement de jeton
-  ME.user = user; ME.profile = null; ME.entries = new Map(); ME.lists = {}; ME.ready = false;
+  ME.user = user; ME.profile = null; ME.entries = new Map(); ME.lists = {}; ME.favChars = new Map(); ME.ready = false;
   emit("session");
   if (user) reload();
 }
