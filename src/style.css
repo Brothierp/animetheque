@@ -556,3 +556,13 @@ dialog#auth > .hint { margin: 0 0 16px }
 .o-done { font-style: normal; color: var(--st-watched); font-weight: 700 }
 .o-st { font: 700 11px var(--body); font-style: normal; padding: 1px 7px; border-radius: 5px; color: #120d1f }
 .o-extra { margin-top: 8px } .o-extra summary { cursor: pointer; color: var(--violet); font-size: 13px; margin-bottom: 8px }
+
+/* Bienvenue */
+.welcome { position: relative; margin-top: 20px; padding: 18px 20px; border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 14px; background: linear-gradient(180deg, var(--panel-2), var(--panel)) }
+.welcome h2 { font-size: 18px; margin-bottom: 12px }
+.welcome .x { position: absolute; top: 8px; right: 8px }
+.w-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px }
+.w-grid div { display: grid; gap: 3px; font-size: 13px; color: var(--muted) } .w-grid b { color: var(--ink) }
+.w-grid kbd { font: 11px var(--mono); border: 1px solid var(--line); border-radius: 4px; padding: 0 4px }
+@media (max-width: 900px) { .w-grid { grid-template-columns: 1fr 1fr } }
+@media (max-width: 520px) { .w-grid { grid-template-columns: 1fr } }

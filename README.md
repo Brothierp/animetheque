@@ -166,3 +166,22 @@ AniList n'a que 19 genres. Les autres « genres » du catalogue (Boys' Love, Yur
 des étiquettes votées par la communauté, avec un score de pertinence. Un titre n'a ce genre que si l'étiquette atteint
 **60 %** (**70 %** si elle est marquée comme spoiler). Pour mettre à jour : `scripts/genres_tags_fetch.py` puis
 `scripts/genres_fix.py` (voir l'en-tête du script).
+
+## Fonctions
+
+- **Accueil** : à la une, Reprendre (+1 épisode), La suite de tes séries, recommandations (une par franchise, hors
+  franchises déjà connues), rangées thématiques, personnages les plus aimés, genres. Guide de bienvenue masquable.
+- **Catalogue** : grille, genres, panneau de filtres, tri, « Regrouper les saisons » (un titre par franchise).
+- **Fiche d'animé** : où regarder, statut / étoiles / ♥ / épisodes vus / avis / listes, ordre de visionnage
+  (`public/franchises.json`, construit par `scripts/relations_fetch.py` puis `scripts/franchises_build.py`),
+  synopsis (`public/dshards/`, voir `scripts/split_desc.py`), personnages, titres similaires.
+- **Personnages**, **Calendrier** (AniList en direct), **Ma collection** (onglets, statistiques, personnages favoris,
+  tirage au sort), **Mes listes**, **Mon compte** (profil, import MyAnimeList / AniList, export JSON, suppression).
+- **Recherche unifiée** (animés + personnages, flèches et Entrée), **installation sur téléphone** (`manifest.webmanifest`,
+  `sw.js` : pages réseau d'abord, affiches et code en cache).
+
+## Ce qui reste à faire de ton côté
+
+- **E-mails** : brancher un service SMTP (Resend, Brevo…) dans Supabase → Authentication → Emails, sinon les e-mails
+  de confirmation sont limités à quelques-uns par heure.
+- **Mentions légales** : page obligatoire en France (identité de l'éditeur, hébergeur Vercel).

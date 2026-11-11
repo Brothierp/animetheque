@@ -39,7 +39,8 @@ function nextUp(n = 20) {
   for (const [id] of byRecent) {
     const f = FRANCHISE.get(id); if (!f || done.has(f.list)) continue;
     done.add(f.list);
-    const main = f.list.filter(x => x.k === 0).map(x => x.a);
+    // suite = série, film ou ONA de la ligne principale (pas les OAV préquelles ni les spéciaux)
+    const main = f.list.filter(x => x.k === 0 && ["TV", "TV_SHORT", "MOVIE", "ONA"].includes(T.format[x.a.format])).map(x => x.a);
     let last = -1; main.forEach((a, i) => { const e = ME.entries.get(a.id); if (e && e.s === "watched") last = i; });
     const next = main.slice(last + 1).find(a => { const e = ME.entries.get(a.id); return !(e && e.s) && !a.adult; });
     if (next) out.push(next);
@@ -82,6 +83,19 @@ function genreTiles() {
     <div class="gtiles">${order.map(i => `<a class="gtile" href="#/catalogue?genre=${encodeURIComponent(T.genres[i])}"><span class="gt-bg" style="${coverStyle(sample[i])}"></span><b>${esc(tr("genres", T.genres[i]))}</b><small>${fmt(counts[i])} titres</small></a>`).join("")}</div></section>`;
 }
 
+/** Guide de bienvenue (une fois, masquable). */
+const TIP_KEY = "animetheque:welcome-done";
+function welcome() {
+  try { if (localStorage.getItem(TIP_KEY)) return ""; } catch { return ""; }
+  return `<section class="welcome" id="welcome"><button type="button" class="x" data-close-welcome aria-label="Masquer">×</button>
+    <h2>Bienvenue sur l'Animéthèque 👋</h2>
+    <div class="w-grid">
+      <div><b>⌕ Cherche</b><span>un animé ou un personnage dans la barre du haut (raccourci <kbd>/</kbd>).</span></div>
+      <div><b>♡ Coup de cœur</b><span>et <b>+</b> sur chaque affiche : statut (à voir, en cours, vu…) et listes, en un clic.</span></div>
+      <div><b>+1</b><span>sur tes séries en cours à chaque épisode vu : la suite et les recommandations s'adaptent.</span></div>
+      <div><b>📅 Calendrier</b><span>les épisodes de la semaine ; <b>Importer</b> ta liste MyAnimeList ou AniList depuis « Mon compte ».</span></div>
+    </div></section>`;
+}
 export function render(el) {
   root = el;
   if (!featured) featured = pickFeatured();
@@ -91,7 +105,7 @@ export function render(el) {
   const best = onePerFranchise(A.filter(a => safe(a) && a.rank < 2500 && a.score).sort((a, b) => b.score - a.score), 20);
   const gems = onePerFranchise(A.filter(a => safe(a) && a.rank >= 1500 && a.rank < 8000 && a.score >= 78 && a.status !== UP).sort((a, b) => b.score - a.score), 20);
   const soon = A.filter(a => safe(a) && a.status === UP).slice(0, 20);
-  el.innerHTML = `<div class="page home">${hero(featured)}<div id="personal"></div>
+  el.innerHTML = `<div class="page home">${hero(featured)}${welcome()}<div id="personal"></div>
     ${row("En ce moment", airing, "#/catalogue?status=RELEASING", "Les séries en cours de diffusion")}
     ${row("Les plus populaires", top(20), "#/catalogue?sort=pop")}
     ${row("Les mieux notés", best, "#/catalogue?sort=score")}
@@ -100,6 +114,8 @@ export function render(el) {
     <div id="homeChars"></div>
     ${genreTiles()}
   </div>`;
+  const w = el.querySelector("[data-close-welcome]");
+  if (w) w.addEventListener("click", () => { try { localStorage.setItem(TIP_KEY, "1"); } catch {} el.querySelector("#welcome").remove(); });
   renderPersonal();
   if (featured.desc == null) loadDesc(featured).then(t => { const h = el.querySelector("#heroSyn"); if (h) h.textContent = t.slice(0, 260) + (t.length > 260 ? "…" : ""); }).catch(() => {});
   loadTopCharacters().then(list => {
