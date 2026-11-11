@@ -48,8 +48,9 @@
       <div class="hint">Déduit des plateformes de streaming légales qui diffusent le titre.</div>
     </div>
     <div class="fgroup">
-      <label class="adult"><input type="checkbox" id="adult"> Uniquement le contenu adulte (18+)</label>
+      <label class="adult"><input type="checkbox" id="adult" disabled> Uniquement le contenu adulte (18+)</label>
       <div class="hint" id="adultHint">Masqué par défaut.</div>
+      <button type="button" class="linkbtn" id="adultAction" hidden></button>
       <label class="adult"><input type="checkbox" id="upcoming"> Voir les animés à venir</label>
       <div class="hint" id="upcomingHint">Masqués par défaut.</div>
     </div>
@@ -156,6 +157,8 @@
     <form id="authForm" class="authform" novalidate>
       <label>E-mail <input type="email" name="email" autocomplete="email" required></label>
       <label>Mot de passe <input type="password" name="password" autocomplete="current-password" minlength="8" required></label>
+      <label id="birthField" hidden>Année de naissance <input type="number" name="birth" inputmode="numeric" min="1900" placeholder="ex. 1998" autocomplete="bday-year">
+        <small>Sert uniquement à réserver le contenu adulte aux majeurs. Elle ne pourra plus être modifiée.</small></label>
       <button type="submit" class="btn primary" id="authSubmit">Se connecter</button>
       <button type="button" class="linkbtn" id="forgot">Mot de passe oublié ?</button>
     </form>
@@ -165,6 +168,13 @@
     <label>E-mail du compte <input type="email" name="email" autocomplete="email" required></label>
     <button type="submit" class="btn primary">Recevoir un lien de réinitialisation</button>
     <button type="button" class="linkbtn" id="backToLogin">Retour à la connexion</button>
+  </form>
+
+  <form id="birthForm" class="authform" hidden novalidate>
+    <p class="hint">Indique ton année de naissance. Elle sert uniquement à réserver le contenu adulte (18+) aux majeurs et ne pourra plus être modifiée.</p>
+    <label>Année de naissance <input type="number" name="birth" inputmode="numeric" min="1900" placeholder="ex. 1998" autocomplete="bday-year" required></label>
+    <button type="submit" class="btn primary">Enregistrer</button>
+    <button type="button" class="linkbtn" id="birthLater">Plus tard</button>
   </form>
 
   <form id="newPwdForm" class="authform" hidden novalidate>

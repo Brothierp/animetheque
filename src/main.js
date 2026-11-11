@@ -43,7 +43,7 @@ function init(d) {
   A.forEach((a, i) => a.rank = i);
   $("dbsize").textContent = A.length.toLocaleString("fr-FR") + " titres";
   const nA = A.filter(a => a.adult).length;
-  $("adultHint").textContent = `${nA.toLocaleString("fr-FR")} titres réservés aux adultes. Case cochée, seuls ces titres s'affichent.`;
+  adultCount = nA; updateAdultUI();
   UP = T.status.indexOf("NOT_YET_RELEASED");
   const nU = A.filter(a => a.status === UP).length;
   $("upcomingHint").textContent = `${nU.toLocaleString("fr-FR")} titres pas encore sortis, masqués par défaut.`;
@@ -111,7 +111,7 @@ function buildFilters() {
   $("score").addEventListener("input", e => { S.score = +e.target.value; $("scoreVal").textContent = S.score ? "≥ " + S.score + " / 100" : "toutes"; apply(); });
   $("studio").addEventListener("input", e => { S.studio = norm(e.target.value); apply(); });
   $("sort").addEventListener("change", e => { S.sort = e.target.value; apply(); });
-  $("adult").addEventListener("change", e => { S.adult = e.target.checked; apply(); });
+  $("adult").addEventListener("change", e => { S.adult = e.target.checked && adultAllowed(); e.target.checked = S.adult; apply(); });
   $("upcoming").addEventListener("change", e => { S.upcoming = e.target.checked; apply(); });
   document.querySelectorAll("[data-clear]").forEach(b => b.addEventListener("click", () => {
     const k = b.dataset.clear;
@@ -243,7 +243,30 @@ function render(reset) {
 
 // ===== Ma collection : données privées de chaque utilisateur connecté (Supabase + RLS) =====
 const STATUSES = { watched: "Regardé", watching: "En cours", plan: "Je veux regarder", dropped: "Abandonné" };
-const ME = { user: null, entries: new Map(), lists: {}, ready: false, loading: false, open: null };
+const ME = { user: null, entries: new Map(), lists: {}, ready: false, loading: false, open: null, birthYear: undefined };
+
+// ===== Contenu adulte : réservé aux comptes majeurs (d'après l'année de naissance) =====
+// Avec la seule année, on ne connaît pas la date d'anniversaire : par prudence, on considère la personne
+// majeure à partir de l'année de ses 19 ans (elle a alors 18 ans révolus quel que soit son jour de naissance).
+let adultCount = 0;
+const adultAllowed = () => !!(ME.user && ME.birthYear && new Date().getFullYear() - ME.birthYear > 18);
+function updateAdultUI() {
+  const ok = adultAllowed(), n = adultCount.toLocaleString("fr-FR"), act = $("adultAction");
+  $("adult").disabled = !ok;
+  if (!ok && S.adult) { S.adult = false; $("adult").checked = false; if (T) apply(); }
+  act.hidden = true;
+  if (ok) $("adultHint").textContent = `${n} titres réservés aux adultes. Case cochée, seuls ces titres s'affichent.`;
+  else if (!supabase) $("adultHint").textContent = `${n} titres réservés aux adultes, accessibles uniquement avec un compte majeur.`;
+  else if (!ME.user) { $("adultHint").textContent = `${n} titres réservés aux adultes : connecte-toi avec un compte majeur pour y accéder.`; act.textContent = "Se connecter"; act.hidden = false; }
+  else if (ME.birthYear === undefined) $("adultHint").textContent = "Vérification de ton âge…";
+  else if (ME.birthYear === null) { $("adultHint").textContent = "Réservé aux majeurs : indique ton année de naissance pour y accéder."; act.textContent = "Indiquer mon année de naissance"; act.hidden = false; }
+  else $("adultHint").textContent = "Contenu réservé aux personnes majeures.";
+}
+async function onBirthYear(y) {
+  await store.saveBirthYear(ME.user.id, y);
+  ME.birthYear = y; updateAdultUI();
+  toast(adultAllowed() ? "Année enregistrée : le contenu 18+ est accessible." : "Année enregistrée.");
+}
 const ent = id => ME.entries.get(id) || {};
 const isEmpty = e => !e.f && !e.r && !e.c && !e.s && !Object.values(e.l || {}).some(Boolean);
 function inCol(id, col) {
@@ -419,8 +442,11 @@ async function reloadCollection() {
   const uid = ME.user.id;
   ME.loading = true;
   try {
-    const data = await store.loadCollection();
+    const [data, birthYear] = await Promise.all([store.loadCollection(), store.loadBirthYear()]);
     if (!ME.user || ME.user.id !== uid) return; // déconnecté entre-temps
+    const askBirth = ME.birthYear === undefined && birthYear === null;
+    ME.birthYear = birthYear; updateAdultUI();
+    if (askBirth && !$("auth").open) openAuth("birth"); // ex. première connexion avec Google
     ME.entries = data.entries; ME.lists = data.lists; ME.ready = true;
     $("col").disabled = false; $("listAdmin").hidden = false;
     $("colHint").textContent = "Tes coups de cœur, notes et listes sont privés : personne d'autre ne les voit.";
@@ -434,7 +460,8 @@ async function reloadCollection() {
 function onSession(session) {
   const user = session ? session.user : null;
   if (user && ME.user && ME.user.id === user.id) { ME.user = user; return; } // simple rafraîchissement de jeton
-  ME.user = user; ME.ready = false; ME.entries = new Map(); ME.lists = {}; ME.open = null;
+  ME.user = user; ME.ready = false; ME.entries = new Map(); ME.lists = {}; ME.open = null; ME.birthYear = undefined;
+  updateAdultUI();
   if (!user) {
     setSignedOutUI();
     if (S.col !== "all") { S.col = "all"; apply(); } else refreshAllCards();
@@ -449,7 +476,8 @@ function onSession(session) {
 
 setSignedOutUI();
 if (supabase) {
-  initAuth();
+  initAuth({ onBirthYear });
+  $("adultAction").addEventListener("click", () => openAuth(ME.user ? "birth" : "main"));
   $("signIn").addEventListener("click", () => openAuth());
   $("colSignIn").addEventListener("click", () => openAuth());
   $("signOut").addEventListener("click", async () => { await signOut(); toast("Déconnecté"); });

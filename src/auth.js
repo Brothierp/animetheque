@@ -4,6 +4,13 @@ import { supabase } from "./supabase.js";
 const $ = id => document.getElementById(id);
 const dlg = $("auth");
 let mode = "signin";
+let hooks = {};
+
+/** Vérifie une année de naissance saisie ; renvoie l'année ou null. */
+export function parseBirthYear(v) {
+  const y = Number(String(v).trim());
+  return Number.isInteger(y) && y >= 1900 && y <= new Date().getFullYear() ? y : null;
+}
 
 const ERRORS = [
   [/invalid login credentials/i, "E-mail ou mot de passe incorrect."],
@@ -32,7 +39,8 @@ function show(view) {
   $("authMain").hidden = view !== "main";
   $("resetForm").hidden = view !== "reset";
   $("newPwdForm").hidden = view !== "newpwd";
-  $("authTitle").textContent = { main: mode === "signup" ? "Créer un compte" : "Connexion", reset: "Mot de passe oublié", newpwd: "Nouveau mot de passe" }[view];
+  $("birthForm").hidden = view !== "birth";
+  $("authTitle").textContent = { main: mode === "signup" ? "Créer un compte" : "Connexion", reset: "Mot de passe oublié", newpwd: "Nouveau mot de passe", birth: "Ton année de naissance" }[view];
   $("authLead").hidden = view !== "main";
   msg("");
 }
@@ -42,6 +50,7 @@ function setMode(m) {
   $("authSubmit").textContent = m === "signup" ? "Créer mon compte" : "Se connecter";
   $("authForm").elements.password.autocomplete = m === "signup" ? "new-password" : "current-password";
   $("forgot").hidden = m === "signup";
+  $("birthField").hidden = m !== "signup";
   show("main");
 }
 async function busy(form, fn) {
@@ -56,8 +65,9 @@ export function openAuth(view = "main") {
   if (!dlg.open) dlg.showModal();
 }
 
-export function initAuth() {
+export function initAuth(h = {}) {
   if (!supabase) return;
+  hooks = h;
   dlg.addEventListener("click", e => { if (e.target === dlg) dlg.close(); }); // clic sur le fond
   document.querySelectorAll("#auth .tabs button").forEach(b => b.addEventListener("click", () => setMode(b.dataset.mode)));
   $("forgot").addEventListener("click", () => {
@@ -77,9 +87,11 @@ export function initAuth() {
     const f = e.target, email = f.elements.email.value.trim(), password = f.elements.password.value;
     if (!email || !f.elements.email.checkValidity()) return msg("Saisis une adresse e-mail valide.");
     if (password.length < 8) return msg("Le mot de passe doit contenir au moins 8 caractères.");
+    const birth = mode === "signup" ? parseBirthYear(f.elements.birth.value) : null;
+    if (mode === "signup" && !birth) return msg("Indique ton année de naissance (4 chiffres, ex. 1998).");
     busy(f, async () => {
       if (mode === "signup") {
-        const { data, error } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo: location.origin + location.pathname } });
+        const { data, error } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo: location.origin + location.pathname, data: { birth_year: birth } } });
         if (error) return msg(frError(error));
         // Supabase ne signale pas les e-mails déjà inscrits (protection contre l'énumération) : identities est alors vide.
         if (data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0)
@@ -116,6 +128,17 @@ export function initAuth() {
       f.reset();
       msg("Mot de passe mis à jour. Tu es connecté.", true);
       setTimeout(() => dlg.close(), 1500);
+    });
+  });
+
+  $("birthLater").addEventListener("click", () => dlg.close());
+  $("birthForm").addEventListener("submit", e => {
+    e.preventDefault();
+    const f = e.target, y = parseBirthYear(f.elements.birth.value);
+    if (!y) return msg("Indique une année valide (4 chiffres, ex. 1998).");
+    busy(f, async () => {
+      try { await hooks.onBirthYear(y); f.reset(); dlg.close(); }
+      catch (err) { console.error(err); msg("L'enregistrement a échoué. Réessaie dans un instant."); }
     });
   });
 

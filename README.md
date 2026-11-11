@@ -34,7 +34,10 @@ Recherche par titre (japonais, anglais, français, synonymes), disponibilité FR
 dont **Isekai** et **Boys' Love (BL / Yaoi)**), personnage, thèmes, format, statut, année et saison, nombre d'épisodes, durée,
 note minimale, studio, œuvre d'origine, pays.
 
-- Contenu **18+** : masqué par défaut ; case cochée, **seuls** les titres adultes s'affichent. Leurs liens pointent vers
+- Contenu **18+** : masqué par défaut et réservé aux comptes majeurs. L'année de naissance est demandée à l'inscription
+  (ou après la première connexion Google), une seule fois, sans modification possible. Elle est stockée dans `profiles`
+  et la majorité est recalculée chaque année. L'accès est ouvert à partir de l'année des 19 ans, par prudence,
+  puisque le jour de naissance n'est pas connu. Case cochée, **seuls** les titres adultes s'affichent. Leurs liens pointent vers
   **MyAnimeList** (AniList affiche une page 404 aux visiteurs non connectés pour ces titres).
 - Animés **à venir** : masqués par défaut.
 
@@ -44,8 +47,8 @@ note minimale, studio, œuvre d'origine, pays.
 
 1. Crée un projet sur [supabase.com](https://supabase.com).
 2. **SQL Editor** → colle et exécute, dans l'ordre, les fichiers de `supabase/migrations/` :
-   `20261111000000_collection.sql` (tables + RLS) puis `20261111010000_delete_account.sql`
-   (bouton « Supprimer mon compte »). Ou `supabase link` puis `supabase db push` avec la CLI.
+   `20261111000000_collection.sql` (tables + RLS), `20261111010000_delete_account.sql`
+   (bouton « Supprimer mon compte ») et `20261111020000_profiles_birth_year.sql` (année de naissance, contrôle 18+). Ou `supabase link` puis `supabase db push` avec la CLI.
    Les scripts peuvent être relancés sans risque.
 3. **Authentication → Sign In / Providers**
    - *Email* : activé. Garde « Confirm email » activé (recommandé). Règle la longueur minimale du mot de passe à 8.
