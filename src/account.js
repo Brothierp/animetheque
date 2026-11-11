@@ -260,7 +260,10 @@ async function onSession(session) {
   ME.user = user;
   if (!user) {
     $("content").hidden = true; $("loading").hidden = true; $("gate").hidden = false;
-    $("me").hidden = true; $("signOut").hidden = true; return;
+    $("me").hidden = true; $("signOut").hidden = true;
+    ME.profile = null; ME.entries = new Map(); ME.lists = {};
+    if (!isAuthOpen()) openAuth(); // déconnecté : on propose directement la connexion / création de compte
+    return;
   }
   $("gate").hidden = true; $("loading").hidden = false; $("signOut").hidden = false;
   try {
