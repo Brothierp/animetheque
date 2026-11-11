@@ -453,6 +453,14 @@ if (supabase) {
   $("signIn").addEventListener("click", () => openAuth());
   $("colSignIn").addEventListener("click", () => openAuth());
   $("signOut").addEventListener("click", async () => { await signOut(); toast("Déconnecté"); });
+  $("deleteAccount").addEventListener("click", async () => {
+    if (!ME.user) return;
+    if (!confirm("Supprimer définitivement ton compte ?\n\nTon e-mail, tes coups de cœur, notes, commentaires, statuts et listes seront effacés. Cette action est irréversible.")) return;
+    const { error } = await supabase.rpc("delete_my_account");
+    if (error) { console.error(error); toast("La suppression a échoué. Réessaie dans un instant."); return; }
+    await supabase.auth.signOut({ scope: "local" });
+    toast("Ton compte et toutes tes données ont été supprimés.");
+  });
   // Ne pas appeler Supabase directement dans ce rappel (verrou interne) : on diffère.
   supabase.auth.onAuthStateChange((event, session) => { setTimeout(() => onSession(session), 0); });
   // Les erreurs de connexion OAuth reviennent dans l'URL.

@@ -19,6 +19,8 @@ src/auth.js                    fenêtre de connexion (e-mail, Google, mot de pas
 src/store.js                   lecture / écriture de la collection dans Supabase
 src/supabase.js                client Supabase (variables VITE_SUPABASE_*)
 src/style.css                  thème violet sombre
+public/confidentialite.html    politique de confidentialité (exigée par Google pour la connexion Google)
+public/conditions.html         conditions d'utilisation
 public/data.json               catalogue (titres, genres, tags, studios, plateformes…)
 public/chars.json              25 personnages principaux par animé
 public/covers/s*.webp          planches d'affiches (200 affiches par fichier)
@@ -41,13 +43,19 @@ note minimale, studio, œuvre d'origine, pays.
 ### 1. Supabase
 
 1. Crée un projet sur [supabase.com](https://supabase.com).
-2. **SQL Editor** → colle et exécute `supabase/migrations/20261111000000_collection.sql`
-   (ou `supabase link` puis `supabase db push` avec la CLI). Le script peut être relancé sans risque.
+2. **SQL Editor** → colle et exécute, dans l'ordre, les fichiers de `supabase/migrations/` :
+   `20261111000000_collection.sql` (tables + RLS) puis `20261111010000_delete_account.sql`
+   (bouton « Supprimer mon compte »). Ou `supabase link` puis `supabase db push` avec la CLI.
+   Les scripts peuvent être relancés sans risque.
 3. **Authentication → Sign In / Providers**
    - *Email* : activé. Garde « Confirm email » activé (recommandé). Règle la longueur minimale du mot de passe à 8.
    - *Google* : active-le et renseigne le *Client ID* et le *Client Secret* créés dans
      [Google Cloud Console](https://console.cloud.google.com/apis/credentials) (identifiant OAuth « Application Web »).
      Dans Google, ajoute comme *URI de redirection autorisé* : `https://<ton-projet>.supabase.co/auth/v1/callback`.
+     Pour publier l'application Google (sinon seuls les testeurs déclarés peuvent se connecter), remplis la page
+     *Branding* : page d'accueil `https://<ton-site>/`, règles de confidentialité `https://<ton-site>/confidentialite.html`,
+     conditions `https://<ton-site>/conditions.html`, domaine autorisé `<ton-site>`. N'ajoute pas de logo
+     (il déclenche une vérification de plusieurs jours).
 4. **Authentication → URL Configuration**
    - *Site URL* : l'adresse de production, ex. `https://animetheque.vercel.app`.
    - *Redirect URLs* : ajoute `https://animetheque.vercel.app/**`, `https://*-<ton-compte>.vercel.app/**` (aperçus Vercel)

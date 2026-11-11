@@ -37,6 +37,7 @@
       <div id="listAdmin" hidden>
         <div class="mylists" id="myLists"></div>
         <form class="newlist" id="newListForm"><input type="text" id="newList" maxlength="40" placeholder="Nouvelle liste (ex. À revoir)"><button class="btn" type="submit">Créer</button></form>
+        <button type="button" class="linkbtn danger" id="deleteAccount">Supprimer mon compte</button>
       </div>
     </div>
     <div class="fgroup">
@@ -109,6 +110,7 @@
     <div class="fgroup">
       <button class="btn" id="reset">Tout réinitialiser</button>
       <div class="note">Données : AniList. La langue exacte (VF, VOSTFR, VOSTA) n'est pas publiée par les plateformes. FR/EN indique qu'au moins une plateforme diffusant le titre propose en général cette langue, en doublage ou en sous-titres, et peut varier selon le pays.</div>
+      <div class="note legal"><a href="/confidentialite.html">Confidentialité</a> · <a href="/conditions.html">Conditions d'utilisation</a></div>
     </div>
   </aside>
 
@@ -171,6 +173,7 @@
   </form>
 
   <p class="authmsg" id="authMsg" role="alert" hidden></p>
+  <p class="legalline">En continuant, tu acceptes les <a href="/conditions.html" target="_blank">conditions d'utilisation</a> et la <a href="/confidentialite.html" target="_blank">politique de confidentialité</a>.</p>
 </dialog>
 
 <script type="module" src="/src/main.js"></script>
