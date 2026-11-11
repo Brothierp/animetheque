@@ -92,15 +92,7 @@ export async function deleteList(listId) {
   if (error) throw error;
 }
 
-/** Année de naissance de l'utilisateur connecté, ou null si elle n'a pas encore été indiquée. */
-export async function loadBirthYear() {
-  const { data, error } = await supabase.from("profiles").select("birth_year").maybeSingle();
-  if (error) throw error;
-  return data ? data.birth_year : null;
-}
-
-/** Enregistre l'année de naissance (une seule fois : elle n'est plus modifiable ensuite). */
-export async function saveBirthYear(userId, year) {
-  const { error } = await supabase.from("profiles").insert({ user_id: userId, birth_year: year });
+export async function renameList(listId, name) {
+  const { error } = await supabase.from("lists").update({ name }).eq("id", listId);
   if (error) throw error;
 }

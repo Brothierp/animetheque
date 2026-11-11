@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>Mon compte · Animéthèque</title>
+  <meta name="theme-color" content="#130f1f">
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700;900&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <a class="brand" href="/" style="color:inherit;text-decoration:none"><b>Animé<span>thèque</span></b></a>
+    <div style="flex:1"></div>
+    <div class="account">
+      <a class="me" id="me" href="/compte.html" hidden></a>
+      <button class="btn" id="signOut" hidden>Déconnexion</button>
+    </div>
+  </div>
+</header>
+
+<main class="acc">
+  <a class="back" href="/">← Retour au catalogue</a>
+  <h1>Mon compte</h1>
+
+  <div id="gate" class="card2 gate" hidden>
+    <p id="gateMsg">Connecte-toi pour voir ton compte, ton profil et tes listes.</p>
+    <button class="btn primary" id="gateSignIn">Se connecter ou créer un compte</button>
+  </div>
+  <div id="loading" class="card2 gate">Chargement de ton compte…</div>
+
+  <div id="content" hidden style="display:grid;gap:20px">
+    <!-- Identité -->
+    <section class="card2" aria-labelledby="h-id">
+      <h2 id="h-id">Profil</h2>
+      <div class="idrow">
+        <span id="bigAvatar"></span>
+        <div class="who">
+          <b id="whoName"></b>
+          <span class="hint" id="whoMail"></span>
+          <div class="avbtns">
+            <label class="btn" for="avatarFile" style="cursor:pointer">Changer l'avatar</label>
+            <input type="file" id="avatarFile" accept="image/jpeg,image/png,image/webp,image/gif" hidden>
+            <button class="btn" id="avatarRemove" hidden>Retirer l'avatar</button>
+          </div>
+          <span class="hint">JPG, PNG ou WebP. L'image est recadrée en carré et ses informations cachées (position GPS…) sont supprimées.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Informations -->
+    <section class="card2" aria-labelledby="h-info">
+      <h2 id="h-info">Informations personnelles</h2>
+      <div class="fields">
+        <div class="field">
+          <span>Pseudo</span>
+          <form id="usernameForm" novalidate>
+            <input type="text" name="username" maxlength="20" autocomplete="username" spellcheck="false" placeholder="ex. Frieren_fan">
+            <button class="btn primary" type="submit">Enregistrer</button>
+          </form>
+          <small class="ustate" id="usernameState">3 à 20 caractères : lettres, chiffres, _ . -</small>
+        </div>
+        <div class="field"><span>E-mail</span><div class="val" id="fEmail"></div></div>
+        <div class="field"><span>Connexion</span><div class="val" id="fProvider"></div></div>
+        <div class="field">
+          <span>Année de naissance</span>
+          <div class="val" id="fBirth"></div>
+          <form id="birthForm" novalidate hidden>
+            <input type="number" name="birth" inputmode="numeric" min="1900" placeholder="ex. 1998">
+            <button class="btn primary" type="submit">Enregistrer</button>
+          </form>
+          <small>Sert uniquement à réserver le contenu adulte (18+) aux majeurs. Elle ne peut être saisie qu'une fois.</small>
+        </div>
+        <div class="field" id="pwdField" hidden>
+          <span>Mot de passe</span>
+          <form id="pwdForm" novalidate>
+            <input type="password" name="password" autocomplete="new-password" minlength="8" placeholder="Nouveau mot de passe (8 caractères min.)">
+            <button class="btn" type="submit">Modifier</button>
+          </form>
+        </div>
+        <div class="field"><span>Membre depuis</span><div class="val" id="fSince"></div></div>
+      </div>
+    </section>
+
+    <!-- Statistiques -->
+    <section class="card2" aria-labelledby="h-col">
+      <h2 id="h-col">Ma collection</h2>
+      <div class="stats" id="stats"></div>
+    </section>
+
+    <!-- Listes -->
+    <section class="card2" aria-labelledby="h-lists">
+      <h2 id="h-lists">Mes listes</h2>
+      <form class="newlist" id="newListForm"><input type="text" id="newList" maxlength="40" placeholder="Nouvelle liste (ex. À revoir, Classiques…)"><button class="btn primary" type="submit">Créer la liste</button></form>
+      <div id="lists"></div>
+      <datalist id="animeSuggest"></datalist>
+    </section>
+
+    <!-- Suppression -->
+    <section class="card2 danger-zone" aria-labelledby="h-del">
+      <h2 id="h-del">Supprimer mon compte</h2>
+      <p class="hint" style="margin-top:0">Ton compte, ton profil, ton avatar, tes coups de cœur, notes, commentaires, statuts et listes seront effacés immédiatement et définitivement.</p>
+      <form id="deleteForm" class="newlist" novalidate>
+        <input type="text" name="confirm" autocomplete="off" placeholder="Tape SUPPRIMER pour confirmer">
+        <button class="btn danger" type="submit">Supprimer mon compte</button>
+      </form>
+    </section>
+  </div>
+</main>
+
+<div class="toast" id="toast" role="status" hidden></div>
+<script type="module" src="/src/account.js"></script>
+</body>
+</html>

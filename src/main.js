@@ -1,6 +1,7 @@
 import "./style.css";
 import { supabase } from "./supabase.js";
-import { initAuth, openAuth, signOut, displayName } from "./auth.js";
+import { initAuth, openAuth, isAuthOpen, signOut } from "./auth.js";
+import { loadProfile, saveProfile, displayName, avatarUrl, avatarHTML, isAdultYear, profileErrorMessage } from "./profile.js";
 import * as store from "./store.js";
 
 const FR = {
@@ -243,13 +244,13 @@ function render(reset) {
 
 // ===== Ma collection : données privées de chaque utilisateur connecté (Supabase + RLS) =====
 const STATUSES = { watched: "Regardé", watching: "En cours", plan: "Je veux regarder", dropped: "Abandonné" };
-const ME = { user: null, entries: new Map(), lists: {}, ready: false, loading: false, open: null, birthYear: undefined };
+const ME = { user: null, entries: new Map(), lists: {}, ready: false, loading: false, open: null, birthYear: undefined, profile: null };
 
 // ===== Contenu adulte : réservé aux comptes majeurs (d'après l'année de naissance) =====
 // Avec la seule année, on ne connaît pas la date d'anniversaire : par prudence, on considère la personne
 // majeure à partir de l'année de ses 19 ans (elle a alors 18 ans révolus quel que soit son jour de naissance).
 let adultCount = 0;
-const adultAllowed = () => !!(ME.user && ME.birthYear && new Date().getFullYear() - ME.birthYear > 18);
+const adultAllowed = () => !!(ME.user && isAdultYear(ME.birthYear));
 function updateAdultUI() {
   const ok = adultAllowed(), n = adultCount.toLocaleString("fr-FR"), act = $("adultAction");
   $("adult").disabled = !ok;
@@ -262,10 +263,26 @@ function updateAdultUI() {
   else if (ME.birthYear === null) { $("adultHint").textContent = "Réservé aux majeurs : indique ton année de naissance pour y accéder."; act.textContent = "Indiquer mon année de naissance"; act.hidden = false; }
   else $("adultHint").textContent = "Contenu réservé aux personnes majeures.";
 }
-async function onBirthYear(y) {
-  await store.saveBirthYear(ME.user.id, y);
-  ME.birthYear = y; updateAdultUI();
-  toast(adultAllowed() ? "Année enregistrée : le contenu 18+ est accessible." : "Année enregistrée.");
+async function onCompleteProfile(patch) {
+  await saveProfile(ME.user.id, patch, !ME.profile.missing);
+  ME.profile = { ...ME.profile, ...patch, missing: false };
+  if (patch.birth_year) { ME.birthYear = patch.birth_year; updateAdultUI(); }
+  renderMe();
+  toast(patch.birth_year && adultAllowed() ? "Profil enregistré : le contenu 18+ est accessible." : "Profil enregistré.");
+}
+async function renderMe() {
+  const u = ME.user; if (!u) return;
+  const name = displayName(u, ME.profile);
+  $("me").innerHTML = avatarHTML(null, name) + `<span>${esc(name)}</span>`;
+  $("me").hidden = false;
+  const url = await avatarUrl(u, ME.profile);
+  if (url && ME.user && ME.user.id === u.id) $("me").innerHTML = avatarHTML(url, name) + `<span>${esc(name)}</span>`;
+}
+function askMissingProfile() {
+  const p = ME.profile;
+  if (!p || isAuthOpen()) return;
+  const needUsername = !p.username, needBirth = !p.birth_year;
+  if (needUsername || needBirth) openAuth("profile", { needUsername, needBirth });
 }
 const ent = id => ME.entries.get(id) || {};
 const isEmpty = e => !e.f && !e.r && !e.c && !e.s && !Object.values(e.l || {}).some(Boolean);
@@ -318,7 +335,9 @@ const queues = {};
 function enqueue(key, fn) { const p = (queues[key] || Promise.resolve()).then(fn); queues[key] = p.catch(() => {}); return p; }
 function onWriteError(err) {
   console.error(err);
-  if (err && /list_limit_reached/.test(err.message || "")) toast("50 listes maximum.");
+  const pm = profileErrorMessage(err);
+  if (pm && !/23505/.test(err.code || "")) toast(pm);
+  else if (err && /list_limit_reached/.test(err.message || "")) toast("50 listes maximum.");
   else if (err && err.code === "23505") toast("Tu as déjà une liste de ce nom.");
   else if (err && (err.status === 401 || /JWT/i.test(err.message || ""))) { toast("Ta session a expiré : reconnecte-toi."); openAuth(); }
   else toast("L'enregistrement a échoué. Réessaie dans un instant.");
@@ -442,15 +461,19 @@ async function reloadCollection() {
   const uid = ME.user.id;
   ME.loading = true;
   try {
-    const [data, birthYear] = await Promise.all([store.loadCollection(), store.loadBirthYear()]);
+    const first = ME.profile === null;
+    const [data, profile] = await Promise.all([store.loadCollection(), loadProfile()]);
     if (!ME.user || ME.user.id !== uid) return; // déconnecté entre-temps
-    const askBirth = ME.birthYear === undefined && birthYear === null;
-    ME.birthYear = birthYear; updateAdultUI();
-    if (askBirth && !$("auth").open) openAuth("birth"); // ex. première connexion avec Google
+    ME.profile = profile; ME.birthYear = profile.birth_year; updateAdultUI(); renderMe();
+    if (first) askMissingProfile(); // ex. première connexion avec Google
     ME.entries = data.entries; ME.lists = data.lists; ME.ready = true;
     $("col").disabled = false; $("listAdmin").hidden = false;
     $("colHint").textContent = "Tes coups de cœur, notes et listes sont privés : personne d'autre ne les voit.";
     renderListAdmin();
+    if (pendingCol && (pendingCol === "any" || pendingCol === "fav" || pendingCol === "rated" || pendingCol.startsWith("s:") || ME.lists[pendingCol.slice(2)])) {
+      S.col = pendingCol; updateColCounts();
+    }
+    pendingCol = null;
     if (S.col !== "all" || S.sort === "mine" || S.sort === "recent") apply(); else refreshAllCards();
   } catch (err) {
     console.error(err);
@@ -460,35 +483,33 @@ async function reloadCollection() {
 function onSession(session) {
   const user = session ? session.user : null;
   if (user && ME.user && ME.user.id === user.id) { ME.user = user; return; } // simple rafraîchissement de jeton
-  ME.user = user; ME.ready = false; ME.entries = new Map(); ME.lists = {}; ME.open = null; ME.birthYear = undefined;
+  ME.user = user; ME.ready = false; ME.entries = new Map(); ME.lists = {}; ME.open = null; ME.birthYear = undefined; ME.profile = null;
   updateAdultUI();
   if (!user) {
     setSignedOutUI();
     if (S.col !== "all") { S.col = "all"; apply(); } else refreshAllCards();
     return;
   }
-  $("me").textContent = displayName(user); $("me").title = user.email || ""; $("me").hidden = false;
+  renderMe();
   $("signOut").hidden = false; $("signIn").hidden = true; $("colSignIn").hidden = true;
   $("colHint").textContent = "Chargement de ta collection…";
   refreshAllCards();
   reloadCollection();
 }
 
+// Lien direct vers une partie de la collection (ex. depuis « Mon compte » : /?col=l:<id>).
+const qs0 = new URLSearchParams(location.search);
+let pendingCol = qs0.get("col");
+if (qs0.get("compte") === "supprime") setTimeout(() => toast("Ton compte et toutes tes données ont été supprimés."), 300);
+if (pendingCol || qs0.has("compte")) history.replaceState(null, "", location.pathname);
+
 setSignedOutUI();
 if (supabase) {
-  initAuth({ onBirthYear });
-  $("adultAction").addEventListener("click", () => openAuth(ME.user ? "birth" : "main"));
+  initAuth({ onCompleteProfile });
+  $("adultAction").addEventListener("click", () => ME.user ? openAuth("profile", { needUsername: !(ME.profile && ME.profile.username), needBirth: true }) : openAuth());
   $("signIn").addEventListener("click", () => openAuth());
   $("colSignIn").addEventListener("click", () => openAuth());
   $("signOut").addEventListener("click", async () => { await signOut(); toast("Déconnecté"); });
-  $("deleteAccount").addEventListener("click", async () => {
-    if (!ME.user) return;
-    if (!confirm("Supprimer définitivement ton compte ?\n\nTon e-mail, tes coups de cœur, notes, commentaires, statuts et listes seront effacés. Cette action est irréversible.")) return;
-    const { error } = await supabase.rpc("delete_my_account");
-    if (error) { console.error(error); toast("La suppression a échoué. Réessaie dans un instant."); return; }
-    await supabase.auth.signOut({ scope: "local" });
-    toast("Ton compte et toutes tes données ont été supprimés.");
-  });
   // Ne pas appeler Supabase directement dans ce rappel (verrou interne) : on diffère.
   supabase.auth.onAuthStateChange((event, session) => { setTimeout(() => onSession(session), 0); });
   // Les erreurs de connexion OAuth reviennent dans l'URL.

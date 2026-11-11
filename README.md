@@ -15,6 +15,8 @@ Le catalogue reste consultable sans compte ; la collection demande une connexion
 ```
 index.html                     page unique
 src/main.js                    catalogue, filtres, cartes, collection
+compte.html, src/account.js     page « Mon compte » : profil, avatar, listes, suppression du compte
+src/profile.js                 pseudo, année de naissance, avatar (partagé par les deux pages)
 src/auth.js                    fenêtre de connexion (e-mail, Google, mot de passe oublié)
 src/store.js                   lecture / écriture de la collection dans Supabase
 src/supabase.js                client Supabase (variables VITE_SUPABASE_*)
@@ -48,7 +50,8 @@ note minimale, studio, œuvre d'origine, pays.
 1. Crée un projet sur [supabase.com](https://supabase.com).
 2. **SQL Editor** → colle et exécute, dans l'ordre, les fichiers de `supabase/migrations/` :
    `20261111000000_collection.sql` (tables + RLS), `20261111010000_delete_account.sql`
-   (bouton « Supprimer mon compte ») et `20261111020000_profiles_birth_year.sql` (année de naissance, contrôle 18+). Ou `supabase link` puis `supabase db push` avec la CLI.
+   (bouton « Supprimer mon compte ») `20261111020000_profiles_birth_year.sql` (année de naissance, contrôle 18+) et
+   `20261111030000_pseudo_avatar_moderation.sql` (pseudo, avatar, filtre de mots interdits). Ou `supabase link` puis `supabase db push` avec la CLI.
    Les scripts peuvent être relancés sans risque.
 3. **Authentication → Sign In / Providers**
    - *Email* : activé. Garde « Confirm email » activé (recommandé). Règle la longueur minimale du mot de passe à 8.
@@ -113,3 +116,16 @@ Chaque entrée de `items` est un tableau ; les index renvoient aux `tables` :
 
 `chars.json` suit le même ordre : pour chaque animé, `[[nom, nom natif, rôle M/S/B], …]`.
 L'affiche n° `k` se trouve dans `covers/s{⌊k/200⌋}.webp`, grille de 10 × 20.
+
+## Pseudo, avatar et modération
+
+- **Pseudo** : 3 à 20 caractères (lettres, accents, chiffres, `_ . -`), unique sans tenir compte des majuscules,
+  modifiable depuis « Mon compte ». Les noms réservés (admin, modérateur, support…) sont refusés.
+- **Mots interdits** : table `banned_words` (Supabase → Table Editor). Mode `word` = mot entier seulement,
+  `substring` = même collé à d'autres lettres. La comparaison ignore majuscules, accents, séparateurs (`c.o.n`) et
+  « leet » (`c0nn4rd`). Le filtre s'applique côté base (déclencheurs) au pseudo, aux noms de listes et aux commentaires :
+  il ne peut pas être contourné depuis le navigateur. Ajoute des lignes à la table pour l'étendre.
+- **Avatar** : stockage Supabase privé `avatars/<id utilisateur>/…`, 1 Mo max, recadré en 256 × 256 WebP dans le
+  navigateur (les métadonnées EXIF / GPS disparaissent). Les images ne sont pas analysées automatiquement.
+- **Mots de passe** : Supabase ne stocke qu'une empreinte bcrypt (`auth.users.encrypted_password`), impossible à
+  inverser ; personne, pas même l'administrateur, ne peut lire un mot de passe.
