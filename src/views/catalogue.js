@@ -1,11 +1,11 @@
 // Vue « Catalogue » : grille d'affiches, barre des genres, panneau de filtres, tri, défilement infini.
-import { A, T, UP, tr, norm, ready, loadChars } from "../data.js";
+import { A, T, UP, tr, norm, ready, loadChars, onePerFranchise } from "../data.js";
 import { ent, adultAllowed, ME } from "../state.js";
 import { $, esc, fmt, grid } from "../ui.js";
 
 export const S = { q: "", chara: "", lang: "FE", genreIn: new Set(), genreEx: new Set(), tagIn: new Set(), tagEx: new Set(),
   format: new Set(), status: new Set(), season: new Set(), source: new Set(), country: new Set(), yMin: null, yMax: null,
-  eMin: null, eMax: null, dMin: null, dMax: null, score: 0, studio: "", sort: "pop", adult: false, upcoming: false };
+  eMin: null, eMax: null, dMin: null, dMax: null, score: 0, studio: "", sort: "pop", adult: false, upcoming: false, group: false };
 const SETS = ["genreIn", "genreEx", "tagIn", "tagEx", "format", "status", "season", "source", "country"];
 const DEFAULTS = { q: "", chara: "", lang: "FE", yMin: null, yMax: null, eMin: null, eMax: null, dMin: null, dMax: null, score: 0, studio: "", sort: "pop", adult: false, upcoming: false };
 export function resetFilters() { Object.assign(S, DEFAULTS); SETS.forEach(k => S[k].clear()); }
@@ -69,6 +69,7 @@ function compute() {
   view.sort({ pop: (a, b) => a.rank - b.rank, score: (a, b) => b.score - a.score || a.rank - b.rank,
     new: (a, b) => (b.year || 0) - (a.year || 0) || a.rank - b.rank, old: (a, b) => (a.year || 9999) - (b.year || 9999) || a.rank - b.rank,
     az: (a, b) => title(a).localeCompare(title(b), "fr"), eps: (a, b) => b.eps - a.eps || a.rank - b.rank }[S.sort]);
+  if (S.group) view = onePerFranchise(view);
 }
 
 // ---------- Rendu ----------
@@ -224,6 +225,7 @@ export function render(el, params) {
     <div class="cat-top">
       <div><h1>Catalogue</h1><div class="count" id="catCount"></div></div>
       <div class="cat-tools">
+        <label class="tgl" title="N'afficher qu'un titre par franchise (saisons, films, OAV)"><input type="checkbox" id="grp"${S.group ? " checked" : ""}> Regrouper les saisons</label>
         <button type="button" class="btn" id="filtBtn">Filtres</button>
         <label class="sortsel"><span class="sr">Trier par</span><select id="sort">${Object.entries(SORTS).map(([k, v]) => `<option value="${k}"${S.sort === k ? " selected" : ""}>${v}</option>`).join("")}</select></label>
       </div>
@@ -237,6 +239,7 @@ export function render(el, params) {
   </div>`;
   $("filtBtn").addEventListener("click", openDrawer);
   $("sort").addEventListener("change", e => { S.sort = e.target.value; refresh(); });
+  $("grp").addEventListener("change", e => { S.group = e.target.checked; refresh(); });
   $("genreBar").addEventListener("click", e => {
     const b = e.target.closest(".gchip"); if (!b) return; const i = +b.dataset.g;
     if (S.genreIn.has(i)) { S.genreIn.delete(i); S.genreEx.add(i); } else if (S.genreEx.has(i)) S.genreEx.delete(i); else S.genreIn.add(i);

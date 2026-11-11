@@ -5,6 +5,7 @@ import { frError, signOut } from "../auth.js";
 import { displayName, avatarUrl, avatarHTML, isAdultYear, parseBirthYear, usernameFormatError, usernameProblem,
   prepareAvatar, uploadAvatar, removeAvatar, removeAllAvatars, USERNAME_HELP } from "../profile.js";
 import { $, esc, fmt } from "../ui.js";
+import { byId } from "../data.js";
 import { toast } from "../toast.js";
 import { gate } from "./collection.js";
 import { importHTML, bindImport } from "./importer.js";
@@ -43,6 +44,9 @@ function html() {
       <div class="field"><span>Membre depuis</span><div class="val">${new Date(u.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}</div></div>
     </div></section>
     ${importHTML()}
+    <section class="card2"><h2>Exporter mes données</h2>
+      <p class="hint" style="margin-top:0">Télécharge une copie complète de ton profil, ta collection (statuts, notes, avis, épisodes vus), tes listes et tes personnages favoris, au format JSON.</p>
+      <button type="button" class="btn" id="exportBtn">Télécharger mes données</button></section>
     <section class="card2 danger-zone"><h2>Supprimer mon compte</h2>
       <p class="hint">Ton compte, ton profil, ton avatar, ta collection et tes listes seront effacés immédiatement et définitivement.</p>
       <form id="deleteForm" class="newlist" novalidate><input type="text" name="confirm" autocomplete="off" placeholder="Tape SUPPRIMER pour confirmer"><button class="btn danger" type="submit">Supprimer mon compte</button></form>
@@ -50,8 +54,24 @@ function html() {
   </div>`;
 }
 
+function exportData() {
+  const titleOf = id => { const a = byId.get(id); return a ? a.english || a.romaji : null; };
+  const out = {
+    export: "Animéthèque", date: new Date().toISOString(),
+    profil: { pseudo: ME.profile.username, email: ME.user.email, annee_naissance: ME.profile.birth_year, inscrit_le: ME.user.created_at },
+    collection: [...ME.entries.entries()].map(([id, e]) => ({ anilist_id: id, titre: titleOf(id), statut: e.s || null, note_sur_5: e.r || null,
+      coup_de_coeur: !!e.f, avis: e.c || null, episodes_vus: e.p || null, listes: Object.keys(e.l).map(k => ME.lists[k] && ME.lists[k].n).filter(Boolean) })),
+    listes: Object.values(ME.lists).map(l => l.n),
+    personnages_favoris: [...ME.favChars.keys()]
+  };
+  const url = URL.createObjectURL(new Blob([JSON.stringify(out, null, 2)], { type: "application/json" }));
+  const a = document.createElement("a"); a.href = url; a.download = `animetheque-${(ME.profile.username || "export").replace(/[^\w.-]/g, "_")}-${new Date().toISOString().slice(0, 10)}.json`;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 2000);
+  toast("Export téléchargé");
+}
 function bind() {
   bindImport();
+  $("exportBtn").addEventListener("click", exportData);
   $("signOut2").addEventListener("click", async () => { await signOut(); location.hash = "#/"; toast("Déconnecté"); });
   let ut, seq = 0;
   const uf = $("usernameForm"), st = $("usernameState");

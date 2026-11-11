@@ -1,5 +1,5 @@
 // Vue « Accueil » : animé à la une, rangées thématiques, recommandations, genres.
-import { A, T, UP, RELEASING, byId, tr, titleOf, coverStyle, loadDesc } from "../data.js";
+import { A, T, UP, RELEASING, byId, tr, titleOf, coverStyle, loadDesc, onePerFranchise, franchiseKey, FRANCHISE } from "../data.js";
 import { ME, ent, inCollection, onChange, FEATURES } from "../state.js";
 import { esc, fmt, row, cover } from "../ui.js";
 import { loadTopCharacters } from "../chars.js";
@@ -18,16 +18,34 @@ function recommendations(n = 20) {
     for (const g of x.genres) w.set("g" + g, (w.get("g" + g) || 0) + k * 1.5);
   }
   if (base < 1) return [];
+  // pas de recommandation dans une franchise que tu connais déjà (ses suites sont dans « La suite de tes séries »)
+  const known = new Set([...ME.entries.keys()].map(id => byId.get(id)).filter(Boolean).map(franchiseKey));
   const out = [];
   for (const a of A) {
-    if (a.adult || a.status === UP || inCollection(a.id) || a.rank > 6000) continue;
+    if (a.adult || a.status === UP || inCollection(a.id) || a.rank > 6000 || known.has(franchiseKey(a))) continue;
     let s = 0;
     for (const t of a.tags) s += w.get("t" + t) || 0;
     for (const g of a.genres) s += w.get("g" + g) || 0;
     if (s <= 0) continue;
     out.push([s * (0.6 + (a.score || 60) / 100) - a.rank / 3000, a]);
   }
-  return out.sort((x, y) => y[0] - x[0]).slice(0, n).map(x => x[1]);
+  return onePerFranchise(out.sort((x, y) => y[0] - x[0]).map(x => x[1]), n);
+}
+
+/** La suite de tes séries : pour chaque franchise où tu as vu un titre principal, le titre principal suivant pas encore vu. */
+function nextUp(n = 20) {
+  const out = [], done = new Set();
+  const byRecent = [...ME.entries.entries()].filter(([, e]) => e.s === "watched").sort((a, b) => b[1].t - a[1].t);
+  for (const [id] of byRecent) {
+    const f = FRANCHISE.get(id); if (!f || done.has(f.list)) continue;
+    done.add(f.list);
+    const main = f.list.filter(x => x.k === 0).map(x => x.a);
+    let last = -1; main.forEach((a, i) => { const e = ME.entries.get(a.id); if (e && e.s === "watched") last = i; });
+    const next = main.slice(last + 1).find(a => { const e = ME.entries.get(a.id); return !(e && e.s) && !a.adult; });
+    if (next) out.push(next);
+    if (out.length >= n) break;
+  }
+  return out;
 }
 
 const safe = a => !a.adult;
@@ -67,10 +85,11 @@ function genreTiles() {
 export function render(el) {
   root = el;
   if (!featured) featured = pickFeatured();
-  const top = n => A.filter(safe).filter(a => a.status !== UP).slice(0, n);
+  // une seule saison par franchise dans chaque rangée, pour plus de variété
+  const top = n => onePerFranchise(A.filter(a => safe(a) && a.status !== UP), n);
   const airing = A.filter(a => safe(a) && a.status === RELEASING).slice(0, 20);
-  const best = A.filter(a => safe(a) && a.rank < 2500 && a.score).sort((a, b) => b.score - a.score).slice(0, 20);
-  const gems = A.filter(a => safe(a) && a.rank >= 1500 && a.rank < 8000 && a.score >= 78 && a.status !== UP).sort((a, b) => b.score - a.score).slice(0, 20);
+  const best = onePerFranchise(A.filter(a => safe(a) && a.rank < 2500 && a.score).sort((a, b) => b.score - a.score), 20);
+  const gems = onePerFranchise(A.filter(a => safe(a) && a.rank >= 1500 && a.rank < 8000 && a.score >= 78 && a.status !== UP).sort((a, b) => b.score - a.score), 20);
   const soon = A.filter(a => safe(a) && a.status === UP).slice(0, 20);
   el.innerHTML = `<div class="page home">${hero(featured)}<div id="personal"></div>
     ${row("En ce moment", airing, "#/catalogue?status=RELEASING", "Les séries en cours de diffusion")}
@@ -94,11 +113,12 @@ function renderPersonal() {
   if (!ME.user || !ME.ready) { p.innerHTML = ""; return; }
   const watching = [...ME.entries.entries()].filter(([, e]) => e.s === "watching").sort((a, b) => b[1].t - a[1].t).map(([id]) => byId.get(id)).filter(Boolean);
   const plan = [...ME.entries.entries()].filter(([, e]) => e.s === "plan").sort((a, b) => b[1].t - a[1].t).map(([id]) => byId.get(id)).filter(Boolean);
-  const recs = recommendations();
+  const recs = recommendations(), next = nextUp();
   const name = ME.profile && ME.profile.username;
   p.innerHTML = row("Reprendre", watching.slice(0, 20), "#/collection/watching", FEATURES.progress ? "Un clic sur +1 à chaque épisode vu" : "Tes séries en cours")
+    + row("La suite de tes séries", next, "", "La saison ou le film suivant de ce que tu as terminé")
     + row(name ? `Recommandé pour ${esc(name)}` : "Recommandé pour toi", recs, "", "D'après tes coups de cœur, notes et visionnages")
     + row("Ma liste « à voir »", plan.slice(0, 20), "#/collection/plan");
-  if (!watching.length && !recs.length && !plan.length) p.innerHTML = `<div class="tip">Ajoute des titres à ta collection (♥, note, statut) : l'accueil te proposera des recommandations personnalisées.</div>`;
+  if (!watching.length && !recs.length && !plan.length && !next.length) p.innerHTML = `<div class="tip">Ajoute des titres à ta collection (♥, note, statut) : l'accueil te proposera des recommandations personnalisées.</div>`;
 }
 onChange(what => { if (root && root.isConnected && (what === "collection" || what === "session" || what === "profile")) renderPersonal(); });

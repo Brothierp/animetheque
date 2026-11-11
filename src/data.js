@@ -27,8 +27,16 @@ export let UP = -1, RELEASING = -1;
 export const ready = { catalogue: false, chars: false };
 
 let catPromise = null, charPromise = null;
+/** Franchises : id animé → { list: [{ a, k }], k } (k : 0 principal, 1 parallèle, 2 spin-off, 3 récap, 4 alternative, 5 bonus). */
+export const FRANCHISE = new Map();
+export const KIND_FR = ["Principal", "Histoire parallèle", "Spin-off", "Récapitulatif", "Version alternative", "Bonus"];
+export const franchiseKey = a => { const f = FRANCHISE.get(a.id); return f ? f.list : a; };
+
 export function loadCatalogue() {
-  if (!catPromise) catPromise = fetch("/data.json").then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }).then(d => {
+  if (!catPromise) catPromise = Promise.all([
+    fetch("/data.json").then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }),
+    fetch("/franchises.json").then(r => r.ok ? r.json() : null).catch(() => null)
+  ]).then(([d, fr]) => {
     T = d.tables;
     A = d.items.map((x, i) => ({ id: x[0], mal: x[1], romaji: x[2], english: x[3], native: x[4], syn: x[5], format: x[6], status: x[7], eps: x[8], dur: x[9],
       season: x[10], year: x[11], genres: x[12], tags: x[13], studios: x[14], score: x[15], pop: x[16], country: x[17], source: x[18], hasDesc: !!x[19], desc: typeof x[19] === "string" ? x[19] : null,
@@ -36,6 +44,10 @@ export function loadCatalogue() {
       hay: norm([x[2], x[3], x[4], ...x[5]].join(" ")), studioHay: x[14].map(j => norm(d.tables.studios[j])).join("|") }));
     for (const a of A) byId.set(a.id, a);
     UP = T.status.indexOf("NOT_YET_RELEASED"); RELEASING = T.status.indexOf("RELEASING");
+    if (fr) for (const f of fr.f) {
+      const list = f.map(([i, k]) => ({ a: A[i], k })).filter(x => x.a);
+      for (const x of list) FRANCHISE.set(x.a.id, { list, k: x.k });
+    }
     ready.catalogue = true;
   });
   return catPromise;
@@ -69,6 +81,13 @@ export function coverStyle(a) {
   return `background-image:url(/covers/s${Math.floor(c / 200)}.webp);background-position:${(c % 10) / 9 * 100}% ${Math.floor((c % 200) / 10) / 19 * 100}%`;
 }
 
+/** Garde un seul titre par franchise (le premier rencontré, donc le plus populaire si la liste est triée ainsi). */
+export function onePerFranchise(list, n = Infinity) {
+  const seen = new Set(), out = [];
+  for (const a of list) { const k = franchiseKey(a); if (seen.has(k)) continue; seen.add(k); out.push(a); if (out.length >= n) break; }
+  return out;
+}
+
 /** Similarité simple : thèmes et genres en commun, pondérés, puis popularité. */
 export function similar(a, n = 12, adultOk = false) {
   const tags = new Set(a.tags), genres = new Set(a.genres), out = [];
@@ -81,5 +100,6 @@ export function similar(a, n = 12, adultOk = false) {
     s += (b.score || 60) / 25 - b.rank / 4000;
     out.push([s, b]);
   }
-  return out.sort((x, y) => y[0] - x[0]).slice(0, n).map(x => x[1]);
+  const own = franchiseKey(a);
+  return onePerFranchise(out.sort((x, y) => y[0] - x[0]).map(x => x[1]).filter(b => franchiseKey(b) !== own), n);
 }

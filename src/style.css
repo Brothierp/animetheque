@@ -543,3 +543,16 @@ dialog#auth > .hint { margin: 0 0 16px }
 .qs-face { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; object-position: top; flex: none; font-size: 14px }
 .qs-all { justify-content: space-between; color: var(--violet); font-weight: 500; font-size: 13px; border-top: 1px solid var(--line); border-radius: 0; margin-top: 4px; padding-top: 10px }
 .qs-all kbd { font: 11px var(--mono); color: var(--muted); border: 1px solid var(--line); border-radius: 5px; padding: 0 5px }
+
+/* Ordre de visionnage */
+.order { display: grid; gap: 6px }
+.o-it { display: grid; grid-template-columns: auto 34px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 6px 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); text-decoration: none; color: var(--ink) }
+.o-it:not(:has(.o-n)) { grid-template-columns: 34px minmax(0, 1fr) auto }
+.o-it:hover { border-color: var(--muted) }
+.o-it.cur { border-color: var(--accent); background: var(--accent-soft) }
+.o-n { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; background: var(--chip); font: 600 12px var(--mono); color: var(--muted) }
+.o-it.cur .o-n { background: var(--accent); color: var(--accent-ink) }
+.o-t { min-width: 0 } .o-t b { display: block; font-size: 13.5px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap } .o-t small { color: var(--muted); font-size: 12px }
+.o-done { font-style: normal; color: var(--st-watched); font-weight: 700 }
+.o-st { font: 700 11px var(--body); font-style: normal; padding: 1px 7px; border-radius: 5px; color: #120d1f }
+.o-extra { margin-top: 8px } .o-extra summary { cursor: pointer; color: var(--violet); font-size: 13px; margin-bottom: 8px }

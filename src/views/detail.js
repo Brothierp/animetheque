@@ -1,6 +1,6 @@
 // Fiche d'un animé, ouverte dans une fenêtre par-dessus la page (#/anime/<id>).
-import { byId, T, tr, titleOf, altTitles, coverStyle, extLink, similar, ready, loadChars, loadDesc } from "../data.js";
-import { ME, ent, STATUSES, setEntry, setInList, clearAnime, adultAllowed, requireUser, onChange, setProgress, FEATURES } from "../state.js";
+import { byId, T, tr, titleOf, altTitles, coverStyle, extLink, similar, ready, loadChars, loadDesc, FRANCHISE, KIND_FR, UP } from "../data.js";
+import { ME, ent, STATUSES, STATUS_SHORT, setEntry, setInList, clearAnime, adultAllowed, requireUser, onChange, setProgress, FEATURES } from "../state.js";
 import { $, esc, cover, row, starsHTML, openAddMenu } from "../ui.js";
 import { charsOfAnime, imgUrl, ROLE_FR } from "../chars.js";
 import { toast } from "../toast.js";
@@ -42,6 +42,22 @@ function applyProgress(id, n) {
   if (auto === "watched") toast(`🎉 Terminé ! « ${titleOf(a)} » passe en « Regardé »`);
   else if (auto === "watching") toast("Ajouté à « En cours »");
 }
+/** Ordre de visionnage : ligne principale numérotée, puis les extras regroupés par nature. */
+function orderHTML(a) {
+  const f = FRANCHISE.get(a.id); if (!f) return "";
+  const ok = adultAllowed(), L = f.list.filter(x => !x.a.adult || ok);
+  if (L.length < 2) return "";
+  const main = L.filter(x => x.k === 0), extra = L.filter(x => x.k !== 0);
+  const it = (x, n) => { const b = x.a, e = ent(b.id), cur = b.id === a.id;
+    const st = e.s === "watched" ? `<i class="o-done" title="Vu">✓</i>` : e.s ? `<i class="o-st s-${e.s} on">${STATUS_SHORT[e.s]}</i>` : "";
+    return `<a class="o-it${cur ? " cur" : ""}" href="#/anime/${b.id}"${cur ? ' aria-current="true"' : ""}>${n != null ? `<span class="o-n">${n}</span>` : ""}<span class="cv mini" style="${coverStyle(b)}"></span>
+      <span class="o-t"><b>${esc(titleOf(b))}</b><small>${[b.year || (b.status === UP ? "À venir" : ""), b.format >= 0 ? tr("format", T.format[b.format]) : "", b.eps > 1 ? b.eps + " ép." : ""].filter(Boolean).join(" · ")}${n == null ? " · " + KIND_FR[x.k] : ""}</small></span>${st}</a>`; };
+  const showExtra = main.length === 0 || extra.some(x => x.a.id === a.id);
+  return `<section><h2>Ordre de visionnage <small class="hint">${main.length} principal${main.length > 1 ? "aux" : ""}${extra.length ? ` · ${extra.length} extra${extra.length > 1 ? "s" : ""}` : ""}</small></h2>
+    <div class="order">${main.map((x, n) => it(x, n + 1)).join("")}</div>
+    ${extra.length ? `<details class="o-extra"${showExtra ? " open" : ""}><summary>Extras : films parallèles, OAV, spin-off, récapitulatifs… (${extra.length})</summary><div class="order">${extra.map(x => it(x, null)).join("")}</div></details>` : ""}
+    <p class="hint">Dans l'ordre de sortie. Les extras sont facultatifs ; les récapitulatifs résument des épisodes déjà vus.</p></section>`;
+}
 const isInCol = e => e.f || e.r || e.c || e.s || Object.keys(e.l).length;
 
 function html(a) {
@@ -67,6 +83,7 @@ function html(a) {
     <div class="d-main">
       <section class="d-mine" id="dMine">${mineHTML(a)}</section>
       ${plats ? `<section><h2>Où regarder</h2><div class="plats">${plats}</div><p class="hint">FR / EN indique qu'au moins une plateforme propose en général cette langue (doublage ou sous-titres) ; cela peut varier selon le pays.</p></section>` : ""}
+      ${orderHTML(a)}
       ${a.hasDesc ? `<section><h2>Synopsis</h2><p class="syn" id="dSyn">${a.desc ? esc(a.desc) : `<span class="hint">Chargement…</span>`}</p></section>` : ""}
       <section><h2>Personnages</h2><div id="dChars">${chars || (ready.chars ? `<p class="hint">Aucun personnage référencé.</p>` : `<p class="hint">Chargement…</p>`)}</div></section>
     </div>
