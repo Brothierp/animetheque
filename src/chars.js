@@ -35,7 +35,6 @@ export function loadCharacters() {
     TAGS = d.tags.map(([cat, label, n], i) => ({ i, cat, label, n }));
     ingest(d.chars, 0);
     chReady.loaded = true;
-    setTimeout(loadAllCharacters, 0);
   }).catch(e => { p = null; throw e; });
   return p;
 }

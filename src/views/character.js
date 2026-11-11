@@ -1,7 +1,8 @@
 // Fiche d'un personnage, ouverte dans une fenêtre (#/personnage/<id>).
 import { titleOf } from "../data.js";
 import { charById, TAGS, CATS, loadCharacters, loadAllCharacters, imgUrl, visibleApps, similarChars, fetchCharacter, descHTML, ROLE_FR, GENDER_FR, MONTHS } from "../chars.js";
-import { adultAllowed } from "../state.js";
+import { adultAllowed, ME, toggleFavChar, onChange } from "../state.js";
+import { toast } from "../toast.js";
 import { $, esc, fmt, card } from "../ui.js";
 import { charCard } from "./characters.js";
 
@@ -14,6 +15,10 @@ function shell() {
   el.addEventListener("click", e => {
     const s = e.target.closest(".spoil"); if (s) { s.classList.add("shown"); return; }
     if (e.target.closest("[data-c=close]")) { if (onCloseCb) onCloseCb(); else closeCharacter(); return; }
+    if (e.target.closest("[data-c=fav]") && curId != null) {
+      toggleFavChar(curId).then(on => { if (on !== undefined) toast(on ? "Ajouté à tes personnages favoris ♥" : "Retiré de tes personnages favoris"); });
+      return;
+    }
     if (e.target.closest("a[href^='#/']")) closeCharacter();
   });
   el.addEventListener("keydown", e => { const s = e.target.closest(".spoil"); if (s && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); s.classList.add("shown"); } });
@@ -31,6 +36,7 @@ function html(c) {
       <span class="kicker">Personnage</span>
       <h1 id="cTitle">${esc(c.name || c.native)}</h1>
       ${c.native ? `<p class="d-alt">${esc(c.native)}${c.alt.length ? " · " + esc(c.alt.join(" · ")) : ""}</p>` : ""}
+      <div class="c-act"><button type="button" class="btn sm${ME.favChars.has(c.id) ? " fav-on" : ""}" id="cFav" data-c="fav">${favLabel(c.id)}</button></div>
       <div class="c-facts" id="cFacts">${c.fav ? `<span class="fact"><b>♥ ${fmt(c.fav)}</b> fans sur AniList</span>` : ""}</div>
     </div>
   </div>
@@ -45,6 +51,7 @@ function html(c) {
   <div class="d-sim" id="cSim"></div>`;
 }
 
+const favLabel = id => ME.favChars.has(id) ? "♥ Personnage favori" : "♡ Ajouter à mes personnages favoris";
 function facts(d, c) {
   const L = [];
   if (c.fav) L.push(`<span class="fact"><b>♥ ${fmt(c.fav)}</b> fans</span>`);
@@ -87,3 +94,7 @@ export function closeCharacter() {
   if (!document.querySelector(".dmodal.open")) document.body.classList.remove("noscroll");
 }
 export const isCharacterOpen = () => !!(el && el.classList.contains("open"));
+onChange(what => {
+  if (!isCharacterOpen() || !["favchar", "collection", "session"].includes(what)) return;
+  const b = $("cFav"); if (b) { b.textContent = favLabel(curId); b.classList.toggle("fav-on", ME.favChars.has(curId)); }
+});

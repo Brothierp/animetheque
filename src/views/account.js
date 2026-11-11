@@ -7,6 +7,7 @@ import { displayName, avatarUrl, avatarHTML, isAdultYear, parseBirthYear, userna
 import { $, esc, fmt } from "../ui.js";
 import { toast } from "../toast.js";
 import { gate } from "./collection.js";
+import { importHTML, bindImport } from "./importer.js";
 
 let root = null;
 
@@ -41,6 +42,7 @@ function html() {
       ${providers.includes("email") ? `<div class="field"><span>Mot de passe</span><form id="pwdForm" novalidate><input type="password" name="password" autocomplete="new-password" minlength="8" placeholder="Nouveau mot de passe (8 caractères min.)"><button class="btn" type="submit">Modifier</button></form></div>` : ""}
       <div class="field"><span>Membre depuis</span><div class="val">${new Date(u.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}</div></div>
     </div></section>
+    ${importHTML()}
     <section class="card2 danger-zone"><h2>Supprimer mon compte</h2>
       <p class="hint">Ton compte, ton profil, ton avatar, ta collection et tes listes seront effacés immédiatement et définitivement.</p>
       <form id="deleteForm" class="newlist" novalidate><input type="text" name="confirm" autocomplete="off" placeholder="Tape SUPPRIMER pour confirmer"><button class="btn danger" type="submit">Supprimer mon compte</button></form>
@@ -49,6 +51,7 @@ function html() {
 }
 
 function bind() {
+  bindImport();
   $("signOut2").addEventListener("click", async () => { await signOut(); location.hash = "#/"; toast("Déconnecté"); });
   let ut, seq = 0;
   const uf = $("usernameForm"), st = $("usernameState");

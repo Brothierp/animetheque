@@ -1,0 +1,21 @@
+{
+  "name": "Animéthèque",
+  "short_name": "Animéthèque",
+  "description": "Trouve quoi regarder, où le regarder en FR ou EN, et garde ta collection d'animés.",
+  "lang": "fr",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#130f1f",
+  "theme_color": "#130f1f",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Ma collection", "url": "/#/collection" },
+    { "name": "Calendrier", "url": "/#/calendrier" },
+    { "name": "Personnages", "url": "/#/personnages" }
+  ]
+}

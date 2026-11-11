@@ -1,7 +1,7 @@
 // Vue « Personnages » : recherche, étiquettes (barre rapide + panneau complet), grille de portraits.
 import { norm, titleOf } from "../data.js";
-import { CH, TAGS, CATS, loadCharacters, chReady, imgUrl, visibleApps, mainAnime, onCharsComplete } from "../chars.js";
-import { adultAllowed } from "../state.js";
+import { CH, TAGS, CATS, loadCharacters, loadAllCharacters, chReady, imgUrl, visibleApps, mainAnime, onCharsComplete } from "../chars.js";
+import { adultAllowed, ME } from "../state.js";
 import { $, esc, fmt } from "../ui.js";
 
 const S = { q: "", tags: new Set(), sort: "fav" };
@@ -14,7 +14,7 @@ export function charCard(c, sub) {
   const src = imgUrl(c);
   return `<a class="cc" href="#/personnage/${c.id}">
     <span class="cc-img">${src ? `<img src="${esc(src)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer">` : `<span class="cc-none">${esc((c.name || "?")[0])}</span>`}
-      ${c.fav >= 1000 ? `<span class="cc-fav">♥ ${c.fav >= 10000 ? Math.round(c.fav / 1000) + " k" : fmt(c.fav)}</span>` : ""}</span>
+      ${c.fav >= 1000 ? `<span class="cc-fav">♥ ${c.fav >= 10000 ? Math.round(c.fav / 1000) + " k" : fmt(c.fav)}</span>` : ""}${ME.favChars.has(c.id) ? `<span class="cc-mine" title="Dans tes favoris">♥</span>` : ""}</span>
     <b>${esc(c.name || c.native)}</b>${line ? `<small>${esc(line)}</small>` : ""}
   </a>`;
 }
@@ -138,6 +138,6 @@ export function render(el, params) {
   if (io) io.disconnect();
   io = new IntersectionObserver(es => { if (es.some(x => x.isIntersecting) && shown < view.length) renderMore(); }, { rootMargin: "900px" });
   io.observe($("chSentinel"));
-  loadCharacters().then(() => { applyParams(params); if ($("chq")) $("chq").value = S.q; refresh(); })
+  loadCharacters().then(() => { applyParams(params); if ($("chq")) $("chq").value = S.q; refresh(); setTimeout(() => loadAllCharacters().catch(() => {}), 0); })
     .catch(() => { if ($("chGrid")) $("chGrid").innerHTML = `<div class="empty"><p>Les personnages n'ont pas pu être chargés.</p></div>`; });
 }

@@ -1,6 +1,6 @@
 // Vue « Accueil » : animé à la une, rangées thématiques, recommandations, genres.
 import { A, T, UP, RELEASING, byId, tr, titleOf, coverStyle, loadDesc } from "../data.js";
-import { ME, ent, inCollection, onChange } from "../state.js";
+import { ME, ent, inCollection, onChange, FEATURES } from "../state.js";
 import { esc, fmt, row, cover } from "../ui.js";
 import { loadTopCharacters } from "../chars.js";
 import { charCard } from "./characters.js";
@@ -49,7 +49,8 @@ function hero(a) {
         <p class="hero-meta">${esc(meta)}</p>
         <p class="hero-syn" id="heroSyn">${a.desc ? esc(a.desc.slice(0, 260)) + (a.desc.length > 260 ? "…" : "") : ""}</p>
         <div class="hero-act"><a class="btn primary" href="#/anime/${a.id}">Voir la fiche</a>
-          <button type="button" class="btn" data-quick-add="${a.id}">+ Ajouter à ma collection</button></div>
+          <button type="button" class="btn" data-quick-add="${a.id}">+ Ajouter à ma collection</button>
+          <button type="button" class="btn" data-random="any" title="Une suggestion au hasard">🎲 Je ne sais pas quoi regarder</button></div>
       </div>
     </div>
   </section>`;
@@ -95,7 +96,7 @@ function renderPersonal() {
   const plan = [...ME.entries.entries()].filter(([, e]) => e.s === "plan").sort((a, b) => b[1].t - a[1].t).map(([id]) => byId.get(id)).filter(Boolean);
   const recs = recommendations();
   const name = ME.profile && ME.profile.username;
-  p.innerHTML = row("Reprendre", watching.slice(0, 20), "#/collection/watching", "Tes séries en cours")
+  p.innerHTML = row("Reprendre", watching.slice(0, 20), "#/collection/watching", FEATURES.progress ? "Un clic sur +1 à chaque épisode vu" : "Tes séries en cours")
     + row(name ? `Recommandé pour ${esc(name)}` : "Recommandé pour toi", recs, "", "D'après tes coups de cœur, notes et visionnages")
     + row("Ma liste « à voir »", plan.slice(0, 20), "#/collection/plan");
   if (!watching.length && !recs.length && !plan.length) p.innerHTML = `<div class="tip">Ajoute des titres à ta collection (♥, note, statut) : l'accueil te proposera des recommandations personnalisées.</div>`;

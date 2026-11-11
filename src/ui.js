@@ -1,6 +1,6 @@
 // Composants partagés : cartes d'affiche, menu « + Ajouter », étoiles, rangées.
 import { byId, titleOf, coverStyle, tr, T } from "./data.js";
-import { ME, ent, STATUSES, STATUS_SHORT, setEntry, setInList, createList, sortedLists, requireUser, onChange } from "./state.js";
+import { ME, ent, STATUSES, STATUS_SHORT, setEntry, setInList, createList, sortedLists, requireUser, onChange, setProgress, FEATURES } from "./state.js";
 import { toast } from "./toast.js";
 
 export const $ = id => document.getElementById(id);
@@ -27,12 +27,28 @@ export function card(a, opts = {}) {
       <button type="button" class="pc-fav${e.f ? " on" : ""}" data-act="fav" aria-pressed="${!!e.f}" aria-label="Coup de cœur">${e.f ? "♥" : "♡"}</button>
       <button type="button" class="pc-add${!e.s && !Object.keys(e.l).length ? "" : " on"}" data-act="add" aria-label="Ajouter à ma collection ou à une liste">${e.s || Object.keys(e.l).length ? "✓" : "+"}</button>
       ${opts.remove ? `<button type="button" class="pc-rm" data-act="rm" aria-label="Retirer de la liste">×</button>` : ""}
+      ${progressBar(a, e)}
     </div>
     <a class="pc-t" href="#/anime/${a.id}">${esc(t)}</a>
     <div class="pc-sub">${esc(sub)}</div>
   </article>`;
 }
 export const grid = (items, opts) => items.map(a => card(a, opts)).join("");
+
+/** Barre de progression + bouton +1 pour les titres « En cours » (si le suivi des épisodes est activé). */
+function progressBar(a, e) {
+  if (!FEATURES.progress || e.s !== "watching") return "";
+  const p = e.p || 0, tot = a.eps || 0, pct = tot ? Math.min(100, p / tot * 100) : 0;
+  return `<div class="pc-prog" title="${p}${tot ? " / " + tot : ""} épisode${p > 1 ? "s" : ""} vu${p > 1 ? "s" : ""}">
+    <span class="pc-bar"><i style="width:${pct}%"></i></span><span class="pc-ep">ép. ${p}${tot ? "/" + tot : ""}</span>
+    <button type="button" class="pc-plus" data-act="plus1" aria-label="J'ai vu l'épisode suivant">+1</button></div>`;
+}
+/** Applique +1 épisode et annonce les changements de statut automatiques. */
+export function plusOne(id) {
+  const a = byId.get(id), e = ent(id), n = (e.p || 0) + 1;
+  const auto = setProgress(id, n, a.eps || 0);
+  toast(auto === "watched" ? `🎉 Dernier épisode vu : « ${titleOf(a)} » passe en « Regardé »` : auto === "watching" ? `Épisode ${n} vu · ajouté à « En cours »` : `Épisode ${n} vu`);
+}
 
 /** Met à jour toutes les cartes d'un titre après un changement. */
 export function refreshCards(id) {
@@ -45,11 +61,11 @@ export function refreshCards(id) {
 }
 
 /** Rangée horizontale (accueil, similaires). */
-export function row(title, items, more, sub = "") {
+export function row(title, items, more, sub = "", opts) {
   if (!items.length) return "";
   return `<section class="row">
     <div class="row-h"><h2>${title}</h2>${sub ? `<span class="row-sub">${sub}</span>` : ""}${more ? `<a class="more-link" href="${more}">Tout voir →</a>` : ""}</div>
-    <div class="row-s">${items.map(a => card(a)).join("")}</div>
+    <div class="row-s">${items.map(a => card(a, opts)).join("")}</div>
   </section>`;
 }
 
@@ -136,4 +152,5 @@ document.addEventListener("click", ev => {
     if (!requireUser()) return;
     const on = !ent(id).f; setEntry(id, { f: on }); toast(on ? "Ajouté aux coups de cœur ♥" : "Retiré des coups de cœur");
   } else if (act === "add") openAddMenu(b, id);
+  else if (act === "plus1") plusOne(id);
 });

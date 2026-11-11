@@ -467,3 +467,79 @@ dialog#auth > .hint { margin: 0 0 16px }
   .apps { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)) }
   .faces { grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)) } .face img, .face .cc-none { width: 60px; height: 60px }
 }
+
+/* Progression des épisodes */
+.pc-prog { position: absolute; left: 0; right: 0; bottom: 0; padding: 18px 6px 6px; border-radius: 0 0 10px 10px; background: linear-gradient(transparent, rgba(14, 11, 24, .92) 45%); display: grid; grid-template-columns: 1fr auto; gap: 3px 6px; align-items: center; pointer-events: none }
+.pc-bar { grid-column: 1 / -1; height: 4px; border-radius: 4px; background: rgba(255, 255, 255, .15); overflow: hidden }
+.pc-bar i { display: block; height: 100%; background: var(--st-watching); border-radius: 4px; transition: width .3s }
+.pc-ep { font: 600 11px var(--mono); color: var(--st-watching) }
+.pc-plus { pointer-events: auto; border: 1px solid var(--st-watching); background: var(--fr-soft); color: var(--st-watching); font: 700 12px var(--mono); border-radius: 7px; padding: 2px 8px; cursor: pointer }
+.pc-plus:hover { background: var(--st-watching); color: #0e0b18 }
+.pc-w:has(.pc-prog) .pc-add { bottom: 46px }
+.pc-w:has(.pc-prog) .pc-bl { bottom: 46px }
+.m-prog { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px }
+.m-prog .lbl { font-weight: 600; font-size: 13px }
+.m-prog .ctr { display: inline-flex; align-items: center; border: 1px solid var(--line); border-radius: 9px; overflow: hidden }
+.m-prog .ctr button { border: 0; background: var(--panel); width: 34px; height: 32px; cursor: pointer; font: 700 16px var(--mono) }
+.m-prog .ctr button:hover { background: var(--chip) }
+.m-prog .ctr input { width: 56px; height: 32px; border: 0; border-left: 1px solid var(--line); border-right: 1px solid var(--line); background: var(--bg); text-align: center; font: 600 14px var(--mono); -moz-appearance: textfield }
+.m-prog .ctr input::-webkit-inner-spin-button { -webkit-appearance: none }
+.m-prog .tot { font: 500 13px var(--mono); color: var(--muted) }
+.m-prog .bar { flex: 1 1 120px; height: 6px; border-radius: 6px; background: var(--chip); overflow: hidden; min-width: 80px }
+.m-prog .bar i { display: block; height: 100%; background: var(--st-watching) }
+
+.cc-mine { position: absolute; top: 6px; right: 6px; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: rgba(14, 11, 24, .8); color: var(--heart); font-size: 14px; border: 1px solid var(--heart) }
+.c-act { margin-top: 4px }
+
+/* Calendrier */
+.cal-days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; margin-bottom: 18px }
+.cal-days button { border: 1px solid var(--line); background: var(--panel); border-radius: 12px; padding: 9px 6px; cursor: pointer; display: grid; gap: 1px; color: var(--ink) }
+.cal-days button small { color: var(--muted); font: 11.5px var(--mono) }
+.cal-days button.on { background: var(--accent); border-color: var(--accent); color: var(--accent-ink) } .cal-days button.on small { color: var(--accent-ink) }
+.cal { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; max-width: 900px }
+.cal-it { display: grid; grid-template-columns: 56px 52px minmax(0, 1fr) auto; gap: 14px; align-items: center; padding: 8px 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel) }
+.cal-it.mine { border-color: var(--accent); background: linear-gradient(90deg, var(--accent-soft), var(--panel) 40%) }
+.cal-it.past { opacity: .6 }
+.cal-it time { font: 600 15px var(--mono); color: var(--accent) }
+.cal-cv .cv { width: 52px; border-radius: 6px }
+.cal-txt { display: grid; gap: 2px; min-width: 0 }
+.cal-txt a { color: var(--ink); text-decoration: none; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+.cal-txt a:hover { color: var(--accent) }
+.cal-txt > span { color: var(--muted); font-size: 12.5px }
+.cal-txt b { color: var(--accent) }
+.cal-b { display: flex; gap: 4px } .cal-b i { font-style: normal } .cal-b .b-status { font: 700 11px var(--body); padding: 1px 6px; border-radius: 5px }
+@media (max-width: 640px) {
+  .cal-days { grid-template-columns: repeat(7, 84px); overflow-x: auto; margin: 0 calc(var(--gut) * -1) 16px; padding: 0 var(--gut) 4px }
+  .cal-it { grid-template-columns: 46px 40px minmax(0, 1fr) auto; gap: 10px; padding: 8px } .cal-cv .cv { width: 40px }
+}
+
+/* Import */
+.imp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px }
+.imp-box { display: grid; gap: 8px; align-content: start; padding: 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg) }
+.imp-box label.hint { display: grid; gap: 4px }
+.imp-box input[type=text] { padding: 9px 11px; border: 1px solid var(--line); border-radius: 9px; background: var(--panel) }
+.imp-box input:focus { border-color: var(--accent); outline: none }
+.imp-prev { margin-top: 14px; padding: 14px; border: 1px solid var(--accent); border-radius: 12px; background: var(--accent-soft) }
+.imp-prev p { margin: 0 0 6px }
+.imp-act { display: flex; gap: 8px; margin-top: 8px }
+.imp-bar { height: 6px; border-radius: 6px; background: var(--chip); overflow: hidden; margin-top: 10px } .imp-bar i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .2s }
+.imp-ok { margin: 14px 0 0; color: var(--st-watched) } .imp-err { margin: 14px 0 0; color: var(--ex) }
+@media (max-width: 640px) { .imp-grid { grid-template-columns: 1fr } }
+
+/* Statistiques */
+.stats2 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 0 0 18px; padding: 16px; border: 1px solid var(--line); border-radius: 16px; background: linear-gradient(180deg, var(--panel-2), var(--panel)) }
+.st-n { display: grid; gap: 2px } .st-n b { font: 600 24px var(--mono); color: var(--accent) } .st-n span { color: var(--muted); font-size: 12.5px }
+.st-bar { grid-column: 1 / -1; display: flex; height: 8px; border-radius: 8px; overflow: hidden; gap: 2px; background: var(--chip) }
+.st-bar i { display: block; min-width: 4px }
+.st-g { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px; align-items: center }
+@media (max-width: 640px) { .stats2 { grid-template-columns: 1fr 1fr } .st-n b { font-size: 20px } }
+
+/* Suggestions de recherche */
+.qsug { position: absolute; left: 0; right: 0; top: calc(100% + 6px); z-index: 45; background: var(--panel-2); border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 20px 60px rgba(0, 0, 0, .6); padding: 6px; display: grid; max-height: min(70vh, 560px); overflow-y: auto }
+.qs-h { font: 600 11px var(--body); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); padding: 8px 10px 4px }
+.qs-it, .qs-all { display: flex; gap: 10px; align-items: center; padding: 6px 10px; border-radius: 9px; text-decoration: none; color: var(--ink) }
+.qs-it:hover, .qs-it.on, .qs-all:hover, .qs-all.on { background: var(--chip) }
+.qs-it b { display: block; font-size: 13.5px; font-weight: 600 } .qs-it small { color: var(--muted); font-size: 12px }
+.qs-face { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; object-position: top; flex: none; font-size: 14px }
+.qs-all { justify-content: space-between; color: var(--violet); font-weight: 500; font-size: 13px; border-top: 1px solid var(--line); border-radius: 0; margin-top: 4px; padding-top: 10px }
+.qs-all kbd { font: 11px var(--mono); color: var(--muted); border: 1px solid var(--line); border-radius: 5px; padding: 0 5px }

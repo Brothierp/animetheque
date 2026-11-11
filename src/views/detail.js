@@ -1,6 +1,6 @@
 // Fiche d'un animé, ouverte dans une fenêtre par-dessus la page (#/anime/<id>).
 import { byId, T, tr, titleOf, altTitles, coverStyle, extLink, similar, ready, loadChars, loadDesc } from "../data.js";
-import { ME, ent, STATUSES, setEntry, setInList, clearAnime, adultAllowed, requireUser, onChange } from "../state.js";
+import { ME, ent, STATUSES, setEntry, setInList, clearAnime, adultAllowed, requireUser, onChange, setProgress, FEATURES } from "../state.js";
 import { $, esc, cover, row, starsHTML, openAddMenu } from "../ui.js";
 import { charsOfAnime, imgUrl, ROLE_FR } from "../chars.js";
 import { toast } from "../toast.js";
@@ -18,6 +18,7 @@ function mineHTML(a) {
       ${starsHTML(a.id)}
     </div>
     <div class="m-status" role="group" aria-label="Statut">${Object.entries(STATUSES).map(([k, v]) => `<button type="button" data-d="status" data-v="${k}" class="s-${k}${e.s === k ? " on" : ""}" aria-pressed="${e.s === k}">${v}</button>`).join("")}</div>
+    ${FEATURES.progress ? progHTML(a, e) : ""}
     <div class="m-lists"><span class="hint">Listes :</span> ${L.map(([k]) => `<span class="lchip">${esc(ME.lists[k].n)}<button type="button" data-d="unlist" data-l="${esc(k)}" aria-label="Retirer de ${esc(ME.lists[k].n)}">×</button></span>`).join("")}
       <button type="button" class="btn sm" data-d="lists">+ Ajouter à une liste</button></div>
     <form class="m-comment" data-d="comment">
@@ -27,6 +28,19 @@ function mineHTML(a) {
       ${isInCol(e) ? `<button type="button" class="linkbtn" data-d="clear">Retirer de ma collection</button>` : ""}</div>
     </form>
   </div>`;
+}
+function progHTML(a, e) {
+  const p = e.p || 0, tot = a.eps || 0;
+  return `<div class="m-prog"><span class="lbl">Épisodes vus</span>
+    <span class="ctr"><button type="button" data-d="pminus" aria-label="Un épisode de moins">−</button><input type="number" id="pInput" min="0" ${tot ? `max="${tot}"` : ""} value="${p}" inputmode="numeric" aria-label="Épisodes vus"><button type="button" data-d="pplus" aria-label="Un épisode de plus">+</button></span>
+    <span class="tot">/ ${tot || "?"}</span>
+    ${tot ? `<span class="bar"><i style="width:${Math.min(100, p / tot * 100)}%"></i></span>` : ""}
+    ${tot && p < tot ? `<button type="button" class="btn sm" data-d="pall">Tout vu</button>` : ""}</div>`;
+}
+function applyProgress(id, n) {
+  const a = byId.get(id), auto = setProgress(id, n, a.eps || 0);
+  if (auto === "watched") toast(`🎉 Terminé ! « ${titleOf(a)} » passe en « Regardé »`);
+  else if (auto === "watching") toast("Ajouté à « En cours »");
 }
 const isInCol = e => e.f || e.r || e.c || e.s || Object.keys(e.l).length;
 
@@ -113,10 +127,14 @@ function bind() {
     else if (k === "fav") { setEntry(id, { f: !cur.f }); toast(cur.f ? "Retiré des coups de cœur" : "Ajouté aux coups de cœur ♥"); }
     else if (k === "status") { const v = cur.s === b.dataset.v ? "" : b.dataset.v; setEntry(id, { s: v }); if (v) toast("Statut : " + STATUSES[v]); }
     else if (k === "lists") openAddMenu(b, id);
+    else if (k === "pplus") applyProgress(id, (cur.p || 0) + 1);
+    else if (k === "pminus") applyProgress(id, Math.max(0, (cur.p || 0) - 1));
+    else if (k === "pall") applyProgress(id, byId.get(id).eps || 0);
     else if (k === "unlist") { setInList(id, b.dataset.l, false); toast("Retiré de la liste"); }
     else if (k === "clear") { if (confirm("Retirer ce titre de ta collection (statut, note, avis, listes) ?")) { clearAnime(id); toast("Retiré de ta collection"); } }
   });
   el.addEventListener("click", e => { const s = e.target.closest(".d-mine [data-act=star]"); if (!s) return; const v = +s.dataset.v; setEntry(curId, { r: ent(curId).r === v ? 0 : v }); });
+  el.addEventListener("change", e => { if (e.target.id === "pInput") applyProgress(curId, +e.target.value || 0); });
   el.addEventListener("input", e => {
     if (e.target.id !== "cm") return;
     $("cmCount").textContent = e.target.value.length + "/280";
