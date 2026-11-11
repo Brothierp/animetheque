@@ -159,3 +159,10 @@ L'affiche n° `k` se trouve dans `covers/s{⌊k/200⌋}.webp`, grille de 10 × 2
   (genre, âge, date de naissance → signe, groupe sanguin, taille) et de la description (cheveux, yeux, lunettes, espèce,
   métier, personnalité…), par des règles prudentes. Elles sont donc indicatives et inégales : les personnages populaires,
   mieux décrits, en ont davantage. Modifier les règles dans `characters_build.py` puis relancer le script.
+
+## Genres issus d'étiquettes
+
+AniList n'a que 19 genres. Les autres « genres » du catalogue (Boys' Love, Yuri, Isekai, Vampires, Vie scolaire…) sont
+des étiquettes votées par la communauté, avec un score de pertinence. Un titre n'a ce genre que si l'étiquette atteint
+**60 %** (**70 %** si elle est marquée comme spoiler). Pour mettre à jour : `scripts/genres_tags_fetch.py` puis
+`scripts/genres_fix.py` (voir l'en-tête du script).
