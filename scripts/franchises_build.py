@@ -32,14 +32,59 @@ def date(i):
     y = d.get("year") or items[i][11] or 9999
     return (y, d.get("month") or 13, d.get("day") or 32, i)
 
-seen = set(); franchises = []
-for start in range(len(items)):
-    if start in seen or start not in adj: continue
-    comp, stack = [], [start]; seen.add(start)
-    while stack:
-        n = stack.pop(); comp.append(n)
-        for m in adj[n]:
-            if m not in seen: seen.add(m); stack.append(m)
+# 1) noyaux : liens suite / préquelle uniquement (les plus fiables) ;
+# 2) un groupe relié par un autre lien (film, OAV, spin-off, version alternative, œuvre mère…) à UN SEUL autre groupe
+#    lui est rattaché, de proche en proche ; s'il est relié à plusieurs univers (crossover, ex. les courts métrages
+#    d'Annecy qui se déclarent mutuellement « œuvre mère » de One Piece et Dragon Ball), il reste à part.
+STRONG = {"SEQUEL", "PREQUEL"}
+WEAK = GROUP - STRONG
+parent = list(range(len(items)))
+def find(x):
+    while parent[x] != x: parent[x] = parent[parent[x]]; x = parent[x]
+    return x
+def union(a, b): parent[find(a)] = find(b)
+strong_e, weak_e = [], []
+for sid, info in rel.items():
+    a = idx.get(int(sid))
+    if a is None: continue
+    for t, oid in info["r"]:
+        b = idx.get(oid)
+        if b is None or b == a: continue
+        if t in STRONG: strong_e.append((a, b))
+        elif t in WEAK: weak_e.append((a, b))
+for a, b in strong_e: union(a, b)
+
+# Autres liens : un petit groupe (≤ 3 titres : spécial, OAV, court métrage…) se rattache librement ;
+# deux gros groupes ne fusionnent que si leurs titres commencent pareil (« One Piece » / « One Piece Film »),
+# ce qui empêche un crossover de relier deux univers (« One Piece » / « Dragon Ball »).
+import re, unicodedata
+def stem(i):
+    out = set()
+    for t in (items[i][2], items[i][3]):
+        if not t: continue
+        t = unicodedata.normalize("NFKD", t).encode("ascii", "ignore").decode().lower()
+        w = re.findall(r"[a-z0-9]+", t.split(":")[0])
+        if len(w) >= 2: out.add(" ".join(w[:2]))
+        elif w and len(w[0]) >= 4: out.add(w[0])
+    return out
+gsize = collections.Counter(find(i) for i in range(len(items)))
+gstem = collections.defaultdict(set)
+for i in range(len(items)): gstem[find(i)] |= stem(i)
+def merge(a, b):
+    ra, rb = find(a), find(b)
+    if ra == rb: return False
+    if min(gsize[ra], gsize[rb]) > 3 and not (gstem[ra] & gstem[rb]): return False
+    small = min(gsize[ra], gsize[rb]) <= 3
+    # un petit groupe rattaché (ex. film crossover « Lupin III vs Détective Conan ») n'apporte pas ses débuts de nom :
+    # sinon il servirait ensuite de pont vers l'autre univers
+    keep = gstem[rb] if gsize[rb] >= gsize[ra] else gstem[ra]
+    parent[ra] = rb; gsize[rb] += gsize[ra]; gstem[rb] = set(keep) if small else gstem[ra] | gstem[rb]; return True
+for _ in range(30):   # jusqu'à stabilité
+    if not sum(merge(a, b) for a, b in weak_e): break
+comps = collections.defaultdict(list)
+for i in range(len(items)): comps[find(i)].append(i)
+franchises = []
+for comp in comps.values():
     if len(comp) < 2: continue
     # ligne principale : chaîne suite/préquelle autour du titre (série ou film) le plus populaire
     root = min(comp, key=lambda i: (FMT[items[i][6]] not in ("TV", "TV_SHORT", "ONA", "MOVIE") if items[i][6] >= 0 else True, i))

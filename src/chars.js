@@ -1,5 +1,5 @@
 // Personnages : index statique (characters.json) + détails chargés en direct depuis l'API AniList.
-import { A, byId, norm, loadCatalogue } from "./data.js";
+import { A, byId, norm, loadCatalogue, dataUrl } from "./data.js";
 
 export let CH = [];               // personnages, triés par popularité (nombre de fans AniList)
 export const charById = new Map();
@@ -12,42 +12,47 @@ const fullListeners = new Set();
 export const onCharsComplete = fn => { fullListeners.add(fn); return () => fullListeners.delete(fn); };
 
 const getJSON = url => fetch(url).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); });
+// Texte de recherche préparé à la demande (coûteux à calculer pour 90 000 personnages sur un téléphone).
+const HAY = Symbol("hay");
+const proto = { get hay() { return this[HAY] || (this[HAY] = norm([this.name, this.native, ...this.alt].join(" "))); } };
 function ingest(rows, startRank) {
-  const added = rows.map(([id, name, native, img, fav, tags, apps, alt], k) => ({
-    id, name, native, img, fav, tags, rank: startRank + k, alt: alt || [],
-    apps: decodeApps(apps), hay: norm([name, native, ...(alt || [])].join(" "))
-  }));
-  for (const c of added) {
+  let k = 0;
+  for (const [id, name, native, img, fav, tags, apps, alt] of rows) {
+    if (charById.has(id)) continue;          // jamais de doublon, même avec un fichier ancien en cache
+    const c = Object.create(proto);
+    Object.assign(c, { id, name, native, img, fav, tags, rank: startRank + k++, alt: alt || [], apps: decodeApps(apps) });
     CH.push(c); charById.set(c.id, c);
     for (const { a, role } of c.apps) {
       if (!charsByAnime.has(a.id)) charsByAnime.set(a.id, []);
       charsByAnime.get(a.id).push({ c, role });
     }
   }
+}
+function sortByAnime() {
   const order = { M: 0, S: 1, B: 2 };
   for (const l of charsByAnime.values()) l.sort((x, y) => order[x.role] - order[y.role] || x.c.rank - y.c.rank);
 }
 
 /** Charge les 3 000 personnages les plus aimés (rapide), puis lance le chargement des autres en arrière-plan. */
 export function loadCharacters() {
-  if (!p) p = Promise.all([loadCatalogue(), getJSON("/characters.json")]).then(([, d]) => {
+  if (!p) p = Promise.all([loadCatalogue(), getJSON(dataUrl("/characters.json"))]).then(([, d]) => {
     IMG = d.img; CATS = d.cats; chReady.total = d.total || d.chars.length;
     TAGS = d.tags.map(([cat, label, n], i) => ({ i, cat, label, n }));
-    ingest(d.chars, 0);
+    ingest(d.chars, 0); sortByAnime();
     chReady.loaded = true;
   }).catch(e => { p = null; throw e; });
   return p;
 }
 /** Tous les personnages (≈ 90 000). */
 export function loadAllCharacters() {
-  if (!pAll) pAll = loadCharacters().then(() => getJSON("/characters-more.json")).then(d => {
+  if (!pAll) pAll = Promise.all([loadCharacters(), getJSON(dataUrl("/characters-more.json"))]).then(([, d]) => {
     // découpe le traitement pour ne pas figer la page
     return new Promise(res => {
       const rows = d.chars, start = CH.length; let i = 0;
       const step = () => {
         const end = Math.min(rows.length, i + 8000);
         ingest(rows.slice(i, end), start + i); i = end;
-        if (i < rows.length) setTimeout(step, 0); else { chReady.full = true; fullListeners.forEach(f => f()); res(); }
+        if (i < rows.length) setTimeout(step, 0); else { sortByAnime(); chReady.full = true; fullListeners.forEach(f => f()); res(); }
       };
       step();
     });
@@ -62,7 +67,7 @@ const decodeApps = L => L.map(v => ({ a: A[v >> 2], role: ROLES[v & 3] })).filte
 /** Petit fichier des personnages les plus aimés (accueil), sans charger l'index complet. */
 let topP = null;
 export function loadTopCharacters() {
-  if (!topP) topP = Promise.all([loadCatalogue(), fetch("/characters-top.json").then(r => r.json())]).then(([, d]) => {
+  if (!topP) topP = Promise.all([loadCatalogue(), fetch(dataUrl("/characters-top.json")).then(r => r.json())]).then(([, d]) => {
     if (!IMG) IMG = d.img;
     return d.chars.map(([id, name, native, img, fav, apps]) => ({ id, name, native, img, fav, tags: [], alt: [], apps: decodeApps(apps) }));
   }).catch(e => { topP = null; throw e; });
@@ -74,7 +79,7 @@ const shardP = new Map();
 export function charsOfAnime(anime) {
   if (chReady.full) return Promise.resolve(charsByAnime.get(anime.id) || []);
   const n = anime.rank % 64;
-  if (!shardP.has(n)) shardP.set(n, fetch(`/cshards/${n}.json`).then(r => r.json()).catch(e => { shardP.delete(n); throw e; }));
+  if (!shardP.has(n)) shardP.set(n, fetch(dataUrl(`/cshards/${n}.json`)).then(r => r.json()).catch(e => { shardP.delete(n); throw e; }));
   return shardP.get(n).then(d => {
     if (!IMG) IMG = d.img;
     return (d.a[anime.rank] || []).map(([id, name, img, role]) => ({ c: { id, name, img }, role: ROLES[role] }));

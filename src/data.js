@@ -1,5 +1,10 @@
 // Catalogue : chargement de data.json / chars.json, traductions, recherche, affiches.
 
+/** Version des fichiers de données : à changer à chaque régénération, pour qu'aucun navigateur ne mélange
+ *  une ancienne copie en cache avec les nouveaux fichiers. */
+export const DATA_V = "20261112c";
+export const dataUrl = path => `${path}?v=${DATA_V}`;
+
 export const FR = {
   format: { TV: "Série TV", TV_SHORT: "Série courte", MOVIE: "Film", SPECIAL: "Spécial", OVA: "OAV", ONA: "ONA (web)", MUSIC: "Clip musical" },
   status: { FINISHED: "Terminé", RELEASING: "En cours de diffusion", NOT_YET_RELEASED: "À venir", CANCELLED: "Annulé", HIATUS: "En pause" },
@@ -32,16 +37,21 @@ export const FRANCHISE = new Map();
 export const KIND_FR = ["Principal", "Histoire parallèle", "Spin-off", "Récapitulatif", "Version alternative", "Bonus"];
 export const franchiseKey = a => { const f = FRANCHISE.get(a.id); return f ? f.list : a; };
 
+// Textes de recherche calculés au premier usage (coûteux sur un téléphone pour 22 000 titres).
+const ANIME = {
+  get hay() { return this._hay || (this._hay = norm([this.romaji, this.english, this.native, ...this.syn].join(" "))); },
+  get studioHay() { return this._sh || (this._sh = this.studios.map(j => norm(T.studios[j])).join("|")); }
+};
 export function loadCatalogue() {
   if (!catPromise) catPromise = Promise.all([
-    fetch("/data.json").then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }),
-    fetch("/franchises.json").then(r => r.ok ? r.json() : null).catch(() => null)
+    fetch(dataUrl("/data.json")).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }),
+    fetch(dataUrl("/franchises.json")).then(r => r.ok ? r.json() : null).catch(() => null)
   ]).then(([d, fr]) => {
     T = d.tables;
-    A = d.items.map((x, i) => ({ id: x[0], mal: x[1], romaji: x[2], english: x[3], native: x[4], syn: x[5], format: x[6], status: x[7], eps: x[8], dur: x[9],
+    A = d.items.map((x, i) => Object.assign(Object.create(ANIME), { id: x[0], mal: x[1], romaji: x[2], english: x[3], native: x[4], syn: x[5], format: x[6], status: x[7], eps: x[8], dur: x[9],
       season: x[10], year: x[11], genres: x[12], tags: x[13], studios: x[14], score: x[15], pop: x[16], country: x[17], source: x[18], hasDesc: !!x[19], desc: typeof x[19] === "string" ? x[19] : null,
-      plats: x[20], lang: x[21], adult: x[22] === 1, cov: x[23], rank: i, chars: [], charHay: "",
-      hay: norm([x[2], x[3], x[4], ...x[5]].join(" ")), studioHay: x[14].map(j => norm(d.tables.studios[j])).join("|") }));
+      plats: Array.isArray(x[20]) ? x[20] : null, nPlats: Array.isArray(x[20]) ? x[20].length : x[20], lang: x[21], adult: x[22] === 1, cov: x[23], rank: i, chars: [], charHay: "",
+      _hay: null, _sh: null }));
     for (const a of A) byId.set(a.id, a);
     UP = T.status.indexOf("NOT_YET_RELEASED"); RELEASING = T.status.indexOf("RELEASING");
     if (fr) for (const f of fr.f) {
@@ -53,7 +63,7 @@ export function loadCatalogue() {
   return catPromise;
 }
 export function loadChars() {
-  if (!charPromise) charPromise = loadCatalogue().then(() => fetch("/chars.json")).then(r => r.json()).then(C => {
+  if (!charPromise) charPromise = loadCatalogue().then(() => fetch(dataUrl("/chars.json"))).then(r => r.json()).then(C => {
     C.forEach((cs, i) => { const a = A[i]; if (!a) return; a.chars = cs; a.charHay = norm(cs.map(c => c[0] + " " + c[1]).join(" | ")); });
     ready.chars = true;
   });
@@ -62,12 +72,18 @@ export function loadChars() {
 
 /** Synopsis, chargé à la demande (64 petits fichiers). */
 const descP = new Map();
-export function loadDesc(a) {
-  if (a.desc != null || !a.hasDesc) return Promise.resolve(a.desc || "");
+/** Détails chargés à la demande (synopsis + plateformes) : 64 petits fichiers. */
+export function loadDetails(a) {
+  if (a.desc != null && a.plats) return Promise.resolve(a);
   const n = a.rank % 64;
-  if (!descP.has(n)) descP.set(n, fetch(`/dshards/${n}.json`).then(r => r.json()).catch(e => { descP.delete(n); throw e; }));
-  return descP.get(n).then(d => (a.desc = d[a.rank] || ""));
+  if (!descP.has(n)) descP.set(n, fetch(dataUrl(`/dshards/${n}.json`)).then(r => r.json()).catch(e => { descP.delete(n); throw e; }));
+  return descP.get(n).then(d => {
+    const v = d[a.rank];
+    if (Array.isArray(v)) { a.desc = v[0] || ""; a.plats = v[1] || []; } else { a.desc = v || ""; a.plats = a.plats || []; }
+    return a;
+  });
 }
+export const loadDesc = a => loadDetails(a).then(x => x.desc || "");
 
 export const titleOf = a => a.english || a.romaji;
 export const altTitles = a => { const m = titleOf(a); return [...new Set([a.romaji, a.native].filter(t => t && t.toLowerCase() !== m.toLowerCase()))]; };

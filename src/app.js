@@ -2,7 +2,7 @@
 import "./style.css";
 import { supabase } from "./supabase.js";
 import { loadCatalogue, ready, A, byId, UP, norm, titleOf, coverStyle, tr, T } from "./data.js";
-import { loadCharacters, chReady, CH, visibleApps, mainAnime, imgUrl } from "./chars.js";
+import { loadCharacters, loadAllCharacters, chReady, CH, visibleApps, mainAnime, imgUrl } from "./chars.js";
 import { ME, onChange, initSession, updateProfile } from "./state.js";
 import { initAuth, openAuth, isAuthOpen, signOut } from "./auth.js";
 import { displayName, avatarUrl, avatarHTML, isAdultYear } from "./profile.js";
@@ -178,6 +178,9 @@ else $("signIn").hidden = true;
 
 // ---------- Démarrage ----------
 view.innerHTML = `<div class="page"><div class="boot"><div class="spinner" aria-hidden="true"></div><p>Chargement du catalogue…</p></div></div>`;
+// Lien direct vers les personnages : on télécharge leurs fichiers en même temps que le catalogue.
+// (seulement le petit fichier : le gros complément attend l'affichage, pour ne pas ralentir le catalogue)
+if (/^#\/personnage/.test(location.hash)) loadCharacters().catch(() => {});
 loadCatalogue().then(() => {
   $("dbsize").textContent = fmt(A.length) + " animés";
   addEventListener("hashchange", route);

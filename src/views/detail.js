@@ -1,5 +1,5 @@
 // Fiche d'un animé, ouverte dans une fenêtre par-dessus la page (#/anime/<id>).
-import { byId, T, tr, titleOf, altTitles, coverStyle, extLink, similar, ready, loadChars, loadDesc, FRANCHISE, KIND_FR, UP } from "../data.js";
+import { byId, T, tr, titleOf, altTitles, coverStyle, extLink, similar, ready, loadChars, loadDetails, FRANCHISE, KIND_FR, UP } from "../data.js";
 import { ME, ent, STATUSES, STATUS_SHORT, setEntry, setInList, clearAnime, adultAllowed, requireUser, onChange, setProgress, FEATURES } from "../state.js";
 import { $, esc, cover, row, starsHTML, openAddMenu } from "../ui.js";
 import { charsOfAnime, imgUrl, ROLE_FR } from "../chars.js";
@@ -60,13 +60,14 @@ function orderHTML(a) {
 }
 const isInCol = e => e.f || e.r || e.c || e.s || Object.keys(e.l).length;
 
+const platsHTML = a => (a.plats || []).map(([i, u]) => `<a class="plat" href="${esc(u)}" target="_blank" rel="noopener">${esc(T.platforms[i])} <span aria-hidden="true">↗</span></a>`).join("");
 function html(a) {
   const t = titleOf(a), alts = altTitles(a);
   const meta = [a.format >= 0 ? tr("format", T.format[a.format]) : "", a.year ? `${a.season >= 0 ? tr("season", T.season[a.season]) + " " : ""}${a.year}` : "",
     a.eps ? `${a.eps} épisode${a.eps > 1 ? "s" : ""}` : "", a.dur ? `${a.dur} min` : "", a.status >= 0 ? tr("status", T.status[a.status]) : ""].filter(Boolean);
   const studio = a.studios.map(i => `<a href="#/catalogue?studio=${encodeURIComponent(T.studios[i])}">${esc(T.studios[i])}</a>`).join(", ");
   const langs = a.lang ? [...a.lang].map(l => `<span class="lg ${l}">${l === "F" ? "FR" : "EN"}</span>`).join("") : `<span class="lg N">Non dispo en FR/EN</span>`;
-  const plats = a.plats.map(([i, u]) => `<a class="plat" href="${esc(u)}" target="_blank" rel="noopener">${esc(T.platforms[i])} <span aria-hidden="true">↗</span></a>`).join("");
+  const plats = a.plats ? platsHTML(a) : a.nPlats ? `<span class="hint">Chargement…</span>` : "";
   const chars = a.chars.length ? a.chars.map(c => `<a class="ch ${c[2]}" href="#/catalogue?chara=${encodeURIComponent(c[0] || c[1])}" title="${esc((c[1] ? c[1] + " · " : "") + ROLE[c[2]])}">${esc(c[0] || c[1])}</a>`).join("") : "";
   return `<div class="d-banner" style="${coverStyle(a)}"></div>
   <button type="button" class="d-close x" data-d="close" aria-label="Fermer">×</button>
@@ -82,7 +83,7 @@ function html(a) {
   <div class="d-body">
     <div class="d-main">
       <section class="d-mine" id="dMine">${mineHTML(a)}</section>
-      ${plats ? `<section><h2>Où regarder</h2><div class="plats">${plats}</div><p class="hint">FR / EN indique qu'au moins une plateforme propose en général cette langue (doublage ou sous-titres) ; cela peut varier selon le pays.</p></section>` : ""}
+      ${plats ? `<section><h2>Où regarder</h2><div class="plats" id="dPlats">${plats}</div><p class="hint">FR / EN indique qu'au moins une plateforme propose en général cette langue (doublage ou sous-titres) ; cela peut varier selon le pays.</p></section>` : ""}
       ${orderHTML(a)}
       ${a.hasDesc ? `<section><h2>Synopsis</h2><p class="syn" id="dSyn">${a.desc ? esc(a.desc) : `<span class="hint">Chargement…</span>`}</p></section>` : ""}
       <section><h2>Personnages</h2><div id="dChars">${chars || (ready.chars ? `<p class="hint">Aucun personnage référencé.</p>` : `<p class="hint">Chargement…</p>`)}</div></section>
@@ -115,7 +116,11 @@ export function openDetail(id, onClose) {
   el.classList.add("open"); document.body.classList.add("noscroll");
   panel.focus({ preventScroll: true });
   setTimeout(() => { if (curId === id) $("dSim").innerHTML = row("Dans le même esprit", similar(a, 14, adultAllowed())); }, 30);
-  if (a.hasDesc && a.desc == null) loadDesc(a).then(t => { if (curId === id && $("dSyn")) $("dSyn").textContent = t; }).catch(() => { if ($("dSyn")) $("dSyn").textContent = "Synopsis indisponible pour le moment."; });
+  if ((a.hasDesc && a.desc == null) || (a.nPlats && !a.plats)) loadDetails(a).then(() => {
+    if (curId !== id) return;
+    if ($("dSyn")) $("dSyn").textContent = a.desc;
+    if ($("dPlats")) $("dPlats").innerHTML = platsHTML(a);
+  }).catch(() => { if ($("dSyn")) $("dSyn").textContent = "Synopsis indisponible pour le moment."; });
   charsOfAnime(a).then(L => { if (curId === id) renderFaces(L); })
     .catch(() => { if (!ready.chars) loadChars().then(() => { if (curId === id) $("dChars").innerHTML = a.chars.map(c => `<a class="ch ${c[2]}" href="#/catalogue?chara=${encodeURIComponent(c[0] || c[1])}">${esc(c[0] || c[1])}</a>`).join("") || `<p class="hint">Aucun personnage référencé.</p>`; }); });
   return true;

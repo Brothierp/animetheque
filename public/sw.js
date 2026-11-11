@@ -3,7 +3,7 @@
 // - Code (/assets, fichiers versionnés), affiches, morceaux de données : cache d'abord.
 // - data.json et index des personnages : cache d'abord puis mise à jour en arrière-plan.
 // Les appels à Supabase et AniList ne passent jamais par ce cache.
-const V = "v1", STATIC = "static-" + V, DATA = "data-" + V;
+const V = "v2", STATIC = "static-" + V, DATA = "data-" + V;
 self.addEventListener("install", e => self.skipWaiting());
 self.addEventListener("activate", e => e.waitUntil(
   caches.keys().then(ks => Promise.all(ks.filter(k => !k.endsWith(V)).map(k => caches.delete(k)))).then(() => self.clients.claim())
