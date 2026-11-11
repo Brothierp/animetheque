@@ -2,6 +2,7 @@
 import { byId, T, tr, titleOf, altTitles, coverStyle, extLink, similar, ready, loadChars } from "../data.js";
 import { ME, ent, STATUSES, setEntry, setInList, clearAnime, adultAllowed, requireUser, onChange } from "../state.js";
 import { $, esc, cover, row, starsHTML, openAddMenu } from "../ui.js";
+import { charsOfAnime, imgUrl, ROLE_FR } from "../chars.js";
 import { toast } from "../toast.js";
 
 let el = null, curId = null, onCloseCb = null;
@@ -53,7 +54,7 @@ function html(a) {
       <section class="d-mine" id="dMine">${mineHTML(a)}</section>
       ${plats ? `<section><h2>Où regarder</h2><div class="plats">${plats}</div><p class="hint">FR / EN indique qu'au moins une plateforme propose en général cette langue (doublage ou sous-titres) ; cela peut varier selon le pays.</p></section>` : ""}
       ${a.desc ? `<section><h2>Synopsis</h2><p class="syn">${esc(a.desc)}</p></section>` : ""}
-      <section><h2>Personnages</h2><div class="chars" id="dChars">${chars || (ready.chars ? `<p class="hint">Aucun personnage référencé.</p>` : `<p class="hint">Chargement…</p>`)}</div></section>
+      <section><h2>Personnages</h2><div id="dChars">${chars || (ready.chars ? `<p class="hint">Aucun personnage référencé.</p>` : `<p class="hint">Chargement…</p>`)}</div></section>
     </div>
     <aside class="d-side">
       <div><h3>Genres</h3><div class="tags">${a.genres.map(i => `<a class="g" href="#/catalogue?genre=${encodeURIComponent(T.genres[i])}">${esc(tr("genres", T.genres[i]))}</a>`).join("") || "—"}</div></div>
@@ -83,12 +84,22 @@ export function openDetail(id, onClose) {
   el.classList.add("open"); document.body.classList.add("noscroll");
   panel.focus({ preventScroll: true });
   setTimeout(() => { if (curId === id) $("dSim").innerHTML = row("Dans le même esprit", similar(a, 14, adultAllowed())); }, 30);
-  if (!ready.chars) loadChars().then(() => { if (curId === id) { $("dChars").innerHTML = a.chars.map(c => `<a class="ch ${c[2]}" href="#/catalogue?chara=${encodeURIComponent(c[0] || c[1])}">${esc(c[0] || c[1])}</a>`).join("") || `<p class="hint">Aucun personnage référencé.</p>`; } });
+  charsOfAnime(a).then(L => { if (curId === id) renderFaces(L); })
+    .catch(() => { if (!ready.chars) loadChars().then(() => { if (curId === id) $("dChars").innerHTML = a.chars.map(c => `<a class="ch ${c[2]}" href="#/catalogue?chara=${encodeURIComponent(c[0] || c[1])}">${esc(c[0] || c[1])}</a>`).join("") || `<p class="hint">Aucun personnage référencé.</p>`; }); });
   return true;
+}
+function renderFaces(L) {
+  if (!L.length) { $("dChars").innerHTML = `<p class="hint">Aucun personnage référencé.</p>`; return; }
+  const face = ({ c, role }) => { const src = imgUrl(c, "medium");
+    return `<a class="face r-${role}" href="#/personnage/${c.id}">${src ? `<img src="${esc(src)}" alt="" loading="lazy" referrerpolicy="no-referrer">` : `<span class="cc-none">${esc((c.name || "?")[0])}</span>`}<b>${esc(c.name || c.native)}</b><small>${ROLE_FR[role]}</small></a>`; };
+  $("dChars").innerHTML = `<div class="faces">${L.slice(0, 12).map(face).join("")}</div>
+    ${L.length > 12 ? `<button type="button" class="btn sm" id="moreFaces">Voir les ${L.length} personnages</button>` : ""}`;
+  const m = $("moreFaces"); if (m) m.addEventListener("click", () => { $("dChars").querySelector(".faces").innerHTML = L.map(face).join(""); m.remove(); });
 }
 export function closeDetail() {
   if (!el || !el.classList.contains("open")) return;
-  el.classList.remove("open"); document.body.classList.remove("noscroll"); curId = null;
+  el.classList.remove("open"); curId = null;
+  if (!document.querySelector(".dmodal.open")) document.body.classList.remove("noscroll");
 }
 export const isDetailOpen = () => !!(el && el.classList.contains("open"));
 

@@ -143,3 +143,19 @@ L'affiche n° `k` se trouve dans `covers/s{⌊k/200⌋}.webp`, grille de 10 × 2
   navigateur (les métadonnées EXIF / GPS disparaissent). Les images ne sont pas analysées automatiquement.
 - **Mots de passe** : Supabase ne stocke qu'une empreinte bcrypt (`auth.users.encrypted_password`), impossible à
   inverser ; personne, pas même l'administrateur, ne peut lire un mot de passe.
+
+## Personnages
+
+- **Données** : récupérées depuis l'[API AniList](https://docs.anilist.co) (25 personnages par animé, triés par rôle puis
+  importance) avec `scripts/characters_fetch.py` (≈ 450 requêtes, limite de débit respectée, reprise automatique), puis
+  transformées par `scripts/characters_build.py` en :
+  - `public/characters.json` : index (nom, nom natif, image, nombre de fans, étiquettes, apparitions) pour la page Personnages ;
+  - `public/characters-top.json` : les 40 plus aimés, pour l'accueil ;
+  - `public/cshards/<n>.json` : visages par animé (64 fichiers légers) pour la fiche d'un animé.
+- **Images** : servies par le CDN d'AniList (`s4.anilist.co`), pas stockées dans le dépôt.
+- **Description, âge, anniversaire** : chargés en direct depuis AniList à l'ouverture d'une fiche personnage (anglais,
+  spoilers floutés).
+- **Étiquettes** : AniList ne fournit pas d'étiquettes de personnages. Elles sont déduites en français de ses champs
+  (genre, âge, date de naissance → signe, groupe sanguin, taille) et de la description (cheveux, yeux, lunettes, espèce,
+  métier, personnalité…), par des règles prudentes. Elles sont donc indicatives et inégales : les personnages populaires,
+  mieux décrits, en ont davantage. Modifier les règles dans `characters_build.py` puis relancer le script.

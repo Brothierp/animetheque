@@ -402,3 +402,68 @@ dialog#auth > .hint { margin: 0 0 16px }
   .gtiles { grid-template-columns: repeat(2, 1fr) }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important } }
+
+/* ---------- Personnages ---------- */
+.cgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 22px 16px }
+.cc { display: grid; gap: 2px; text-decoration: none; color: var(--ink); min-width: 0 }
+.cc-img { position: relative; display: block; aspect-ratio: 2 / 3; border-radius: 12px; overflow: hidden; background: var(--chip); box-shadow: 0 0 0 1px var(--line), 0 6px 18px rgba(0, 0, 0, .35); transition: transform .18s, box-shadow .18s }
+.cc-img img { width: 100%; height: 100%; object-fit: cover; display: block }
+.cc:hover .cc-img, .cc:focus-visible .cc-img { transform: translateY(-3px); box-shadow: 0 0 0 1px var(--accent), 0 12px 28px rgba(0, 0, 0, .5) }
+.cc-none { display: grid; place-items: center; width: 100%; height: 100%; font: 900 34px var(--display); color: var(--muted); background: linear-gradient(160deg, var(--violet-soft), var(--panel)) }
+.cc-fav { position: absolute; left: 6px; bottom: 6px; font: 600 11px var(--mono); padding: 2px 7px; border-radius: 6px; background: rgba(14, 11, 24, .82); color: var(--heart); backdrop-filter: blur(4px) }
+.cc b { margin-top: 7px; font-size: 13.5px; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden }
+.cc small { color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+.cc:hover b { color: var(--accent) }
+.crow { grid-auto-columns: 140px }
+.chsearch input { padding: 9px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); width: 220px; max-width: 100% }
+.chsearch input:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 0 3px var(--accent-soft) }
+.chip small { color: var(--muted); font: 11px var(--mono); margin-left: 3px }
+.chip.on small { color: var(--accent) }
+
+/* Fiche personnage */
+.c-banner { position: absolute; top: -60px; left: -60px; right: -60px; height: 380px; overflow: hidden; filter: blur(42px) saturate(1.5) brightness(.55); transform: scale(1.2) }
+.c-banner img { width: 100%; height: 100%; object-fit: cover }
+.c-head { position: relative; z-index: 1; display: flex; gap: 26px; align-items: flex-end; padding: 56px 28px 8px }
+.c-portrait { width: 190px; flex: none; aspect-ratio: 2 / 3; border-radius: 16px; overflow: hidden; background: var(--chip); box-shadow: 0 18px 46px rgba(0, 0, 0, .6), 0 0 0 1px rgba(255, 255, 255, .1) }
+.c-portrait img { width: 100%; height: 100%; object-fit: cover; display: block }
+.c-title { display: grid; gap: 6px; min-width: 0 }
+.c-title h1 { font: 900 clamp(24px, 3.6vw, 38px)/1.05 var(--display); overflow-wrap: anywhere }
+.c-facts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px }
+.fact { font-size: 12.5px; padding: 4px 10px; border-radius: 999px; background: rgba(14, 11, 24, .55); border: 1px solid var(--line) }
+.fact b { color: var(--heart); font-weight: 600 }
+.c-body { position: relative; z-index: 1; padding: 16px 28px 8px }
+.c-main { display: grid; gap: 26px }
+.c-main h2 { font: 700 17px var(--display); margin-bottom: 10px }
+.c-main h2 small { font-family: var(--body); font-weight: 400; margin-left: 6px }
+.ctags { display: grid; gap: 8px }
+.ctag-row { display: grid; grid-template-columns: 160px minmax(0, 1fr); gap: 10px; align-items: baseline }
+.ctag-row > span { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .06em }
+.cdesc { color: #ddd6ee; line-height: 1.65; max-width: 78ch }
+.cdesc p { margin: 0 0 10px } .cdesc a { color: var(--violet) }
+.cdesc .src { margin-top: 14px }
+.spoil { filter: blur(5px); background: var(--chip); border-radius: 4px; cursor: pointer; transition: filter .2s }
+.spoil.shown { filter: none; background: transparent; cursor: auto }
+.apps { grid-template-columns: repeat(auto-fill, minmax(128px, 1fr)) }
+.app-w { position: relative }
+.role { display: inline-block; margin-top: 4px; font: 600 11px var(--mono); padding: 1px 7px; border-radius: 5px; background: var(--chip); color: var(--muted) }
+.role.r-M { background: var(--accent-soft); color: var(--accent) }
+
+/* Visages dans la fiche d'animé */
+.faces { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 14px 10px; margin-bottom: 10px }
+.face { display: grid; justify-items: center; text-align: center; gap: 2px; text-decoration: none; color: var(--ink); min-width: 0 }
+.face img, .face .cc-none { width: 72px; height: 72px; border-radius: 50%; object-fit: cover; object-position: top; box-shadow: 0 0 0 2px var(--line); transition: box-shadow .15s, transform .15s; font-size: 24px }
+.face.r-M img, .face.r-M .cc-none { box-shadow: 0 0 0 2px var(--accent) }
+.face:hover img { transform: scale(1.06); box-shadow: 0 0 0 2px var(--violet) }
+.face b { font-size: 12px; line-height: 1.25; margin-top: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden }
+.face small { font-size: 10.5px; color: var(--muted) }
+.face:hover b { color: var(--accent) }
+
+@media (max-width: 640px) {
+  .cgrid { grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 16px 10px }
+  .crow { grid-auto-columns: 108px }
+  .chsearch { flex: 1 1 100% } .chsearch input { width: 100% }
+  .c-head { padding: 48px 16px 4px; gap: 14px } .c-portrait { width: 116px } .c-body { padding: 12px 16px }
+  .ctag-row { grid-template-columns: minmax(0, 1fr); gap: 4px }
+  .apps { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)) }
+  .faces { grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)) } .face img, .face .cc-none { width: 60px; height: 60px }
+}

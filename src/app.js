@@ -12,9 +12,13 @@ import * as catalogue from "./views/catalogue.js";
 import * as collection from "./views/collection.js";
 import * as lists from "./views/lists.js";
 import * as account from "./views/account.js";
+import * as characters from "./views/characters.js";
 import { openDetail, closeDetail, isDetailOpen } from "./views/detail.js";
+import { openCharacter, closeCharacter, isCharacterOpen } from "./views/character.js";
+const isModalOpen = () => isDetailOpen() || isCharacterOpen();
+const closeModals = () => { closeDetail(); closeCharacter(); };
 
-const VIEWS = { "": home, catalogue, collection, listes: lists, compte: account };
+const VIEWS = { "": home, catalogue, personnages: characters, collection, listes: lists, compte: account };
 const view = $("view");
 let base = null;        // dernière route « page » (hors fiche)
 let depth = 0;          // nombre de fiches ouvertes depuis cette page (pour revenir avec « Retour »)
@@ -30,25 +34,31 @@ function setNav(key) {
 function renderPage(parts, params) {
   const key = parts[0] || "";
   const v = VIEWS[key] || home;
-  closeAddMenu(); catalogue.closeDrawer();
+  closeAddMenu(); catalogue.closeDrawer(); characters.closeCharDrawer();
   if (key !== "catalogue" && catalogue.S.q) { catalogue.S.q = ""; $("q").value = ""; }
   setNav(VIEWS[key] ? key || "home" : "home");
-  v.render(view, key === "catalogue" ? params : parts[1]);
-  document.title = { "": "Animéthèque", catalogue: "Catalogue · Animéthèque", collection: "Ma collection · Animéthèque", listes: "Mes listes · Animéthèque", compte: "Mon compte · Animéthèque" }[key] || "Animéthèque";
+  v.render(view, key === "catalogue" || key === "personnages" ? params : parts[1]);
+  document.title = { "": "Animéthèque", catalogue: "Catalogue · Animéthèque", collection: "Ma collection · Animéthèque", listes: "Mes listes · Animéthèque", personnages: "Personnages · Animéthèque", compte: "Mon compte · Animéthèque" }[key] || "Animéthèque";
 }
 function route() {
   if (!ready.catalogue) return;
   const { parts, params } = parse();
-  if (parts[0] === "anime") {
-    if (base === null) { base = "#/"; renderPage([], new URLSearchParams()); depth = 0; }
-    closeAddMenu();
-    if (openDetail(+parts[1], closeFromDetail)) depth++;
-    else history.replaceState(null, "", base);
+  if (parts[0] === "anime" || parts[0] === "personnage") {
+    if (base === null) { base = parts[0] === "personnage" ? "#/personnages" : "#/"; renderPage(base === "#/" ? [] : ["personnages"], new URLSearchParams()); depth = 0; }
+    closeAddMenu(); characters.closeCharDrawer(); catalogue.closeDrawer();
+    const id = +parts[1];
+    if (parts[0] === "anime") {
+      closeCharacter();
+      if (openDetail(id, closeFromDetail)) depth++; else history.replaceState(null, "", base);
+    } else {
+      closeDetail(); depth++;
+      openCharacter(id, closeFromDetail).then(ok => { if (!ok) { depth--; history.replaceState(null, "", base); } });
+    }
     return;
   }
   const key = location.hash || "#/";
-  const fromDetail = isDetailOpen();
-  closeDetail();
+  const fromDetail = isModalOpen();
+  closeModals();
   if (fromDetail && key === base) { depth = 0; return; }   // retour depuis une fiche : on garde la page et sa position
   depth = 0; base = key;
   renderPage(parts, params);
@@ -56,7 +66,7 @@ function route() {
 }
 function closeFromDetail() {
   if (depth > 0 && history.length > depth) history.go(-depth);
-  else { closeDetail(); history.replaceState(null, "", base || "#/"); depth = 0; }
+  else { closeModals(); history.replaceState(null, "", base || "#/"); depth = 0; }
 }
 
 // ---------- En-tête ----------
@@ -78,7 +88,7 @@ $("q").addEventListener("input", e => {
   clearTimeout(qt);
   qt = setTimeout(() => {
     catalogue.S.q = e.target.value;
-    if ((location.hash || "#/").startsWith("#/catalogue") && !isDetailOpen()) catalogue.refresh();
+    if ((location.hash || "#/").startsWith("#/catalogue") && !isModalOpen()) catalogue.refresh();
     else location.hash = "#/catalogue";
   }, 160);
 });

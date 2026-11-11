@@ -2,6 +2,8 @@
 import { A, T, UP, RELEASING, byId, tr, titleOf, coverStyle } from "../data.js";
 import { ME, ent, inCollection, onChange } from "../state.js";
 import { esc, fmt, row, cover } from "../ui.js";
+import { loadTopCharacters } from "../chars.js";
+import { charCard } from "./characters.js";
 
 let root = null, featured = null;
 
@@ -75,9 +77,15 @@ export function render(el) {
     ${row("Les mieux notés", best, "#/catalogue?sort=score")}
     ${row("Pépites à découvrir", gems, "#/catalogue?sort=score&minscore=78", "Très bien notés, moins connus")}
     ${row("Bientôt", soon, "#/catalogue?status=NOT_YET_RELEASED", "Pas encore sortis")}
+    <div id="homeChars"></div>
     ${genreTiles()}
   </div>`;
   renderPersonal();
+  loadTopCharacters().then(list => {
+    const h = el.querySelector("#homeChars"); if (!h) return;
+    const top = list.slice(0, 24);
+    h.innerHTML = `<section class="row"><div class="row-h"><h2>Personnages les plus aimés</h2><span class="row-sub">Explore-les par étiquettes : mage, tsundere, pirate…</span><a class="more-link" href="#/personnages">Tout voir →</a></div><div class="row-s crow">${top.map(c => charCard(c)).join("")}</div></section>`;
+  }).catch(() => {});
 }
 function renderPersonal() {
   const p = root && root.querySelector("#personal"); if (!p) return;
