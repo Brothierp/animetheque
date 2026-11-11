@@ -13,22 +13,36 @@ Le catalogue reste consultable sans compte ; la collection demande une connexion
 ## Structure
 
 ```
-index.html                     page unique
-src/main.js                    catalogue, filtres, cartes, collection
-compte.html, src/account.js     page « Mon compte » : profil, avatar, listes, suppression du compte
-src/profile.js                 pseudo, année de naissance, avatar (partagé par les deux pages)
-src/auth.js                    fenêtre de connexion (e-mail, Google, mot de passe oublié)
+index.html                     squelette de la page (en-tête, navigation, barre mobile)
+src/app.js                     routeur (#/…), en-tête, recherche globale, session
+src/data.js                    catalogue : chargement, traductions, affiches, titres similaires
+src/state.js                   session, profil, collection et listes (mises à jour immédiates)
+src/ui.js                      cartes d'affiche, menu « + Ajouter », étoiles, rangées
+src/views/home.js              accueil : à la une, recommandations, rangées, genres
+src/views/catalogue.js         catalogue : grille, genres, panneau de filtres, tri
+src/views/detail.js            fiche d'un animé (fenêtre)
+src/views/collection.js        ma collection (onglets par statut)
+src/views/lists.js             mes listes et page d'une liste
+src/views/account.js           mon compte : profil, avatar, suppression
+src/auth.js                    fenêtre de connexion (e-mail, Google, mot de passe oublié, profil)
+src/profile.js                 pseudo, année de naissance, avatar
 src/store.js                   lecture / écriture de la collection dans Supabase
 src/supabase.js                client Supabase (variables VITE_SUPABASE_*)
 src/style.css                  thème violet sombre
-public/confidentialite.html    politique de confidentialité (exigée par Google pour la connexion Google)
-public/conditions.html         conditions d'utilisation
 public/data.json               catalogue (titres, genres, tags, studios, plateformes…)
 public/chars.json              25 personnages principaux par animé
 public/covers/s*.webp          planches d'affiches (200 affiches par fichier)
+public/confidentialite.html    politique de confidentialité
+public/conditions.html         conditions d'utilisation
 supabase/migrations/*.sql      tables, contraintes et règles RLS
 vercel.json                    build Vite + en-têtes de cache et de sécurité
 ```
+
+### Navigation
+
+`#/` accueil · `#/catalogue` (paramètres possibles : `?genre=Isekai`, `?tag=…`, `?status=RELEASING`, `?sort=score`,
+`?chara=Luffy`, `?studio=MAPPA`) · `#/anime/<id AniList>` fiche · `#/collection/<onglet>` · `#/listes` · `#/listes/<id>` ·
+`#/compte`. Raccourci clavier : `/` pour rechercher, `Échap` pour fermer une fiche.
 
 ## Filtres
 

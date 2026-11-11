@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <title>Animéthèque</title>
-  <meta name="description" content="Catalogue d'animés avec filtres détaillés et collection personnelle : coups de cœur, notes, statuts et listes.">
+  <meta name="description" content="Plus de 22 000 animés : trouve quoi regarder, où le regarder en FR ou EN, et garde ta collection (statuts, notes, coups de cœur, listes).">
   <meta name="theme-color" content="#130f1f">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -12,134 +12,43 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700;900&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 </head>
 <body>
-<header>
-  <div class="wrap">
-    <div class="brand"><b>Animé<span>thèque</span></b> <small id="dbsize">chargement…</small></div>
-    <div class="search">
-      <input id="q" type="search" placeholder="Titre japonais, anglais ou français… (ex. Frieren, Kimetsu, 進撃)" autocomplete="off">
-      <button class="btn" id="toggleFilters" aria-expanded="false">Filtres</button>
+<a class="skip" href="#view">Aller au contenu</a>
+<header class="top">
+  <div class="top-in">
+    <a class="brand" href="#/" aria-label="Animéthèque, accueil"><b>Animé<span>thèque</span></b><small id="dbsize"></small></a>
+    <nav class="nav" aria-label="Navigation principale">
+      <a href="#/" data-nav="home">Accueil</a>
+      <a href="#/catalogue" data-nav="catalogue">Catalogue</a>
+      <a href="#/collection" data-nav="collection">Ma collection</a>
+      <a href="#/listes" data-nav="listes">Mes listes</a>
+    </nav>
+    <div class="search" role="search">
+      <span class="s-ico" aria-hidden="true">⌕</span>
+      <input id="q" type="search" placeholder="Rechercher un animé, en japonais, anglais ou français…" autocomplete="off" aria-label="Rechercher un animé">
+      <kbd class="s-kbd" aria-hidden="true">/</kbd>
     </div>
     <div class="account">
-      <a class="me" id="me" href="/compte.html" hidden title="Mon compte"></a>
-      <button class="btn" id="signOut" hidden>Déconnexion</button>
+      <a class="me" id="me" href="#/compte" hidden title="Mon compte"></a>
       <button class="btn primary" id="signIn" hidden>Se connecter</button>
     </div>
   </div>
 </header>
 
-<main class="wrap">
-  <aside id="filters" aria-label="Filtres">
-    <div class="fgroup" id="colGroup">
-      <div class="flabel">Ma collection</div>
-      <select id="col" disabled><option value="all">Tout le catalogue</option></select>
-      <div class="hint" id="colHint">Chargement…</div>
-      <button class="btn" id="colSignIn" hidden>Se connecter ou créer un compte</button>
-      <div id="listAdmin" hidden>
-        <div class="mylists" id="myLists"></div>
-        <form class="newlist" id="newListForm"><input type="text" id="newList" maxlength="40" placeholder="Nouvelle liste (ex. À revoir)"><button class="btn" type="submit">Créer</button></form>
-        <a class="linkbtn" href="/compte.html">Mon compte, mes listes et mon profil →</a>
-      </div>
-    </div>
-    <div class="fgroup">
-      <div class="flabel">Disponibilité</div>
-      <div class="seg" id="lang">
-        <button data-v="any">Toutes</button><button data-v="FE" class="on">FR ou EN</button><button data-v="F">FR</button><button data-v="E">EN</button><button data-v="both">FR + EN</button>
-      </div>
-      <div class="hint">Déduit des plateformes de streaming légales qui diffusent le titre.</div>
-    </div>
-    <div class="fgroup">
-      <label class="adult"><input type="checkbox" id="adult" disabled> Uniquement le contenu adulte (18+)</label>
-      <div class="hint" id="adultHint">Masqué par défaut.</div>
-      <button type="button" class="linkbtn" id="adultAction" hidden></button>
-      <label class="adult"><input type="checkbox" id="upcoming"> Voir les animés à venir</label>
-      <div class="hint" id="upcomingHint">Masqués par défaut.</div>
-    </div>
-    <div class="fgroup">
-      <div class="flabel">Genres <button data-clear="genre">effacer</button></div>
-      <div class="chips" id="genre"></div>
-      <div class="hint">1 clic : inclure · 2 clics : exclure · 3 clics : retirer</div>
-    </div>
-    <div class="fgroup">
-      <div class="flabel">Personnage</div>
-      <input type="text" id="chara" placeholder="Ex. Luffy, Levi, Frieren…" disabled>
-      <div class="hint" id="charaHint">Chargement des personnages…</div>
-    </div>
-    <div class="fgroup">
-      <div class="flabel">Thèmes (tags) <button data-clear="tag">effacer</button></div>
-      <input type="text" id="tagInput" list="tagList" placeholder="Ex. Isekai, Time Travel, Female Protagonist…">
-      <datalist id="tagList"></datalist>
-      <div class="chips" id="tag"></div>
-    </div>
-    <div class="fgroup">
-      <div class="flabel">Format <button data-clear="format">effacer</button></div>
-      <div class="chips" id="format"></div>
-    </div>
-    <div class="fgroup">
-      <div class="flabel">Statut <button data-clear="status">effacer</button></div>
-      <div class="chips" id="status"></div>
-    </div>
-    <div class="fgroup">
-      <div class="flabel">Année de diffusion</div>
-      <div class="range"><input id="yMin" type="number" inputmode="numeric" placeholder="de"><span>–</span><input id="yMax" type="number" inputmode="numeric" placeholder="à"></div>
-      <div class="chips" id="season"></div>
-    </div>
-    <div class="fgroup">
-      <div class="flabel">Nombre d'épisodes</div>
-      <div class="range"><input id="eMin" type="number" inputmode="numeric" placeholder="min"><span>–</span><input id="eMax" type="number" inputmode="numeric" placeholder="max"></div>
-    </div>
-    <div class="fgroup">
-      <div class="flabel">Durée d'un épisode (min)</div>
-      <div class="range"><input id="dMin" type="number" inputmode="numeric" placeholder="min"><span>–</span><input id="dMax" type="number" inputmode="numeric" placeholder="max"></div>
-    </div>
-    <div class="fgroup">
-      <div class="flabel">Note minimale <span id="scoreVal" style="font-family:var(--mono);color:var(--ink)">toutes</span></div>
-      <input id="score" type="range" min="0" max="95" step="5" value="0">
-    </div>
-    <div class="fgroup">
-      <div class="flabel">Studio</div>
-      <input type="text" id="studio" list="studioList" placeholder="Ex. MAPPA, Kyoto Animation…">
-      <datalist id="studioList"></datalist>
-    </div>
-    <div class="fgroup">
-      <div class="flabel">Œuvre d'origine <button data-clear="source">effacer</button></div>
-      <div class="chips" id="source"></div>
-    </div>
-    <div class="fgroup">
-      <div class="flabel">Pays de production <button data-clear="country">effacer</button></div>
-      <div class="chips" id="country"></div>
-    </div>
-    <div class="fgroup">
-      <button class="btn" id="reset">Tout réinitialiser</button>
-      <div class="note">Données : AniList. La langue exacte (VF, VOSTFR, VOSTA) n'est pas publiée par les plateformes. FR/EN indique qu'au moins une plateforme diffusant le titre propose en général cette langue, en doublage ou en sous-titres, et peut varier selon le pays.</div>
-      <div class="note legal"><a href="/confidentialite.html">Confidentialité</a> · <a href="/conditions.html">Conditions d'utilisation</a></div>
-    </div>
-  </aside>
+<main id="view" tabindex="-1"></main>
 
-  <section aria-live="polite">
-    <div class="toolbar">
-      <div class="count" id="count">Chargement du catalogue…</div>
-      <label>Trier par
-        <select id="sort">
-          <option value="pop">Popularité</option>
-          <option value="score">Meilleure note</option>
-          <option value="new">Plus récents</option>
-          <option value="old">Plus anciens</option>
-          <option value="az">Titre (A → Z)</option>
-          <option value="eps">Nombre d'épisodes</option>
-          <option value="mine">Mes étoiles</option>
-          <option value="recent">Ajoutés récemment à ma collection</option>
-        </select>
-      </label>
-    </div>
-    <div class="active" id="active"></div>
-    <div class="list" id="list"><div class="loading">Chargement des données…</div></div>
-    <button class="btn more" id="more" hidden>Afficher 50 de plus</button>
-  </section>
-</main>
+<footer class="foot">
+  <p>Données : <a href="https://anilist.co" target="_blank" rel="noopener">AniList</a>. Disponibilités FR / EN indicatives, selon les plateformes de streaming légales.</p>
+  <p><a href="/confidentialite.html">Confidentialité</a> · <a href="/conditions.html">Conditions d'utilisation</a></p>
+</footer>
 
-<div class="toast" id="toast" role="status" hidden></div>
+<nav class="bnav" aria-label="Navigation">
+  <a href="#/" data-nav="home"><span class="bn-i">⌂</span><span>Accueil</span></a>
+  <a href="#/catalogue" data-nav="catalogue"><span class="bn-i">▦</span><span>Catalogue</span></a>
+  <a href="#/collection" data-nav="collection"><span class="bn-i">♥</span><span>Collection</span></a>
+  <a href="#/listes" data-nav="listes"><span class="bn-i">☰</span><span>Listes</span></a>
+  <a href="#/compte" data-nav="compte" id="bnAcc"><span class="bn-i">◉</span><span>Compte</span></a>
+</nav>
 
-
-<script type="module" src="/src/main.js"></script>
+<script type="module" src="/src/app.js"></script>
 </body>
 </html>
