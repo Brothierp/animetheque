@@ -1,0 +1,653 @@
+<meta charset="utf-8">
+<title>Animéthèque</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700;900&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout : barre de recherche collante, colonne de filtres à gauche (tiroir sur mobile), liste de résultats dense à droite */
+:root {
+  /* Thème unique sombre : violet nuit, accent or ambré (complémentaire), touches lavande et turquoise */
+  --bg: #130f1f; --panel: #1c1630; --panel-2: #241c3d; --ink: #ece7f8; --muted: #a39bbd; --line: #342a52;
+  --accent: #f2b84b; --accent-ink: #1a1306; --accent-soft: #3b2f1c; --violet: #9b7bff; --chip: #2a2147;
+  --fr: #7fd3e6; --fr-soft: #163a45; --en: #f39ad1; --en-soft: #4a1f3c; --ex: #ff8a8a; --ex-soft: #4a1f2a;
+  --display: "Zen Kaku Gothic New", "Hiragino Sans", "Segoe UI", sans-serif;
+  --body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box }
+[hidden] { display: none !important }
+body { background: radial-gradient(1200px 600px at 85% -10%, #2b1d55 0%, transparent 60%), var(--bg); background-attachment: fixed; color: var(--ink); font: 14px/1.5 var(--body) }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--panel) }
+button, input, select { font: inherit; color: inherit }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
+.wrap { max-width: 1280px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)) }
+header { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: color-mix(in srgb, var(--panel) 92%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line) }
+header .wrap { display: flex; align-items: center; gap: 16px; padding-block: 12px; flex-wrap: wrap }
+.brand { font: 900 22px/1 var(--display); letter-spacing: -0.01em; display: flex; align-items: baseline; gap: 8px }
+.brand b { font-weight: 900 } .brand span { color: var(--accent) }
+.brand small { font: 500 11px var(--mono); color: var(--muted); letter-spacing: 0.04em }
+.search { flex: 1 1 320px; display: flex; gap: 8px; min-width: 0 }
+.search input { flex: 1; min-width: 0; padding: 10px 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); color: var(--ink); font-size: 15px }
+.search input:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 0 3px var(--accent-soft) }
+.btn { padding: 9px 14px; border: 1px solid var(--line); background: var(--panel); border-radius: 10px; cursor: pointer; white-space: nowrap }
+.btn:hover { border-color: var(--muted) }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600 }
+#toggleFilters { display: none }
+main.wrap { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 24px; padding-block: 20px 48px }
+aside { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 76px); align-self: start; max-height: calc(100vh - 96px); overflow: auto; padding-right: 4px }
+.fgroup { padding: 14px 0; border-bottom: 1px solid var(--line); display: grid; gap: 8px }
+.fgroup:first-child { padding-top: 0 }
+.flabel { font: 600 11px var(--body); text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); display: flex; justify-content: space-between; align-items: center }
+.flabel button { border: 0; background: none; color: var(--violet); cursor: pointer; font: 500 11px var(--body); letter-spacing: 0; text-transform: none; padding: 0 }
+.chips { display: flex; flex-wrap: wrap; gap: 6px }
+.chip { border: 1px solid transparent; background: var(--chip); padding: 4px 10px; border-radius: 999px; cursor: pointer; font-size: 12.5px; line-height: 1.4; user-select: none }
+.chip:hover { border-color: var(--line) }
+.chip.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); color: var(--ink); font-weight: 500 }
+.chip.ex { background: var(--ex-soft); border-color: var(--ex); text-decoration: line-through }
+.seg { display: grid; grid-template-columns: repeat(5, auto); border: 1px solid var(--line); border-radius: 10px; overflow: hidden }
+.seg button { border: 0; background: var(--panel); padding: 7px 2px; cursor: pointer; font-size: 12px; white-space: nowrap; border-left: 1px solid var(--line) }
+.seg button:first-child { border-left: 0 }
+.seg button.on { background: var(--accent); color: var(--accent-ink); font-weight: 600 }
+.range { display: grid; grid-template-columns: 1fr auto 1fr; gap: 6px; align-items: center }
+.range input, .fgroup select, .fgroup input[type=text] { width: 100%; min-width: 0; padding: 7px 9px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); font-variant-numeric: tabular-nums }
+.range span { color: var(--muted) }
+.hint { font-size: 12px; color: var(--muted) }
+input[type=range] { width: 100%; accent-color: var(--accent) }
+.adult { display: flex; gap: 8px; align-items: center; cursor: pointer; font-weight: 500 }
+.adult input { width: 16px; height: 16px; accent-color: var(--accent) }
+.lg.A { background: var(--ex-soft); color: var(--ex) }
+.plist { max-height: 220px; overflow: auto; display: grid; gap: 2px; border: 1px solid var(--line); border-radius: 8px; padding: 6px; background: var(--bg) }
+.plist label { display: flex; gap: 8px; align-items: center; padding: 2px 4px; border-radius: 6px; cursor: pointer; font-size: 13px }
+.plist label:hover { background: var(--chip) }
+.plist label em { margin-left: auto; font: 11px var(--mono); color: var(--muted); font-style: normal }
+.toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px }
+.count { font: 700 18px var(--display) } .count b { color: var(--accent); font-variant-numeric: tabular-nums }
+.toolbar select { padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel) }
+.active { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px }
+.active .chip { background: var(--panel); border-color: var(--line) }
+.active .chip::after { content: " ×"; color: var(--muted) }
+.list { display: grid; gap: 8px }
+.card { background: linear-gradient(180deg, var(--panel-2), var(--panel)); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 16px; align-items: start }
+.body { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 16px; min-width: 0 }
+.cv { display: block; width: 100%; aspect-ratio: 96 / 136; border-radius: 8px; background-color: var(--chip); background-repeat: no-repeat; background-size: 1000% 2000%; box-shadow: 0 0 0 1px var(--line) }
+.cv.none { display: grid; place-items: center; font: 900 22px var(--display); color: var(--muted) }
+.chars { display: flex; flex-wrap: wrap; gap: 4px 6px; margin: 6px 0 }
+.ch { font-size: 12px; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--line) }
+.ch.M { border-color: var(--violet); color: #d6cbff }
+.card h3 { margin: 0; font: 700 16px/1.3 var(--display); text-wrap: balance }
+.card h3 a { color: inherit; text-decoration: none } .card h3 a:hover { color: var(--accent) }
+.card:hover { border-color: #4a3b75 }
+.alt { color: var(--muted); font-size: 12.5px; overflow-wrap: anywhere }
+.meta { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12.5px; color: var(--muted); grid-column: 1 }
+.meta b { color: var(--ink); font-weight: 500 }
+.side { grid-row: 1 / span 3; grid-column: 2; display: grid; justify-items: end; align-content: start; gap: 6px }
+.score { font: 500 20px/1 var(--mono); font-variant-numeric: tabular-nums } .score small { font-size: 11px; color: var(--muted) }
+.langs { display: flex; gap: 4px }
+.lg { font: 600 11px var(--mono); padding: 2px 6px; border-radius: 4px; letter-spacing: 0.04em }
+.lg.F { background: var(--fr-soft); color: var(--fr) } .lg.E { background: var(--en-soft); color: var(--en) }
+.lg.N { background: var(--chip); color: var(--muted) }
+.row2 { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; align-items: center }
+.g { font-size: 12px; padding: 2px 8px; border-radius: 999px; background: var(--chip); color: #d6cbff }
+.p { font-size: 12px; padding: 2px 8px; border-radius: 6px; border: 1px solid var(--line); color: var(--ink); text-decoration: none }
+.p:hover { border-color: var(--accent); color: var(--accent) }
+.sep { width: 1px; height: 16px; background: var(--line) }
+details { grid-column: 1 / -1; margin-top: 4px }
+details summary { cursor: pointer; color: var(--violet); font-size: 12.5px; width: fit-content }
+details p { margin: 6px 0 4px; max-width: 75ch; color: var(--ink) }
+.links { font-size: 12px; display: flex; gap: 12px } .links a { color: var(--muted) }
+.more { margin: 16px auto 0; display: block }
+.empty, .loading { padding: 48px 16px; text-align: center; color: var(--muted); background: var(--panel); border: 1px dashed var(--line); border-radius: 12px }
+.note { font-size: 12px; color: var(--muted); padding-top: 14px; line-height: 1.5 }
+
+.me { font: 500 12.5px var(--body); color: var(--muted); display: flex; align-items: center; gap: 6px; white-space: nowrap }
+.me::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--fr) }
+.mine { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--line) }
+.ib { border: 1px solid var(--line); background: var(--panel); border-radius: 8px; padding: 4px 9px; cursor: pointer; font-size: 12.5px; line-height: 1.4 }
+.ib:hover { border-color: var(--violet) }
+.ib.fav { font-size: 15px; padding: 1px 8px; color: var(--muted) }
+.ib.fav.on { color: #ff6b9a; border-color: #ff6b9a; background: #3a1a2a }
+.mine select { border: 1px solid var(--line); background: var(--panel); border-radius: 8px; padding: 4px 6px; font-size: 12.5px; max-width: 160px }
+.mine select.set { border-color: var(--accent); color: var(--accent) }
+.stars { display: inline-flex }
+.stars button { border: 0; background: none; cursor: pointer; font-size: 18px; line-height: 1; padding: 0 1px; color: var(--line) }
+.stars button.on { color: var(--accent) }
+.stars button:hover { transform: scale(1.15) }
+.ib.has { border-color: var(--violet); color: #d6cbff }
+.mycomment { grid-column: 1 / -1; font-size: 13px; color: #d6cbff; margin: 6px 0 0; font-style: italic; overflow-wrap: anywhere }
+.editor { grid-column: 1 / -1; display: grid; gap: 8px; margin-top: 8px; padding: 10px; background: var(--bg); border: 1px solid var(--line); border-radius: 10px }
+.editor textarea { width: 100%; min-height: 64px; resize: vertical; padding: 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); color: var(--ink); font: inherit }
+.editor .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: space-between }
+.editor label { display: flex; gap: 6px; align-items: center; font-size: 13px; cursor: pointer }
+.editor .lists { display: flex; flex-wrap: wrap; gap: 6px 14px }
+.mylists { display: grid; gap: 4px }
+.mylists div { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 13px }
+.mylists button { border: 0; background: none; color: var(--muted); cursor: pointer; font-size: 12px }
+.mylists button:hover { color: var(--ex) }
+.newlist { display: flex; gap: 6px } .newlist input { flex: 1; min-width: 0 }
+.toast { position: fixed; left: 50%; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--panel-2); border: 1px solid var(--line); padding: 8px 14px; border-radius: 10px; z-index: 20; font-size: 13px }
+@media (max-width: 860px) {
+  main.wrap { grid-template-columns: minmax(0, 1fr) }
+  #toggleFilters { display: inline-block }
+  aside { display: none; position: static; max-height: none; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px }
+  aside.open { display: block }
+  .card { grid-template-columns: 60px minmax(0, 1fr); gap: 12px; padding: 12px }
+  .body { grid-template-columns: minmax(0, 1fr) }
+  .side { grid-row: auto; grid-column: 1; justify-items: start; grid-auto-flow: column; align-items: center; gap: 10px }
+  .score { font-size: 16px }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important } }
+</style>
+
+<header>
+  <div class="wrap">
+    <div class="brand"><b>Animé<span>thèque</span></b> <small id="dbsize">chargement…</small></div>
+    <div class="search">
+      <input id="q" type="search" placeholder="Titre japonais, anglais ou français… (ex. Frieren, Kimetsu, 進撃)" autocomplete="off">
+      <button class="btn" id="toggleFilters" aria-expanded="false">Filtres</button>
+    </div>
+    <div class="me" id="me" hidden></div>
+  </div>
+</header>
+
+<main class="wrap">
+  <aside id="filters" aria-label="Filtres">
+    <div class="fgroup" id="colGroup">
+      <div class="flabel">Ma collection</div>
+      <select id="col" disabled><option value="all">Tout le catalogue</option></select>
+      <div class="hint" id="colHint">Connexion à ton espace personnel…</div>
+      <div id="listAdmin" hidden>
+        <div class="mylists" id="myLists"></div>
+        <form class="newlist" id="newListForm"><input type="text" id="newList" maxlength="40" placeholder="Nouvelle liste (ex. À revoir)"><button class="btn" type="submit">Créer</button></form>
+      </div>
+    </div>
+    <div class="fgroup">
+      <div class="flabel">Disponibilité</div>
+      <div class="seg" id="lang">
+        <button data-v="any">Toutes</button><button data-v="FE" class="on">FR ou EN</button><button data-v="F">FR</button><button data-v="E">EN</button><button data-v="both">FR + EN</button>
+      </div>
+      <div class="hint">Déduit des plateformes de streaming légales qui diffusent le titre.</div>
+    </div>
+    <div class="fgroup">
+      <label class="adult"><input type="checkbox" id="adult"> Uniquement le contenu adulte (18+)</label>
+      <div class="hint" id="adultHint">Masqué par défaut.</div>
+      <label class="adult"><input type="checkbox" id="upcoming"> Voir les animés à venir</label>
+      <div class="hint" id="upcomingHint">Masqués par défaut.</div>
+    </div>
+    <div class="fgroup">
+      <div class="flabel">Genres <button data-clear="genre">effacer</button></div>
+      <div class="chips" id="genre"></div>
+      <div class="hint">1 clic : inclure · 2 clics : exclure · 3 clics : retirer</div>
+    </div>
+    <div class="fgroup">
+      <div class="flabel">Personnage</div>
+      <input type="text" id="chara" placeholder="Ex. Luffy, Levi, Frieren…" disabled>
+      <div class="hint" id="charaHint">Chargement des personnages…</div>
+    </div>
+    <div class="fgroup">
+      <div class="flabel">Thèmes (tags) <button data-clear="tag">effacer</button></div>
+      <input type="text" id="tagInput" list="tagList" placeholder="Ex. Isekai, Time Travel, Female Protagonist…">
+      <datalist id="tagList"></datalist>
+      <div class="chips" id="tag"></div>
+    </div>
+    <div class="fgroup">
+      <div class="flabel">Format <button data-clear="format">effacer</button></div>
+      <div class="chips" id="format"></div>
+    </div>
+    <div class="fgroup">
+      <div class="flabel">Statut <button data-clear="status">effacer</button></div>
+      <div class="chips" id="status"></div>
+    </div>
+    <div class="fgroup">
+      <div class="flabel">Année de diffusion</div>
+      <div class="range"><input id="yMin" type="number" inputmode="numeric" placeholder="de"><span>–</span><input id="yMax" type="number" inputmode="numeric" placeholder="à"></div>
+      <div class="chips" id="season"></div>
+    </div>
+    <div class="fgroup">
+      <div class="flabel">Nombre d'épisodes</div>
+      <div class="range"><input id="eMin" type="number" inputmode="numeric" placeholder="min"><span>–</span><input id="eMax" type="number" inputmode="numeric" placeholder="max"></div>
+    </div>
+    <div class="fgroup">
+      <div class="flabel">Durée d'un épisode (min)</div>
+      <div class="range"><input id="dMin" type="number" inputmode="numeric" placeholder="min"><span>–</span><input id="dMax" type="number" inputmode="numeric" placeholder="max"></div>
+    </div>
+    <div class="fgroup">
+      <div class="flabel">Note minimale <span id="scoreVal" style="font-family:var(--mono);color:var(--ink)">toutes</span></div>
+      <input id="score" type="range" min="0" max="95" step="5" value="0">
+    </div>
+    <div class="fgroup">
+      <div class="flabel">Studio</div>
+      <input type="text" id="studio" list="studioList" placeholder="Ex. MAPPA, Kyoto Animation…">
+      <datalist id="studioList"></datalist>
+    </div>
+    <div class="fgroup">
+      <div class="flabel">Œuvre d'origine <button data-clear="source">effacer</button></div>
+      <div class="chips" id="source"></div>
+    </div>
+    <div class="fgroup">
+      <div class="flabel">Pays de production <button data-clear="country">effacer</button></div>
+      <div class="chips" id="country"></div>
+    </div>
+    <div class="fgroup">
+      <button class="btn" id="reset">Tout réinitialiser</button>
+      <div class="note">Données : AniList. La langue exacte (VF, VOSTFR, VOSTA) n'est pas publiée par les plateformes. FR/EN indique qu'au moins une plateforme diffusant le titre propose en général cette langue, en doublage ou en sous-titres, et peut varier selon le pays.</div>
+    </div>
+  </aside>
+
+  <section aria-live="polite">
+    <div class="toolbar">
+      <div class="count" id="count">Chargement du catalogue…</div>
+      <label>Trier par
+        <select id="sort">
+          <option value="pop">Popularité</option>
+          <option value="score">Meilleure note</option>
+          <option value="new">Plus récents</option>
+          <option value="old">Plus anciens</option>
+          <option value="az">Titre (A → Z)</option>
+          <option value="eps">Nombre d'épisodes</option>
+          <option value="mine">Mes étoiles</option>
+          <option value="recent">Ajoutés récemment à ma collection</option>
+        </select>
+      </label>
+    </div>
+    <div class="active" id="active"></div>
+    <div class="toast" id="toast" hidden></div>
+    <div class="list" id="list"><div class="loading">Chargement des données…</div></div>
+    <button class="btn more" id="more" hidden>Afficher 50 de plus</button>
+  </section>
+</main>
+
+<script>
+const FR = {
+  format: { TV: "Série TV", TV_SHORT: "Série courte", MOVIE: "Film", SPECIAL: "Spécial", OVA: "OAV", ONA: "ONA (web)", MUSIC: "Clip musical" },
+  status: { FINISHED: "Terminé", RELEASING: "En cours", NOT_YET_RELEASED: "À venir", CANCELLED: "Annulé", HIATUS: "En pause" },
+  season: { WINTER: "Hiver", SPRING: "Printemps", SUMMER: "Été", FALL: "Automne" },
+  country: { JP: "Japon", CN: "Chine", KR: "Corée du Sud", TW: "Taïwan" },
+  source: { ORIGINAL: "Original", MANGA: "Manga", LIGHT_NOVEL: "Light novel", VISUAL_NOVEL: "Visual novel", VIDEO_GAME: "Jeu vidéo", NOVEL: "Roman",
+    WEB_NOVEL: "Web novel", OTHER: "Autre", DOUJINSHI: "Doujinshi", ANIME: "Anime", WEB_MANGA: "Web manga", LIVE_ACTION: "Film live", GAME: "Jeu",
+    COMIC: "Comic", MULTIMEDIA_PROJECT: "Projet multimédia", PICTURE_BOOK: "Livre illustré", MULTIMEDIA: "Multimédia" },
+  genres: { Action: "Action", Adventure: "Aventure", Comedy: "Comédie", Drama: "Drame", Ecchi: "Ecchi", Fantasy: "Fantasy", Horror: "Horreur",
+    "Mahou Shoujo": "Magical girl", Mecha: "Mecha", Music: "Musique", Mystery: "Mystère", Psychological: "Psychologique", Romance: "Romance",
+    "Sci-Fi": "Science-fiction", "Slice of Life": "Tranche de vie", Sports: "Sport", Supernatural: "Surnaturel", Thriller: "Thriller", Hentai: "Hentai",
+    Isekai: "Isekai", Shounen: "Shōnen", Shoujo: "Shōjo", Seinen: "Seinen", Josei: "Josei", "Martial Arts": "Arts martiaux", School: "Vie scolaire",
+    Historical: "Historique", Military: "Militaire", Harem: "Harem", "Reverse Harem": "Harem inversé", Iyashikei: "Iyashikei (apaisant)",
+    "Super Power": "Super-pouvoirs", Magic: "Magie", Cyberpunk: "Cyberpunk", "Post-Apocalyptic": "Post-apocalyptique", Reincarnation: "Réincarnation",
+    Survival: "Survie", Space: "Espace", Vampire: "Vampires", Samurai: "Samouraïs", "Video Games": "Jeux vidéo", Cooking: "Cuisine", Idol: "Idols",
+    "Boys' Love": "Boys' Love (BL / Yaoi)", Yuri: "Yuri", Detective: "Enquête", Zombie: "Zombies", Demons: "Démons", Mythology: "Mythologie" }
+};
+const tr = (k, v) => (FR[k] && FR[k][v]) || v.replace(/_/g, " ").toLowerCase().replace(/^./, c => c.toUpperCase());
+const norm = s => (s || "").normalize("NFKD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+
+let UP = -1, T, A = [], view = [], shown = 0;
+const S = { q: "", chara: "", lang: "FE", genreIn: new Set(), genreEx: new Set(), tagIn: new Set(), tagEx: new Set(),
+  format: new Set(), status: new Set(), season: new Set(), source: new Set(), country: new Set(), yMin: null, yMax: null,
+  eMin: null, eMax: null, dMin: null, dMax: null, score: 0, studio: "", sort: "pop", adult: false, upcoming: false, col: "all" };
+
+fetch("data.json").then(r => r.json()).then(init).catch(() => {
+  $("list").innerHTML = '<div class="empty">Le catalogue n\'a pas pu être chargé. Rechargez la page.</div>'; $("count").textContent = "";
+});
+
+function init(d) {
+  T = d.tables;
+  A = d.items.map(x => ({ id: x[0], mal: x[1], romaji: x[2], english: x[3], native: x[4], syn: x[5], format: x[6], status: x[7], eps: x[8], dur: x[9],
+    season: x[10], year: x[11], genres: x[12], tags: x[13], studios: x[14], score: x[15], pop: x[16], country: x[17], source: x[18], desc: x[19],
+    plats: x[20], lang: x[21], adult: x[22] === 1, cov: x[23], chars: [], charHay: "", hay: norm([x[2], x[3], x[4], ...x[5]].join(" ")),
+    studioHay: x[14].map(i => norm(T.studios[i])).join("|") }));
+  A.forEach((a, i) => a.rank = i);
+  $("dbsize").textContent = A.length.toLocaleString("fr-FR") + " titres";
+  const nA = A.filter(a => a.adult).length;
+  $("adultHint").textContent = `${nA.toLocaleString("fr-FR")} titres réservés aux adultes. Case cochée, seuls ces titres s'affichent.`;
+  UP = T.status.indexOf("NOT_YET_RELEASED");
+  const nU = A.filter(a => a.status === UP).length;
+  $("upcomingHint").textContent = `${nU.toLocaleString("fr-FR")} titres pas encore sortis, masqués par défaut.`;
+  buildFilters(); apply();
+  fetch("chars.json").then(r => r.json()).then(C => {
+    let n = 0;
+    C.forEach((cs, i) => { const a = A[i]; if (!a) return; a.chars = cs; n += cs.length; a.charHay = norm(cs.map(c => c[0] + " " + c[1]).join(" | ")); });
+    $("chara").disabled = false; $("charaHint").textContent = `${n.toLocaleString("fr-FR")} personnages indexés (les 25 plus importants par animé).`;
+    if (shown <= 50) render(true);
+  }).catch(() => { $("charaHint").textContent = "Les personnages n'ont pas pu être chargés."; });
+}
+
+function counts(key, field) {
+  const c = new Array(T[key].length).fill(0);
+  for (const a of A) { const v = a[field]; if (Array.isArray(v)) v.forEach(i => c[i]++); else if (v >= 0) c[v]++; }
+  return c;
+}
+function chipGroup(el, key, field, set, opts = {}) {
+  const c = counts(key, field);
+  const order = T[key].map((v, i) => i).filter(i => c[i] >= (opts.min || 1) && T[key][i] !== opts.skip);
+  if (opts.alpha) order.sort((a, b) => tr(key, T[key][a]).localeCompare(tr(key, T[key][b]), "fr"));
+  $(el).innerHTML = order.map(i => `<button class="chip" data-i="${i}" title="${c[i].toLocaleString("fr-FR")} titres">${esc(tr(key, T[key][i]))}</button>`).join("");
+  $(el).addEventListener("click", e => {
+    const b = e.target.closest(".chip"); if (!b) return; const i = +b.dataset.i;
+    if (opts.tri) {
+      const [inc, exc] = set;
+      if (inc.has(i)) { inc.delete(i); exc.add(i); } else if (exc.has(i)) exc.delete(i); else inc.add(i);
+    } else set.has(i) ? set.delete(i) : set.add(i);
+    syncChips(); apply();
+  });
+}
+function syncChips() {
+  const mark = (el, inc, exc) => $(el).querySelectorAll(".chip").forEach(b => {
+    const i = +b.dataset.i; b.classList.toggle("on", inc.has(i)); b.classList.toggle("ex", !!exc && exc.has(i));
+    b.setAttribute("aria-pressed", inc.has(i) || (exc && exc.has(i)) ? "true" : "false");
+  });
+  mark("genre", S.genreIn, S.genreEx); mark("format", S.format); mark("status", S.status); mark("season", S.season);
+  mark("source", S.source); mark("country", S.country);
+  $("tag").innerHTML = [...S.tagIn].map(i => `<button class="chip on" data-i="${i}" data-k="in">${esc(T.tags[i])}</button>`).join("") +
+    [...S.tagEx].map(i => `<button class="chip ex" data-i="${i}" data-k="ex">${esc(T.tags[i])}</button>`).join("");
+  $("lang").querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.v === S.lang));
+}
+function buildFilters() {
+  chipGroup("genre", "genres", "genres", [S.genreIn, S.genreEx], { tri: true, alpha: true });
+  chipGroup("format", "format", "format", S.format);
+  chipGroup("status", "status", "status", S.status, { skip: "NOT_YET_RELEASED" });
+  chipGroup("season", "season", "season", S.season);
+  chipGroup("source", "source", "source", S.source, { min: 20 });
+  chipGroup("country", "country", "country", S.country);
+  let tc; $("chara").addEventListener("input", e => { clearTimeout(tc); tc = setTimeout(() => { S.chara = e.target.value; apply(); }, 160); });
+  $("tagList").innerHTML = T.tags.map(t => `<option value="${esc(t)}"></option>`).join("");
+  $("studioList").innerHTML = T.studios.slice(0, 1500).map(t => `<option value="${esc(t)}"></option>`).join("");
+  $("tagInput").addEventListener("change", e => {
+    const i = T.tags.findIndex(t => t.toLowerCase() === e.target.value.trim().toLowerCase());
+    if (i >= 0) { S.tagIn.add(i); e.target.value = ""; syncChips(); apply(); }
+  });
+  $("tag").addEventListener("click", e => {
+    const b = e.target.closest(".chip"); if (!b) return; const i = +b.dataset.i;
+    if (b.dataset.k === "in") { S.tagIn.delete(i); S.tagEx.add(i); } else S.tagEx.delete(i);
+    syncChips(); apply();
+  });
+  $("lang").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; S.lang = b.dataset.v; syncChips(); apply(); });
+  let t; $("q").addEventListener("input", e => { clearTimeout(t); t = setTimeout(() => { S.q = e.target.value; apply(); }, 140); });
+  for (const k of ["yMin", "yMax", "eMin", "eMax", "dMin", "dMax"]) $(k).addEventListener("input", e => { S[k] = e.target.value === "" ? null : +e.target.value; apply(); });
+  $("score").addEventListener("input", e => { S.score = +e.target.value; $("scoreVal").textContent = S.score ? "≥ " + S.score + " / 100" : "toutes"; apply(); });
+  $("studio").addEventListener("input", e => { S.studio = norm(e.target.value); apply(); });
+  $("sort").addEventListener("change", e => { S.sort = e.target.value; apply(); });
+  $("adult").addEventListener("change", e => { S.adult = e.target.checked; apply(); });
+  $("upcoming").addEventListener("change", e => { S.upcoming = e.target.checked; apply(); });
+  document.querySelectorAll("[data-clear]").forEach(b => b.addEventListener("click", () => {
+    const k = b.dataset.clear;
+    if (k === "genre") { S.genreIn.clear(); S.genreEx.clear(); } else if (k === "tag") { S.tagIn.clear(); S.tagEx.clear(); } else S[k].clear();
+    syncChips(); apply();
+  }));
+  $("reset").addEventListener("click", resetAll);
+  $("more").addEventListener("click", () => render(false));
+  $("toggleFilters").addEventListener("click", () => { const o = $("filters").classList.toggle("open"); $("toggleFilters").setAttribute("aria-expanded", o); });
+  $("active").addEventListener("click", e => { const b = e.target.closest(".chip"); if (b) { activeActions[+b.dataset.a](); syncChips(); apply(); } });
+  syncChips();
+}
+function resetAll() {
+  Object.assign(S, { col: "all", adult: false, upcoming: false, chara: "", q: "", lang: "FE", yMin: null, yMax: null, eMin: null, eMax: null, dMin: null, dMax: null, score: 0, studio: "" });
+  ["genreIn", "genreEx", "tagIn", "tagEx", "format", "status", "season", "source", "country"].forEach(k => S[k].clear());
+  ["q", "chara", "yMin", "yMax", "eMin", "eMax", "dMin", "dMax", "studio"].forEach(k => $(k).value = "");
+  $("score").value = 0; $("scoreVal").textContent = "toutes"; $("adult").checked = false; $("upcoming").checked = false; $("col").value = "all"; syncChips(); apply();
+}
+
+function apply() {
+  const qs = norm(S.q).split(" ").filter(Boolean);
+  const cq = norm(S.chara).split(" ").filter(Boolean);
+  const inRange = (v, lo, hi) => (lo == null || (v && v >= lo)) && (hi == null || (v && v <= hi));
+  view = A.filter(a => {
+    if (a.adult !== S.adult) return false;
+    if (S.col !== "all") { if (!inCol(a.id, S.col)) return false; }
+    else {
+      if (a.status === UP && !S.upcoming) return false;
+      if (S.lang === "FE" && !a.lang) return false;
+      if (S.lang === "F" && !a.lang.includes("F")) return false;
+      if (S.lang === "E" && !a.lang.includes("E")) return false;
+      if (S.lang === "both" && a.lang !== "FE") return false;
+    }
+    if (qs.length && !qs.every(w => a.hay.includes(w))) return false;
+    if (cq.length && !cq.every(w => a.charHay.includes(w))) return false;
+    for (const g of S.genreIn) if (!a.genres.includes(g)) return false;
+    for (const g of S.genreEx) if (a.genres.includes(g)) return false;
+    for (const g of S.tagIn) if (!a.tags.includes(g)) return false;
+    for (const g of S.tagEx) if (a.tags.includes(g)) return false;
+    if (S.format.size && !S.format.has(a.format)) return false;
+    if (S.status.size && !S.status.has(a.status)) return false;
+    if (S.season.size && !S.season.has(a.season)) return false;
+    if (S.source.size && !S.source.has(a.source)) return false;
+    if (S.country.size && !S.country.has(a.country)) return false;
+    if (!inRange(a.year, S.yMin, S.yMax) || !inRange(a.eps, S.eMin, S.eMax) || !inRange(a.dur, S.dMin, S.dMax)) return false;
+    if (S.score && a.score < S.score) return false;
+    if (S.studio && !a.studioHay.includes(S.studio)) return false;
+    return true;
+  });
+  const title = a => (a.english || a.romaji).toLowerCase();
+  const cmp = { pop: (a, b) => a.rank - b.rank, score: (a, b) => b.score - a.score || a.rank - b.rank,
+    new: (a, b) => b.year - a.year || a.rank - b.rank, old: (a, b) => (a.year || 9999) - (b.year || 9999) || a.rank - b.rank,
+    az: (a, b) => title(a).localeCompare(title(b), "fr"), eps: (a, b) => b.eps - a.eps || a.rank - b.rank,
+    mine: (a, b) => (ent(b.id).r || 0) - (ent(a.id).r || 0) || a.rank - b.rank, recent: (a, b) => (ent(b.id).t || 0) - (ent(a.id).t || 0) || a.rank - b.rank }[S.sort];
+  view.sort(cmp);
+  $("count").innerHTML = `<b>${view.length.toLocaleString("fr-FR")}</b> ${view.length > 1 ? "titres" : "titre"}`;
+  renderActive(); render(true);
+}
+let activeActions = [];
+function renderActive() {
+  const L = []; activeActions = [];
+  const add = (label, fn) => { L.push(`<button class="chip" data-a="${activeActions.length}">${esc(label)}</button>`); activeActions.push(fn); };
+  if (S.col !== "all") add(colLabel(S.col), () => { S.col = "all"; $("col").value = "all"; });
+  if (S.q) add(`« ${S.q} »`, () => { S.q = ""; $("q").value = ""; });
+  if (S.chara) add(`Personnage : ${S.chara}`, () => { S.chara = ""; $("chara").value = ""; });
+  S.genreIn.forEach(i => add(tr("genres", T.genres[i]), () => S.genreIn.delete(i)));
+  S.genreEx.forEach(i => add("sans " + tr("genres", T.genres[i]), () => S.genreEx.delete(i)));
+  S.tagIn.forEach(i => add(T.tags[i], () => S.tagIn.delete(i)));
+  S.tagEx.forEach(i => add("sans " + T.tags[i], () => S.tagEx.delete(i)));
+  for (const k of ["format", "status", "season", "source", "country"]) S[k].forEach(i => add(tr(k, T[k][i]), () => S[k].delete(i)));
+  if (S.yMin != null || S.yMax != null) add(`Années ${S.yMin ?? "…"}–${S.yMax ?? "…"}`, () => { S.yMin = S.yMax = null; $("yMin").value = $("yMax").value = ""; });
+  if (S.eMin != null || S.eMax != null) add(`Épisodes ${S.eMin ?? "…"}–${S.eMax ?? "…"}`, () => { S.eMin = S.eMax = null; $("eMin").value = $("eMax").value = ""; });
+  if (S.dMin != null || S.dMax != null) add(`Durée ${S.dMin ?? "…"}–${S.dMax ?? "…"} min`, () => { S.dMin = S.dMax = null; $("dMin").value = $("dMax").value = ""; });
+  if (S.score) add(`Note ≥ ${S.score}`, () => { S.score = 0; $("score").value = 0; $("scoreVal").textContent = "toutes"; });
+  if (S.studio) add(`Studio : ${$("studio").value}`, () => { S.studio = ""; $("studio").value = ""; });
+  $("active").innerHTML = L.join("");
+}
+function card(a) {
+  const main = a.english || a.romaji;
+  const alts = [...new Set([a.romaji, a.native].filter(t => t && t.toLowerCase() !== main.toLowerCase()))].join(" · ");
+  const meta = [
+    a.format >= 0 ? `<b>${esc(tr("format", T.format[a.format]))}</b>` : "",
+    a.year ? `${a.season >= 0 ? tr("season", T.season[a.season]) + " " : ""}${a.year}` : "",
+    a.eps ? `${a.eps} ép.` : "", a.dur ? `${a.dur} min` : "",
+    a.status >= 0 ? tr("status", T.status[a.status]) : "",
+    a.studios.length ? a.studios.map(i => esc(T.studios[i])).join(", ") : "",
+    a.source >= 0 ? "d'après : " + tr("source", T.source[a.source]) : ""
+  ].filter(Boolean).map(x => `<span>${x}</span>`).join("");
+  const langs = a.lang ? [...a.lang].map(l => `<span class="lg ${l}">${l === "F" ? "FR" : "EN"}</span>`).join("") : `<span class="lg N">non dispo</span>`;
+  const adultTag = a.adult ? `<span class="lg A">18+</span>` : "";
+  const genres = a.genres.map(i => `<span class="g">${esc(tr("genres", T.genres[i]))}</span>`).join("");
+  const plats = a.plats.map(([i, u]) => `<a class="p" href="${esc(u)}" target="_blank" rel="noopener">${esc(T.platforms[i])}</a>`).join("");
+  const tags = a.tags.map(i => esc(T.tags[i])).join(", ");
+  const ROLE = { M: "principal", S: "secondaire", B: "figurant" };
+  // AniList renvoie une page 404 aux visiteurs non connectés pour les titres adultes : on préfère MyAnimeList pour ceux-là.
+  const link = a.adult && a.mal ? `https://myanimelist.net/anime/${a.mal}` : `https://anilist.co/anime/${a.id}`;
+  const chars = a.chars.length ? `<div class="chars">${a.chars.map(c => `<span class="ch ${c[2]}" title="${esc((c[1] ? c[1] + " · " : "") + ROLE[c[2]])}">${esc(c[0] || c[1])}</span>`).join("")}</div>` : "";
+  const cover = a.cov >= 0
+    ? `<span class="cv" role="img" aria-label="Affiche de ${esc(main)}" style="background-image:url(covers/s${Math.floor(a.cov / 200)}.webp);background-position:${(a.cov % 10) / 9 * 100}% ${(Math.floor((a.cov % 200) / 10)) / 19 * 100}%"></span>`
+    : `<span class="cv none" aria-hidden="true">${esc((main[0] || "?").toUpperCase())}</span>`;
+  return `<article class="card">
+    <a href="${link}" target="_blank" rel="noopener" tabindex="-1">${cover}</a>
+    <div class="body">
+    <h3><a href="${link}" target="_blank" rel="noopener">${esc(main)}</a></h3>
+    <div class="side"><div class="score">${a.score ? a.score + "<small>/100</small>" : '<small>sans note</small>'}</div><div class="langs">${adultTag}${langs}</div></div>
+    ${alts ? `<div class="alt">${esc(alts)}</div>` : ""}
+    <div class="meta">${meta}</div>
+    <div class="row2">${genres}${genres && plats ? '<span class="sep"></span>' : ""}${plats}</div>
+    <div class="minebox" data-id="${a.id}" style="display:contents">${mineHTML(a.id)}</div>
+    ${a.desc || tags || chars ? `<details><summary>Synopsis, personnages et thèmes</summary>${a.desc ? `<p>${esc(a.desc)}</p>` : ""}${chars ? `<p class="hint">Personnages (principaux en violet) :</p>${chars}` : ""}${tags ? `<p class="hint">Thèmes : ${tags}</p>` : ""}
+      <div class="links"><a href="https://anilist.co/anime/${a.id}" target="_blank" rel="noopener">${a.adult ? "Fiche AniList (compte avec contenu adulte activé requis)" : "Fiche AniList"}</a>${a.mal ? `<a href="https://myanimelist.net/anime/${a.mal}" target="_blank" rel="noopener">Fiche MyAnimeList</a>` : ""}</div></details>` : ""}
+    </div>
+  </article>`;
+}
+function render(reset) {
+  if (reset) { shown = 0; $("list").innerHTML = ""; }
+  if (!view.length) { $("list").innerHTML = '<div class="empty">Aucun titre ne correspond. Retirez un filtre ou élargissez la disponibilité à « Toutes ».</div>'; $("more").hidden = true; return; }
+  const next = view.slice(shown, shown + 50); shown += next.length;
+  $("list").insertAdjacentHTML("beforeend", next.map(card).join(""));
+  $("more").hidden = shown >= view.length;
+  $("more").textContent = `Afficher 50 de plus (${(view.length - shown).toLocaleString("fr-FR")} restants)`;
+}
+
+// ===== Ma collection : données privées de chaque visiteur connecté (capacité db, sous data/users/<id>) =====
+const STATUSES = { watched: "Regardé", watching: "En cours", plan: "Je veux regarder", dropped: "Abandonné" };
+const ME = { db: null, uid: null, base: "", buckets: {}, lists: {}, listsExists: false, ready: false, writable: true, open: null };
+const NB = 16;
+const ent = id => { const b = ME.buckets["b" + (id % NB)]; return (b && b.e && b.e[id]) || {}; };
+const isEmpty = e => !e.f && !e.r && !e.c && !e.s && !Object.values(e.l || {}).some(Boolean);
+function inCol(id, col) {
+  const e = ent(id);
+  if (col === "any") return !isEmpty(e);
+  if (col === "fav") return !!e.f;
+  if (col === "rated") return !!e.r;
+  if (col.startsWith("s:")) return e.s === col.slice(2);
+  if (col.startsWith("l:")) return !!(e.l && e.l[col.slice(2)]);
+  return true;
+}
+function colLabel(col) {
+  if (col === "any") return "Toute ma collection"; if (col === "fav") return "Coups de cœur"; if (col === "rated") return "Notés";
+  if (col.startsWith("s:")) return STATUSES[col.slice(2)];
+  if (col.startsWith("l:")) return "Liste : " + ((ME.lists[col.slice(2)] || {}).n || "?");
+  return "Tout le catalogue";
+}
+function toast(msg) { const t = $("toast"); t.textContent = msg; t.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => t.hidden = true, 2600); }
+const sortedLists = () => Object.entries(ME.lists).filter(([, v]) => v && v.n).sort((a, b) => a[1].t - b[1].t);
+
+function mineHTML(id) {
+  if (!ME.ready) return "";
+  const e = ent(id), open = ME.open === id, dis = ME.writable ? "" : " disabled";
+  const stars = [1, 2, 3, 4, 5].map(n => `<button type="button" data-act="star" data-v="${n}" class="${(e.r || 0) >= n ? "on" : ""}" aria-label="${n} étoile${n > 1 ? "s" : ""}"${dis}>★</button>`).join("");
+  const nl = Object.values(e.l || {}).filter(Boolean).length;
+  let h = `<div class="mine">
+    <button type="button" class="ib fav ${e.f ? "on" : ""}" data-act="fav" aria-pressed="${!!e.f}" title="Coup de cœur"${dis}>${e.f ? "♥" : "♡"}</button>
+    <select data-act="status" class="${e.s ? "set" : ""}" aria-label="Statut"${dis}><option value="">${e.s ? "Aucun statut" : "Ajouter à…"}</option>${Object.entries(STATUSES).map(([k, v]) => `<option value="${k}"${e.s === k ? " selected" : ""}>${v}</option>`).join("")}</select>
+    <span class="stars" role="group" aria-label="Ma note">${stars}</span>
+    <button type="button" class="ib ${e.c || nl ? "has" : ""}" data-act="edit" aria-expanded="${open}"${dis}>${e.c ? "Mon avis" : "Avis"}${nl ? ` · ${nl} liste${nl > 1 ? "s" : ""}` : " et listes"}</button>
+  </div>`;
+  if (e.c && !open) h += `<p class="mycomment">« ${esc(e.c)} »</p>`;
+  if (open) {
+    const L = sortedLists();
+    h += `<form class="editor" data-act="save">
+      <label for="cm-${id}" class="hint">Commentaire rapide (280 caractères max)</label>
+      <textarea id="cm-${id}" name="c" maxlength="280" placeholder="Ce que tu en as pensé…">${esc(e.c || "")}</textarea>
+      ${L.length ? `<div class="hint">Mes listes</div><div class="lists">${L.map(([k, v]) => `<label><input type="checkbox" name="l" value="${esc(k)}"${e.l && e.l[k] ? " checked" : ""}> ${esc(v.n)}</label>`).join("")}</div>` : `<div class="hint">Crée tes propres listes dans le panneau « Ma collection ».</div>`}
+      <div class="row"><button type="button" class="ib" data-act="clear">Retirer de ma collection</button><span style="display:flex;gap:8px"><button type="button" class="ib" data-act="close">Annuler</button><button type="submit" class="btn primary">Enregistrer</button></span></div>
+    </form>`;
+  }
+  return h;
+}
+function refreshCard(id) { const box = document.querySelector(`.minebox[data-id="${id}"]`); if (box) box.innerHTML = mineHTML(id); }
+function refreshAllCards() { document.querySelectorAll(".minebox").forEach(b => b.innerHTML = mineHTML(+b.dataset.id)); }
+
+const queues = {};
+function enqueue(key, fn) { const p = (queues[key] || Promise.resolve()).then(fn, fn); queues[key] = p.catch(() => {}); return p; }
+function onWriteError(err) {
+  if (err && err.code === "quota_exceeded") toast("Ta collection est pleine : retire quelques titres pour en ajouter d'autres.");
+  else if (err && (err.code === "invalid_argument" || err.code === "not_granted")) { ME.writable = false; toast("Tu peux consulter mais pas modifier : demande l'accès Contributeur à la personne qui t'a partagé la page."); refreshAllCards(); }
+  else toast("L'enregistrement a échoué. Réessaie dans un instant.");
+}
+function saveEntry(id, patch) {
+  if (!ME.writable) return;
+  const bid = "b" + (id % NB);
+  const b = ME.buckets[bid] || (ME.buckets[bid] = { exists: false, e: {} });
+  const cur = ent(id), next = { ...cur, ...patch, l: { ...(cur.l || {}), ...(patch.l || {}) }, t: Date.now() };
+  const val = isEmpty(next) ? null : next;
+  b.e = { ...b.e, [id]: val };
+  refreshCard(id); updateColCounts();
+  enqueue(bid, async () => {
+    const ref = ME.db.collection(ME.base).doc(bid);
+    try { if (b.exists) await ref.update({ e: { [id]: val } }); else { await ref.set({ e: { ...b.e } }); b.exists = true; } }
+    catch (err) { onWriteError(err); }
+  });
+}
+function saveLists(next) {
+  ME.lists = next; renderListAdmin(); refreshAllCards();
+  enqueue("lists", async () => {
+    try { await ME.db.collection(ME.base).doc("lists").set({ l: ME.lists }); ME.listsExists = true; }
+    catch (err) { onWriteError(err); }
+  });
+}
+function updateColCounts() {
+  if (!ME.ready) return;
+  const ids = []; for (const b of Object.values(ME.buckets)) for (const [k, v] of Object.entries(b.e || {})) if (v && !isEmpty(v)) ids.push(+k);
+  const count = col => ids.filter(id => inCol(id, col)).length;
+  const opt = (v, label) => `<option value="${esc(v)}"${S.col === v ? " selected" : ""}>${esc(label)} (${count(v)})</option>`;
+  const L = sortedLists();
+  $("col").innerHTML = `<option value="all">Tout le catalogue</option>` + opt("any", "Toute ma collection") + opt("fav", "♥ Coups de cœur") + opt("rated", "★ Notés")
+    + `<optgroup label="Statut">${Object.entries(STATUSES).map(([k, v]) => opt("s:" + k, v)).join("")}</optgroup>`
+    + (L.length ? `<optgroup label="Mes listes">${L.map(([k, v]) => opt("l:" + k, v.n)).join("")}</optgroup>` : "");
+  if (S.col !== "all" && !$("col").value) { S.col = "all"; $("col").value = "all"; }
+}
+function renderListAdmin() {
+  const L = sortedLists();
+  $("myLists").innerHTML = L.length ? L.map(([k, v]) => `<div><span>${esc(v.n)}</span><button type="button" data-del="${esc(k)}" aria-label="Supprimer la liste ${esc(v.n)}">supprimer</button></div>`).join("") : `<div class="hint">Aucune liste personnelle pour l'instant.</div>`;
+  updateColCounts();
+}
+
+$("list").addEventListener("click", e => {
+  const el = e.target.closest("[data-act]"); if (!el || el.tagName === "SELECT" || el.tagName === "FORM") return;
+  const box = el.closest(".minebox"); if (!box) return; const id = +box.dataset.id, cur = ent(id);
+  const act = el.dataset.act;
+  if (act === "fav") { saveEntry(id, { f: !cur.f }); toast(cur.f ? "Retiré des coups de cœur" : "Ajouté aux coups de cœur"); }
+  else if (act === "star") { const v = +el.dataset.v; saveEntry(id, { r: cur.r === v ? 0 : v }); }
+  else if (act === "edit") { ME.open = ME.open === id ? null : id; refreshAllCards(); const t = document.getElementById("cm-" + id); if (t) t.focus(); }
+  else if (act === "close") { ME.open = null; refreshCard(id); }
+  else if (act === "clear") { ME.open = null; const l = {}; Object.keys(cur.l || {}).forEach(k => l[k] = false); saveEntry(id, { f: false, r: 0, c: "", s: "", l }); toast("Retiré de ta collection"); }
+});
+$("list").addEventListener("change", e => {
+  const el = e.target; if (el.dataset.act !== "status") return;
+  const id = +el.closest(".minebox").dataset.id; saveEntry(id, { s: el.value });
+  if (el.value) toast("Ajouté à « " + STATUSES[el.value] + " »");
+});
+$("list").addEventListener("submit", e => {
+  const f = e.target; if (f.dataset.act !== "save") return; e.preventDefault();
+  const id = +f.closest(".minebox").dataset.id, l = {};
+  f.querySelectorAll('input[name="l"]').forEach(c => l[c.value] = c.checked);
+  ME.open = null; saveEntry(id, { c: f.elements.c.value.trim().slice(0, 280), l }); toast("Enregistré");
+});
+$("col").addEventListener("change", e => { S.col = e.target.value; apply(); });
+$("newListForm").addEventListener("submit", e => {
+  e.preventDefault(); const n = $("newList").value.trim().slice(0, 40); if (!n || !ME.writable) return;
+  if (Object.values(ME.lists).some(v => v && v.n && v.n.toLowerCase() === n.toLowerCase())) { toast("Tu as déjà une liste de ce nom."); return; }
+  if (sortedLists().length >= 50) { toast("50 listes maximum."); return; }
+  const k = "L" + Date.now().toString(36); $("newList").value = "";
+  saveLists({ ...ME.lists, [k]: { n, t: Date.now() } }); toast("Liste « " + n + " » créée");
+});
+$("myLists").addEventListener("click", e => {
+  const b = e.target.closest("[data-del]"); if (!b) return; const k = b.dataset.del;
+  if (b.dataset.confirm !== "1") { b.dataset.confirm = "1"; b.textContent = "confirmer ?"; setTimeout(() => { b.dataset.confirm = ""; b.textContent = "supprimer"; }, 3000); return; }
+  const next = { ...ME.lists, [k]: null }; if (S.col === "l:" + k) { S.col = "all"; }
+  saveLists(next); apply(); toast("Liste supprimée");
+});
+
+(async function startCollection() {
+  const fail = msg => { $("colHint").textContent = msg; };
+  try {
+    if (!window.claude || !claude.use) return fail("Connecte-toi à claude.ai pour avoir ta collection personnelle.");
+    const [db, user] = await Promise.all([claude.use("db"), claude.use("user")]);
+    const uid = user ? await user.id() : null;
+    if (!db || !uid) return fail("Connecte-toi à claude.ai pour avoir ta collection personnelle (coups de cœur, notes, listes).");
+    ME.db = db; ME.uid = uid; ME.base = "data/users/" + uid;
+    const me = await user.me(); if (me && me.name) { $("me").textContent = me.name; $("me").hidden = false; }
+    if (user.can) { const w = await user.can("data.write"); if (w === false) ME.writable = false; }
+    const timer = setTimeout(() => fail("Ta collection met du temps à se charger…"), 10000);
+    db.collection(ME.base).onSnapshot(snap => {
+      if (!snap.metadata.fromCache) clearTimeout(timer);
+      const buckets = {}; let lists = ME.lists, lex = false;
+      for (const d of snap.docs) {
+        const v = d.data() || {};
+        if (d.id === "lists") { lists = v.l || {}; lex = true; } else if (d.id.startsWith("b")) buckets[d.id] = { exists: true, e: v.e || {} };
+      }
+      // garde les écritures locales pas encore confirmées
+      for (const [k, b] of Object.entries(ME.buckets)) if (!buckets[k] && !b.exists) buckets[k] = b;
+      ME.buckets = buckets; ME.lists = lists; ME.listsExists = lex;
+      const first = !ME.ready; ME.ready = true;
+      $("col").disabled = false; $("listAdmin").hidden = !ME.writable;
+      $("colHint").textContent = ME.writable ? "Tes coups de cœur, notes et listes sont privés : personne d'autre ne les voit." : "Lecture seule : tu ne peux pas enregistrer de collection sur cette page.";
+      renderListAdmin();
+      if (first) refreshAllCards(); else document.querySelectorAll(".minebox").forEach(b => { if (+b.dataset.id !== ME.open) b.innerHTML = mineHTML(+b.dataset.id); });
+    }, () => { clearTimeout(timer); fail("Ta collection n'a pas pu être chargée. Recharge la page plus tard."); });
+  } catch (err) { fail("Ta collection n'a pas pu être chargée."); }
+})();
+</script>
