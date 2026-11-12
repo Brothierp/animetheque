@@ -3,6 +3,7 @@ import { byId, T, tr, titleOf, altTitles, coverStyle, extLink, similar, ready, l
 import { ME, ent, STATUSES, STATUS_SHORT, setEntry, setInList, clearAnime, adultAllowed, requireUser, onChange, setProgress, FEATURES } from "../state.js";
 import { $, esc, cover, row, starsHTML, openAddMenu } from "../ui.js";
 import { charsOfAnime, imgUrl, ROLE_FR } from "../chars.js";
+import { attachTranslate } from "../translate.js";
 import { toast } from "../toast.js";
 
 let el = null, curId = null, onCloseCb = null;
@@ -53,7 +54,7 @@ function orderHTML(a) {
     return `<a class="o-it${cur ? " cur" : ""}" href="#/anime/${b.id}"${cur ? ' aria-current="true"' : ""}>${n != null ? `<span class="o-n">${n}</span>` : ""}${cover(b, "mini", "34px")}
       <span class="o-t"><b>${esc(titleOf(b))}</b><small>${[b.year || (b.status === UP ? "À venir" : ""), b.format >= 0 ? tr("format", T.format[b.format]) : "", b.eps > 1 ? b.eps + " ép." : ""].filter(Boolean).join(" · ")}${n == null ? " · " + KIND_FR[x.k] : ""}</small></span>${st}</a>`; };
   const showExtra = main.length === 0 || extra.some(x => x.a.id === a.id);
-  return `<section><h2>Ordre de visionnage <small class="hint">${main.length} principal${main.length > 1 ? "aux" : ""}${extra.length ? ` · ${extra.length} extra${extra.length > 1 ? "s" : ""}` : ""}</small></h2>
+  return `<section><h2>Ordre de visionnage <small class="hint">${main.length} ${main.length > 1 ? "principaux" : "principal"}${extra.length ? ` · ${extra.length} extra${extra.length > 1 ? "s" : ""}` : ""}</small></h2>
     <div class="order">${main.map((x, n) => it(x, n + 1)).join("")}</div>
     ${extra.length ? `<details class="o-extra"${showExtra ? " open" : ""}><summary>Extras : films parallèles, OAV, spin-off, récapitulatifs… (${extra.length})</summary><div class="order">${extra.map(x => it(x, null)).join("")}</div></details>` : ""}
     <p class="hint">Dans l'ordre de sortie. Les extras sont facultatifs ; les récapitulatifs résument des épisodes déjà vus.</p></section>`;
@@ -116,9 +117,10 @@ export function openDetail(id, onClose) {
   el.classList.add("open"); document.body.classList.add("noscroll");
   panel.focus({ preventScroll: true });
   setTimeout(() => { if (curId === id) $("dSim").innerHTML = row("Dans le même esprit", similar(a, 14, adultAllowed())); }, 30);
+  if (a.desc && $("dSyn")) attachTranslate($("dSyn"), "a" + a.id);
   if ((a.hasDesc && a.desc == null) || (a.nPlats && !a.plats)) loadDetails(a).then(() => {
     if (curId !== id) return;
-    if ($("dSyn")) $("dSyn").textContent = a.desc;
+    if ($("dSyn")) { $("dSyn").textContent = a.desc; if (a.desc) attachTranslate($("dSyn"), "a" + a.id); }
     if ($("dPlats")) $("dPlats").innerHTML = platsHTML(a);
   }).catch(() => { if ($("dSyn")) $("dSyn").textContent = "Synopsis indisponible pour le moment."; });
   charsOfAnime(a).then(L => { if (curId === id) renderFaces(L); })

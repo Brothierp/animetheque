@@ -5,6 +5,7 @@ import { adultAllowed, ME, toggleFavChar, onChange } from "../state.js";
 import { toast } from "../toast.js";
 import { $, esc, fmt, card } from "../ui.js";
 import { charCard } from "./characters.js";
+import { attachTranslate } from "../translate.js";
 
 let el = null, curId = null, onCloseCb = null;
 
@@ -83,8 +84,9 @@ export async function openCharacter(id, onClose) {
   fetchCharacter(id).then(d => {
     if (curId !== id) return;
     $("cFacts").innerHTML = facts(d, c);
-    $("cDesc").innerHTML = d.description ? descHTML(d.description) + `<p class="hint src">Description en anglais, issue d'<a href="https://anilist.co/character/${id}" target="_blank" rel="noopener">AniList ↗</a>. Les passages flous sont des spoilers : clique pour les révéler.</p>`
+    $("cDesc").innerHTML = d.description ? `<div id="cDescTxt">${descHTML(d.description)}</div><p class="hint src">Description issue d'<a href="https://anilist.co/character/${id}" target="_blank" rel="noopener">AniList ↗</a>. Les passages flous sont des spoilers : clique pour les révéler.</p>`
       : `<p class="hint">Pas de description sur AniList.</p>`;
+    if (d.description) attachTranslate($("cDescTxt"), "c" + id, true);
   }).catch(() => { if (curId === id) $("cDesc").innerHTML = `<p class="hint">Description indisponible pour le moment. <a href="https://anilist.co/character/${id}" target="_blank" rel="noopener">Voir sur AniList ↗</a></p>`; });
   return true;
 }
