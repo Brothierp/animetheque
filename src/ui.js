@@ -15,7 +15,8 @@ export const fmt = n => n.toLocaleString("fr-FR");
  */
 export const cover = (a, cls = "", sizes = "(max-width: 640px) 112px, 150px") => {
   if (!a || (a.cov < 0 && !a.hd)) return `<span class="cv none ${cls}">${esc((a ? titleOf(a)[0] : "?").toUpperCase())}</span>`;
-  const hd = a.hd ? `<img src="${hdUrl(a, "medium")}" srcset="${hdUrl(a, "medium")} 230w, ${hdUrl(a, "large")} 460w" sizes="${sizes}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" onload="this.classList.add('ok')" onerror="this.remove()">` : "";
+  const srcset = a.hdMax === "large" ? `${hdUrl(a, "medium")} 230w, ${hdUrl(a, "large")} 460w` : `${hdUrl(a, "medium")} 230w`;
+  const hd = a.hd ? `<img src="${hdUrl(a, "medium")}" srcset="${srcset}" sizes="${sizes}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" onload="this.classList.add('ok')" onerror="this.remove()">` : "";
   // avec une affiche HD, le fond est sa couleur dominante (pas besoin de télécharger la planche de miniatures)
   const bg = a.hd ? (a.color ? `background-color:#${a.color}` : "") : a.cov >= 0 ? coverStyle(a) : "";
   return `<span class="cv ${cls}" style="${bg}">${hd}</span>`;

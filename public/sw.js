@@ -19,7 +19,7 @@ self.addEventListener("fetch", e => {
     e.respondWith(caches.match(r).then(hit => hit || fetch(r).then(res => { if (res.ok) { const c = res.clone(); caches.open(STATIC).then(x => x.put(r, c)); } return res; })));
     return;
   }
-  if (/^\/(data|characters|characters-more|characters-top|chars)\.json$/.test(u.pathname)) {
+  if (/^\/(data|characters|characters-more|characters-top|chars|covers-hd|franchises)\.json$/.test(u.pathname)) {
     e.respondWith(caches.open(DATA).then(cache => cache.match(r).then(hit => {
       const net = fetch(r).then(res => { if (res.ok) cache.put(r, res.clone()); return res; }).catch(() => hit);
       return hit || net;

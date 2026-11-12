@@ -2,7 +2,7 @@
 
 /** Version des fichiers de données : à changer à chaque régénération, pour qu'aucun navigateur ne mélange
  *  une ancienne copie en cache avec les nouveaux fichiers. */
-export const DATA_V = "20261112d";
+export const DATA_V = "20261112e";
 export const dataUrl = path => `${path}?v=${DATA_V}`;
 
 export const FR = {
@@ -54,7 +54,7 @@ export function loadCatalogue() {
       plats: Array.isArray(x[20]) ? x[20] : null, nPlats: Array.isArray(x[20]) ? x[20].length : x[20], lang: x[21], adult: x[22] === 1, cov: x[23], rank: i, chars: [], charHay: "",
       _hay: null, _sh: null }));
     for (const a of A) byId.set(a.id, a);
-    if (hd) { HD_BASE = hd.base; hd.c.forEach((f, i) => { if (!A[i] || !f) return; const [file, color] = f.split("|"); A[i].hd = file.replace("~", A[i].id + "-"); A[i].color = color || ""; }); }
+    if (hd) { HD_BASE = hd.base; hd.c.forEach((f, i) => { if (!A[i] || !f) return; const [file, color] = f.split("|"); A[i].hdMax = file[0] === "*" ? "medium" : "large"; A[i].hd = file.replace("*", "").replace("~", A[i].id + "-"); A[i].color = color || ""; }); }
     UP = T.status.indexOf("NOT_YET_RELEASED"); RELEASING = T.status.indexOf("RELEASING");
     if (fr) for (const f of fr.f) {
       const list = f.map(([i, k]) => ({ a: A[i], k })).filter(x => x.a);
