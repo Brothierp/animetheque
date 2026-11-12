@@ -50,7 +50,7 @@ function orderHTML(a) {
   const main = L.filter(x => x.k === 0), extra = L.filter(x => x.k !== 0);
   const it = (x, n) => { const b = x.a, e = ent(b.id), cur = b.id === a.id;
     const st = e.s === "watched" ? `<i class="o-done" title="Vu">✓</i>` : e.s ? `<i class="o-st s-${e.s} on">${STATUS_SHORT[e.s]}</i>` : "";
-    return `<a class="o-it${cur ? " cur" : ""}" href="#/anime/${b.id}"${cur ? ' aria-current="true"' : ""}>${n != null ? `<span class="o-n">${n}</span>` : ""}<span class="cv mini" style="${coverStyle(b)}"></span>
+    return `<a class="o-it${cur ? " cur" : ""}" href="#/anime/${b.id}"${cur ? ' aria-current="true"' : ""}>${n != null ? `<span class="o-n">${n}</span>` : ""}${cover(b, "mini", "34px")}
       <span class="o-t"><b>${esc(titleOf(b))}</b><small>${[b.year || (b.status === UP ? "À venir" : ""), b.format >= 0 ? tr("format", T.format[b.format]) : "", b.eps > 1 ? b.eps + " ép." : ""].filter(Boolean).join(" · ")}${n == null ? " · " + KIND_FR[x.k] : ""}</small></span>${st}</a>`; };
   const showExtra = main.length === 0 || extra.some(x => x.a.id === a.id);
   return `<section><h2>Ordre de visionnage <small class="hint">${main.length} principal${main.length > 1 ? "aux" : ""}${extra.length ? ` · ${extra.length} extra${extra.length > 1 ? "s" : ""}` : ""}</small></h2>
@@ -72,7 +72,7 @@ function html(a) {
   return `<div class="d-banner" style="${coverStyle(a)}"></div>
   <button type="button" class="d-close x" data-d="close" aria-label="Fermer">×</button>
   <div class="d-head">
-    ${cover(a, "d-cv")}
+    ${cover(a, "d-cv", "(max-width: 640px) 104px, 160px")}
     <div class="d-title">
       <h1 id="dTitle">${esc(t)}</h1>
       ${alts.length ? `<p class="d-alt">${esc(alts.join(" · "))}</p>` : ""}

@@ -1,7 +1,7 @@
 // Vue « Calendrier » : épisodes diffusés cette semaine (données en direct d'AniList), par jour, à l'heure locale.
 import { byId, titleOf, coverStyle } from "../data.js";
 import { ME, ent, adultAllowed, STATUS_SHORT, onChange, requireUser } from "../state.js";
-import { $, esc } from "../ui.js";
+import { $, esc, cover } from "../ui.js";
 
 let root = null, data = null, loading = null, day = null;
 const F = { mine: false, lang: true };
@@ -27,7 +27,7 @@ function itemHTML(x) {
   const time = new Date(x.airingAt * 1000).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
   const tot = x.media.episodes || (a && a.eps) || 0;
   const href = a ? `#/anime/${a.id}` : `https://anilist.co/anime/${x.media.id}`;
-  const cov = a && a.cov >= 0 ? `<span class="cv" style="${coverStyle(a)}"></span>` : x.media.coverImage && x.media.coverImage.medium ? `<img class="cv" src="${esc(x.media.coverImage.medium)}" alt="" loading="lazy" referrerpolicy="no-referrer">` : `<span class="cv none">?</span>`;
+  const cov = a && (a.cov >= 0 || a.hd) ? cover(a, "", "52px") : x.media.coverImage && x.media.coverImage.medium ? `<img class="cv" src="${esc(x.media.coverImage.medium)}" alt="" loading="lazy" referrerpolicy="no-referrer">` : `<span class="cv none">?</span>`;
   const past = x.airingAt * 1000 < Date.now();
   return `<li class="cal-it${past ? " past" : ""}${e && e.s ? " mine" : ""}">
     <time>${time}</time>

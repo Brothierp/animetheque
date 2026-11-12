@@ -6,7 +6,7 @@ import { loadCharacters, loadAllCharacters, chReady, CH, visibleApps, mainAnime,
 import { ME, onChange, initSession, updateProfile } from "./state.js";
 import { initAuth, openAuth, isAuthOpen, signOut } from "./auth.js";
 import { displayName, avatarUrl, avatarHTML, isAdultYear } from "./profile.js";
-import { $, esc, fmt, refreshCards, closeAddMenu } from "./ui.js";
+import { $, esc, fmt, refreshCards, closeAddMenu, cover } from "./ui.js";
 import { toast } from "./toast.js";
 import * as home from "./views/home.js";
 import * as catalogue from "./views/catalogue.js";
@@ -100,7 +100,7 @@ function showSug(q) {
   const score = a => { const t = norm(titleOf(a)), r = norm(a.romaji || ""); return t.startsWith(qn) || r.startsWith(qn) ? 0 : t.includes(qn) || r.includes(qn) ? 1 : 2; };
   const an = hits.slice(0, 400).map(a => [score(a), a]).sort((x, y) => x[0] - y[0] || x[1].rank - y[1].rank).slice(0, 6).map(x => x[1]), total = { n: hits.length };
   const ch = chReady.loaded ? CH.filter(c => words.every(w => c.hay.includes(w)) && visibleApps(c, ok).length).slice(0, 4) : [];
-  b.innerHTML = (an.length ? `<div class="qs-h">Animés</div>` + an.map(a => `<a role="option" href="#/anime/${a.id}" class="qs-it"><span class="cv mini" style="${coverStyle(a)}"></span><span><b>${esc(titleOf(a))}</b><small>${[a.year, a.format >= 0 ? tr("format", T.format[a.format]) : ""].filter(Boolean).join(" · ")}</small></span></a>`).join("") : "")
+  b.innerHTML = (an.length ? `<div class="qs-h">Animés</div>` + an.map(a => `<a role="option" href="#/anime/${a.id}" class="qs-it">${cover(a, "mini", "34px")}<span><b>${esc(titleOf(a))}</b><small>${[a.year, a.format >= 0 ? tr("format", T.format[a.format]) : ""].filter(Boolean).join(" · ")}</small></span></a>`).join("") : "")
     + (ch.length ? `<div class="qs-h">Personnages</div>` + ch.map(c => `<a role="option" href="#/personnage/${c.id}" class="qs-it">${c.img ? `<img class="qs-face" src="${esc(imgUrl(c, "medium"))}" alt="" referrerpolicy="no-referrer">` : `<span class="qs-face cc-none">${esc((c.name || "?")[0])}</span>`}<span><b>${esc(c.name)}</b><small>${esc((mainAnime(c, ok) && titleOf(mainAnime(c, ok))) || "")}</small></span></a>`).join("") : "")
     + `<a role="option" href="#/catalogue" class="qs-all" data-all>${total.n ? `Voir les ${fmt(total.n)} animé${total.n > 1 ? "s" : ""} correspondant${total.n > 1 ? "s" : ""}` : "Aucun animé trouvé : chercher dans le catalogue"} <kbd>↵</kbd></a>`
     + (chReady.loaded ? `<a role="option" href="#/personnages?q=${encodeURIComponent(q)}" class="qs-all">Chercher « ${esc(q)} » dans les personnages</a>` : "");

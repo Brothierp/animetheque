@@ -1,5 +1,5 @@
 // Composants partagés : cartes d'affiche, menu « + Ajouter », étoiles, rangées.
-import { byId, titleOf, coverStyle, tr, T } from "./data.js";
+import { byId, titleOf, coverStyle, hdUrl, tr, T } from "./data.js";
 import { ME, ent, STATUSES, STATUS_SHORT, setEntry, setInList, createList, sortedLists, requireUser, onChange, setProgress, FEATURES } from "./state.js";
 import { toast } from "./toast.js";
 
@@ -8,9 +8,18 @@ export const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;"
 export const fmt = n => n.toLocaleString("fr-FR");
 
 /** Affiche seule (sans actions). */
-export const cover = (a, cls = "") => a && a.cov >= 0
-  ? `<span class="cv ${cls}" style="${coverStyle(a)}"></span>`
-  : `<span class="cv none ${cls}">${esc((a ? titleOf(a)[0] : "?").toUpperCase())}</span>`;
+/**
+ * Affiche : la miniature (planche d'images, instantanée) sert de fond, l'image haute définition d'AniList
+ * se pose par-dessus dès qu'elle est chargée. sizes = largeur affichée, pour que le navigateur choisisse
+ * 230 px ou 460 px selon l'écran. Si l'image HD ne vient pas, la miniature reste.
+ */
+export const cover = (a, cls = "", sizes = "(max-width: 640px) 112px, 150px") => {
+  if (!a || (a.cov < 0 && !a.hd)) return `<span class="cv none ${cls}">${esc((a ? titleOf(a)[0] : "?").toUpperCase())}</span>`;
+  const hd = a.hd ? `<img src="${hdUrl(a, "medium")}" srcset="${hdUrl(a, "medium")} 230w, ${hdUrl(a, "large")} 460w" sizes="${sizes}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" onload="this.classList.add('ok')" onerror="this.remove()">` : "";
+  // avec une affiche HD, le fond est sa couleur dominante (pas besoin de télécharger la planche de miniatures)
+  const bg = a.hd ? (a.color ? `background-color:#${a.color}` : "") : a.cov >= 0 ? coverStyle(a) : "";
+  return `<span class="cv ${cls}" style="${bg}">${hd}</span>`;
+};
 
 function badges(a) {
   const e = ent(a.id);

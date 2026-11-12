@@ -1,7 +1,7 @@
 // Vues « Mes listes » (cartes en mosaïque) et « Liste » (grille, ajout par recherche, renommer, supprimer).
 import { A, byId, norm, titleOf, coverStyle } from "../data.js";
 import { ME, sortedLists, listItems, createList, renameList, deleteList, setInList, adultAllowed, onChange } from "../state.js";
-import { $, esc, fmt, grid } from "../ui.js";
+import { $, esc, fmt, grid, cover } from "../ui.js";
 import { toast } from "../toast.js";
 import { gate } from "./collection.js";
 
@@ -59,7 +59,7 @@ function renderList(el, lid) {
     const res = search(e.target.value, lid);
     sugg.hidden = !e.target.value.trim();
     sugg.innerHTML = res.length ? res.map(a => { const inL = ME.entries.get(a.id) && ME.entries.get(a.id).l[lid];
-      return `<button type="button" data-add="${a.id}"${inL ? " disabled" : ""}><span class="cv mini" style="${coverStyle(a)}"></span><span><b>${esc(titleOf(a))}</b><small>${a.year || ""}${inL ? " · déjà dans la liste" : ""}</small></span></button>`; }).join("")
+      return `<button type="button" data-add="${a.id}"${inL ? " disabled" : ""}>${cover(a, "mini", "34px")}<span><b>${esc(titleOf(a))}</b><small>${a.year || ""}${inL ? " · déjà dans la liste" : ""}</small></span></button>`; }).join("")
       : `<p class="hint">Aucun titre trouvé.</p>`;
   });
   sugg.addEventListener("click", e => {

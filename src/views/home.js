@@ -61,7 +61,7 @@ function hero(a) {
   return `<section class="hero">
     <div class="hero-bg" style="${coverStyle(a)}"></div>
     <div class="hero-in">
-      ${cover(a, "hero-cv")}
+      ${cover(a, "hero-cv", "(max-width: 640px) 100px, 170px")}
       <div class="hero-txt">
         <span class="kicker">À la une · en cours de diffusion</span>
         <h1>${esc(titleOf(a))}</h1>
