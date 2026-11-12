@@ -17,7 +17,7 @@ function html() {
   const providers = (u.app_metadata && u.app_metadata.providers) || [u.app_metadata && u.app_metadata.provider].filter(Boolean);
   const E = [...ME.entries.values()];
   return `<div class="page acc2">
-    <div class="cat-top"><h1>Mon compte</h1><button type="button" class="btn" id="signOut2">Se déconnecter</button></div>
+    <div class="cat-top"><h1>Mon compte</h1><div class="cat-tools">${ME.isAdmin ? `<a class="btn primary" href="#/admin">Espace administrateur</a>` : ""}<button type="button" class="btn" id="signOut2">Se déconnecter</button></div></div>
     <section class="card2 idcard">
       <span id="bigAvatar">${avatarHTML(null, name, "big")}</span>
       <div class="who"><b>${esc(name)}</b><span class="hint">${esc(u.email || "")}</span>

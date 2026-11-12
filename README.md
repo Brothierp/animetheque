@@ -185,3 +185,16 @@ des étiquettes votées par la communauté, avec un score de pertinence. Un titr
 - **E-mails** : brancher un service SMTP (Resend, Brevo…) dans Supabase → Authentication → Emails, sinon les e-mails
   de confirmation sont limités à quelques-uns par heure.
 - **Mentions légales** : page obligatoire en France (identité de l'éditeur, hébergeur Vercel).
+
+## Administration
+
+Le script `supabase/migrations/20261112010000_admin.sql` crée la table `admins` et la fonction `admin_list_users()`
+(pseudo, e-mail, année de naissance, mode de connexion, dates, nombre de titres — jamais les mots de passe ni le contenu
+des collections). Pour se nommer administrateur, dans Supabase → SQL Editor :
+
+```sql
+insert into public.admins (user_id) select id from auth.users where email = 'ton.adresse@exemple.com';
+```
+
+La page `#/admin` (lien « Espace administrateur » dans Mon compte) n'apparaît qu'aux administrateurs ; la base refuse
+la liste à tout autre compte. Pour retirer le rôle : `delete from public.admins where user_id = '…';`.

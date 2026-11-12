@@ -7,7 +7,7 @@ import { toast } from "./toast.js";
 export const STATUSES = { plan: "Je veux regarder", watching: "En cours", watched: "Regardé", dropped: "Abandonné" };
 export const STATUS_SHORT = { plan: "À voir", watching: "En cours", watched: "Vu", dropped: "Abandonné" };
 
-export const ME = { user: null, profile: null, entries: new Map(), lists: {}, favChars: new Map(), ready: false, loading: false };
+export const ME = { user: null, profile: null, entries: new Map(), lists: {}, favChars: new Map(), ready: false, loading: false, isAdmin: false };
 export { FEATURES } from "./store.js";
 
 const listeners = new Set();
@@ -150,9 +150,11 @@ async function reload() {
   const uid = ME.user.id, first = !ME.ready;
   ME.loading = true;
   try {
-    const [col, profile] = await Promise.all([store.loadCollection(), loadProfile()]);
+    // is_admin() : réponse de la base (false si le script « admin » n'a pas été lancé)
+    const adminP = supabase.rpc("is_admin").then(r => r.data === true).catch(() => false);
+    const [col, profile, isAdmin] = await Promise.all([store.loadCollection(), loadProfile(), adminP]);
     if (!ME.user || ME.user.id !== uid) return;
-    ME.entries = col.entries; ME.lists = col.lists; ME.favChars = col.favChars; ME.profile = profile; ME.ready = true;
+    ME.entries = col.entries; ME.lists = col.lists; ME.favChars = col.favChars; ME.profile = profile; ME.isAdmin = isAdmin; ME.ready = true;
     emit("collection");
     if (first) emit("profile-loaded");
   } catch (err) {
@@ -163,7 +165,7 @@ async function reload() {
 function onSession(session) {
   const user = session ? session.user : null;
   if (user && ME.user && ME.user.id === user.id) { ME.user = user; return; } // simple rafraîchissement de jeton
-  ME.user = user; ME.profile = null; ME.entries = new Map(); ME.lists = {}; ME.favChars = new Map(); ME.ready = false;
+  ME.user = user; ME.profile = null; ME.entries = new Map(); ME.lists = {}; ME.favChars = new Map(); ME.ready = false; ME.isAdmin = false;
   emit("session");
   if (user) reload();
 }

@@ -571,3 +571,18 @@ dialog#auth > .hint { margin: 0 0 16px }
 .cv { position: relative; overflow: hidden }
 .cv > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .25s }
 .cv > img.ok { opacity: 1 }
+
+/* Administration */
+.adm-tools { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 12px }
+.adm-tools input { flex: 1 1 260px; max-width: 420px; padding: 9px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg) }
+.adm-tools input:focus { border-color: var(--accent); outline: none }
+.adm-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; background: var(--panel) }
+.adm { width: 100%; border-collapse: collapse; font-size: 13.5px; min-width: 860px }
+.adm th { text-align: left; font: 600 11.5px var(--body); text-transform: uppercase; letter-spacing: .06em; color: var(--muted); padding: 10px 12px; border-bottom: 1px solid var(--line); background: var(--panel-2); position: sticky; top: 0 }
+.adm td { padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: middle; white-space: nowrap }
+.adm tr:last-child td { border-bottom: 0 }
+.adm tbody tr:hover { background: var(--chip) }
+.adm a { color: var(--ink) } .adm a:hover { color: var(--accent) }
+.adm .num { text-align: right; font-family: var(--mono) }
+.adm-me { font: 600 10.5px var(--mono); background: var(--accent); color: var(--accent-ink); border-radius: 5px; padding: 1px 6px }
+.adm-warn { font: 600 10.5px var(--mono); background: var(--ex-soft); color: var(--ex); border-radius: 5px; padding: 1px 6px }
