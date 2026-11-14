@@ -591,3 +591,22 @@ dialog#auth > .hint { margin: 0 0 16px }
 .tr-bar { display: flex; gap: 8px 14px; align-items: center; flex-wrap: wrap; margin-top: 10px }
 .tgl.sm { font-size: 12.5px; font-weight: 400; color: var(--muted) } .tgl.sm input { width: 15px; height: 15px }
 .translated { border-left: 3px solid var(--fr); padding-left: 10px }
+
+/* En-têtes des fiches : rien ne doit pousser hors de l'écran (texte agrandi, petits téléphones) */
+.btn { max-width: 100% }
+.c-title, .d-title { flex: 1 1 0; min-width: 0 }
+.c-act .btn, .hero-act .btn, .m-row .btn, .mine-cta .btn { white-space: normal; text-align: center; line-height: 1.25 }
+.c-facts .fact { max-width: 100%; overflow-wrap: anywhere }
+.d-title h1, .c-title h1 { hyphens: auto }
+@media (max-width: 640px) {
+  .c-head { gap: 14px; padding: 52px 14px 4px; align-items: flex-start }
+  .c-portrait { width: 104px }
+  .c-title h1 { font-size: clamp(20px, 6.5vw, 28px) }
+  .c-facts { gap: 5px } .fact { font-size: 12px; padding: 3px 9px }
+  .d-head { align-items: flex-start }
+  .d-meta { font-size: 12.5px }
+}
+@media (max-width: 380px) {
+  .c-portrait, .d-cv { width: 88px }
+  .c-head, .d-head { gap: 12px }
+}

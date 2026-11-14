@@ -52,7 +52,7 @@ function html(c) {
   <div class="d-sim" id="cSim"></div>`;
 }
 
-const favLabel = id => ME.favChars.has(id) ? "♥ Personnage favori" : "♡ Ajouter à mes personnages favoris";
+const favLabel = id => ME.favChars.has(id) ? "♥ Favori" : "♡ Ajouter aux favoris";
 function facts(d, c) {
   const L = [];
   if (c.fav) L.push(`<span class="fact"><b>♥ ${fmt(c.fav)}</b> fans</span>`);
