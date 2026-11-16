@@ -9,7 +9,7 @@ import { gate } from "./collection.js";
 import {
   SOC, onSocial, onMessage, person, loadPeople, loadFriends, friendsList, isFriend, findMember, sendRequest, acceptRequest,
   removeFriend, blockUser, listBlocks, unblock, loadConversations, loadThread, sendMessage, markRead, deleteMessage, report,
-  sharedLists, listItemsOf, addToSharedList, removeFromSharedList, listMembers, socialError
+  sharedLists, listItemsOf, refreshCounters, addToSharedList, removeFromSharedList, listMembers, socialError
 } from "../social.js";
 import { preventionDialog, mixedBanner, messageHTML, prepareTokens, tokenPreview, sharePicker } from "../safety.js";
 import { fanartPickerSource } from "../fanart-api.js";
@@ -253,7 +253,9 @@ export function render(el, sub, rest) {
   root = el; route = [sub, ...(rest || [])]; chatUid = null; clearInterval(poll); if (offMsg) { offMsg(); offMsg = null; }
   if (!ME.user) { el.innerHTML = gate("Amis", "Ajoute tes amis, discute avec eux et partage tes listes d'animés."); return; }
   if (!ME.ready || SOC.enabled === null) { el.innerHTML = `<div class="page"><p class="loading">Chargement…</p></div>`; return; }
-  if (SOC.enabled === false) { el.innerHTML = page("", `<div class="empty"><p>Les amis et la messagerie arrivent très bientôt.</p><p class="hint">Cette fonction s'active dès que la base de données est mise à jour (script SQL 20261116000000).</p></div>`); return; }
+  if (SOC.enabled === false) { el.innerHTML = page("", `<div class="empty"><p>Les amis et la messagerie arrivent très bientôt.</p><p class="hint">Cette fonction s'active dès que la base de données est mise à jour (script SQL 20261116000000).</p><button type="button" class="btn" id="socRetry">Réessayer</button></div>`);
+    $("socRetry").addEventListener("click", () => refreshCounters());
+    refreshCounters(); return; }
   if (!ME.profile || !ME.profile.username) { el.innerHTML = page("", `<div class="empty"><p>Choisis d'abord un pseudo : c'est grâce à lui que tes amis te trouvent.</p><a class="btn primary" href="#/compte">Choisir mon pseudo</a></div>`); return; }
   const go = { messages: renderConvos, amis: renderFriends, listes: renderShared }[sub || "messages"];
   const p = go ? go(el) : sub === "chat" ? renderChat(el, rest[0]) : sub === "membre" ? renderMember(el, rest[0]) : sub === "liste" ? renderSharedList(el, rest[0]) : renderConvos(el);
