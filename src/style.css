@@ -814,3 +814,4 @@ dialog#auth > .hint { margin: 0 0 16px }
   .afa { grid-template-columns: 96px 1fr }
   .cm-act { margin-left: 0; width: 100% }
 }
+.fa-credit { margin: 6px 0 2px; font-size: 14.5px; overflow-wrap: anywhere }

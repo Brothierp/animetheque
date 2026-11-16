@@ -26,7 +26,7 @@ const tabs = cur => `<nav class="tabs2" aria-label="Fan arts">
 const head = (sub, extra = "") => `<div class="cat-top"><div><h1>Fan arts</h1><div class="count">${sub}</div></div>${extra}</div>`;
 const tile = f => `<a class="fa-t" href="#/fanarts/${f.id}" style="${f.width && f.height ? `aspect-ratio:${f.width}/${f.height}` : ""}">
   <img src="${esc(f.url)}" alt="${esc(f.title)}" loading="lazy" decoding="async">
-  <span class="fa-o"><b>${esc(f.title)}</b><small>par ${esc(f.username)}${Number(f.likes) ? ` · ♥ ${fmt(Number(f.likes))}` : ""}</small></span>
+  <span class="fa-o"><b>${esc(f.title)}</b><small>${f.credit ? `art : ${esc(f.credit)}` : `par ${esc(f.username)}`}${Number(f.likes) ? ` · ♥ ${fmt(Number(f.likes))}` : ""}</small></span>
   ${f.status !== "approved" ? `<span class="fa-st st-${f.status}">${STATUS[f.status]}</span>` : ""}</a>`;
 const linkTokens = f => [f.character_id ? `[[perso:${f.character_id}]]` : "", f.anime_id ? `[[anime:${f.anime_id}]]` : ""].join("");
 
@@ -83,7 +83,8 @@ function renderPublish(el) {
         <div><span class="lbl">Personnage ou animé représenté</span><div id="faLink" class="fa-link"></div>
           <button type="button" class="btn sm" id="faPick">Choisir…</button></div>
         <label><span>Description <small class="hint">(facultatif)</small></span><textarea id="faDesc" maxlength="500" rows="3" placeholder="Technique, inspiration… (en français ou en anglais)"></textarea></label>
-        <label class="chk"><input type="checkbox" id="faOk"><span>Je certifie que c'est <b>ma création</b> (ou que j'ai l'accord de l'artiste), qu'elle ne montre <b>aucune vraie personne</b> et aucun contenu adulte, violent ou choquant.</span></label>
+        <label><span>Artiste <small class="hint">(si ce n'est pas ton dessin)</small></span><input type="text" id="faCredit" maxlength="80" placeholder="Nom ou pseudo de l'artiste (symboles acceptés, pas de lien)"></label>
+        <label class="chk"><input type="checkbox" id="faOk"><span>Je certifie que c'est <b>ma création</b> (ou que j'ai l'accord de l'artiste, crédité ci-dessus), qu'elle ne montre <b>aucune vraie personne</b> et aucun contenu adulte, violent ou choquant.</span></label>
         <p class="hint">Chaque fan art est vérifié par l'administrateur avant d'être visible (en général sous 48 h). Pas de photo personnelle : uniquement des dessins, illustrations ou montages autour des animés.</p>
         <button class="btn primary" type="submit" id="faSend">Envoyer pour vérification</button>
       </div>
@@ -109,7 +110,7 @@ function renderPublish(el) {
     if (title.length < 2) return toast("Donne un titre à ton fan art");
     if (!$("faOk").checked) return toast("Coche la case de certification pour continuer");
     const b = $("faSend"); b.disabled = true; b.textContent = "Envoi…";
-    try { await publishFanart(file, { title, description: $("faDesc").value.trim(), ...link }); toast("Merci ! Ton fan art sera visible après vérification 🎨", 4500); location.hash = "#/fanarts/mes"; }
+    try { await publishFanart(file, { title, description: $("faDesc").value.trim(), credit: $("faCredit").value.trim(), ...link }); toast("Merci ! Ton fan art sera visible après vérification 🎨", 4500); location.hash = "#/fanarts/mes"; }
     catch (err) {
       const m = err && err.message;
       toast(m === "format" ? "Format non pris en charge : PNG, JPEG ou WebP." : m === "size" ? "Image trop lourde." : /row-level|42501/.test((m || "") + err.code) ? "Envoi refusé : vérifie ton pseudo et réessaie." : socialError(err), 5000);
@@ -132,7 +133,8 @@ async function renderOne(el, id) {
       <figure class="fa-big"><img src="${esc(f.url)}" alt="${esc(f.title)}"></figure>
       <div class="fa-info">
         <h1>${esc(f.title)}</h1>
-        <p class="hint">par <b>${esc(f.username)}</b> · ${new Date(f.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}</p>
+        ${f.credit ? `<p class="fa-credit">🎨 Artiste : <b>${esc(f.credit)}</b></p>` : ""}
+        <p class="hint">${f.credit ? "publié par" : "par"} <b>${esc(f.username)}</b> · ${new Date(f.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}</p>
         ${f.status !== "approved" ? `<p class="fa-st st-${f.status} inline">${STATUS[f.status]}${f.reject_reason ? ` : ${esc(f.reject_reason)}` : ""}</p>` : ""}
         ${linkTokens(f) ? `<div class="fa-link">${messageHTML(linkTokens(f))}</div>` : ""}
         ${f.description ? `<p class="fa-desc">${esc(f.description).replace(/\n/g, "<br>")}</p>` : ""}
@@ -156,8 +158,11 @@ async function renderOne(el, id) {
       else if (b.dataset.x === "edit") {
         const t = prompt("Titre :", f.title); if (t === null) return;
         const d = prompt("Description :", f.description || ""); if (d === null) return;
-        await updateFanart(f.id, { title: t.trim().slice(0, 80), description: d.trim().slice(0, 500) || null });
-        toast(t.trim() !== f.title || (d.trim() || null) !== (f.description || null) ? "Modifié : le fan art repasse en vérification" : "Enregistré");
+        const cr = f.credit !== undefined ? prompt("Artiste (laisser vide si c'est ton dessin) :", f.credit || "") : null;
+        const fields = { title: t.trim().slice(0, 80), description: d.trim().slice(0, 500) || null };
+        if (cr !== null) fields.credit = cr.trim().slice(0, 80) || null;
+        await updateFanart(f.id, fields);
+        toast(t.trim() !== f.title || (d.trim() || null) !== (f.description || null) || (cr !== null && (cr.trim() || null) !== (f.credit || null)) ? "Modifié : le fan art repasse en vérification" : "Enregistré");
         FA.cache.delete(f.id); renderOne(el, id);
       }
     } catch (err) { toast(socialError(err)); }

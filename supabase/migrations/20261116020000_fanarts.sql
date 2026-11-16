@@ -102,6 +102,7 @@ create policy "fanart_likes: les siens" on public.fanart_likes for all to authen
   with check (user_id = (select auth.uid()) and exists (select 1 from public.fanarts f where f.id = fanart_id and f.status = 'approved'));
 
 -- Liste pour la galerie (avec pseudo de l'auteur, nombre de ♥, et si je l'ai aimé).
+drop function if exists public.fanarts_list(text, integer, integer, uuid, uuid[], integer, integer);
 create or replace function public.fanarts_list(
   p_sort text default 'recent', p_character integer default null, p_anime integer default null,
   p_user uuid default null, p_ids uuid[] default null, p_limit integer default 48, p_offset integer default 0)
@@ -127,6 +128,7 @@ revoke all on function public.fanarts_list(text, integer, integer, uuid, uuid[],
 grant execute on function public.fanarts_list(text, integer, integer, uuid, uuid[], integer, integer) to anon, authenticated;
 
 -- File de modération pour l'administrateur.
+drop function if exists public.admin_fanarts(text);
 create or replace function public.admin_fanarts(p_status text default 'pending')
 returns table (id uuid, user_id uuid, username text, email text, path text, title text, description text,
                character_id integer, anime_id integer, status text, reject_reason text, created_at timestamptz)

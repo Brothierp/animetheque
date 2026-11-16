@@ -21,6 +21,8 @@ export function socialError(err) {
   const m = (err && (err.message || "")) + " " + (err && err.code || "");
   if (/forbidden_word/.test(m)) return "Ce message contient un terme interdit (insulte, propos haineux…).";
   if (/contact_blocked/.test(m)) return "Message bloqué : entre majeurs et mineurs, on n'échange ni numéro, ni e-mail, ni réseau social, ni lien. Restez sur l'Animéthèque.";
+  if (/credit_link/.test(m)) return "Le nom de l'artiste ne peut pas contenir de lien ni d'adresse.";
+  if (/PGRST204|credit/.test(m)) return "Le champ « Artiste » arrive bientôt : lance le script SQL 20261117000000 dans Supabase.";
   if (/language/.test(m)) return "Seuls le français et l'anglais sont acceptés (le japonais uniquement pour citer un titre).";
   if (/rate_limited/.test(m)) return "Doucement ! Trop d'envois d'un coup, réessaie dans un instant.";
   if (/not_allowed/.test(m)) return "Impossible d'ajouter cette personne.";

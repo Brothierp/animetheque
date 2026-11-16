@@ -52,13 +52,13 @@ export async function prepareImage(file) {
   if (jpg && jpg.size <= 3 * 1024 * 1024) return { blob: jpg, ext: "jpg", type: "image/jpeg", w, h };
   throw new Error("size");
 }
-export async function publishFanart(file, { title, description, character_id, anime_id }) {
+export async function publishFanart(file, { title, description, credit, character_id, anime_id }) {
   const img = await prepareImage(file);
   const path = `${ME.user.id}/${crypto.randomUUID()}.${img.ext}`;
   const up = await supabase.storage.from("fanarts").upload(path, img.blob, { contentType: img.type, upsert: false });
   if (up.error) throw up.error;
   try {
-    await call(supabase.from("fanarts").insert({ path, width: img.w, height: img.h, title, description: description || null, character_id: character_id || null, anime_id: anime_id || null }));
+    await call(supabase.from("fanarts").insert({ path, width: img.w, height: img.h, title, description: description || null, character_id: character_id || null, anime_id: anime_id || null, ...(credit ? { credit } : {}) }));
   } catch (e) { await supabase.storage.from("fanarts").remove([path]).catch(() => {}); throw e; }
 }
 
