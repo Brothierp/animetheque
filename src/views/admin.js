@@ -3,8 +3,18 @@ import { supabase } from "../supabase.js";
 import { ME, onChange } from "../state.js";
 import { $, esc, fmt } from "../ui.js";
 import { toast } from "../toast.js";
+import { SOC, onSocial, adminFeedback, feedbackReplies, replyFeedback, setFeedbackStatus, adminReports, setReportHandled, socialError } from "../social.js";
+import { KIND, STATUS, threadHTML } from "../feedback.js";
+import { deleteComment } from "../social.js";
+import { adminFanarts, updateFanart, deleteFanart, adminPending } from "../fanart-api.js";
+import { byId, titleOf } from "../data.js";
+import { charById, loadCharacters } from "../chars.js";
+
+let pendingFa = 0;
+const CAT = { secret: "secret demandé", photos: "demande de photo", rencontre: "rencontre / adresse", intime: "propos intimes", age: "question sur l'âge", cadeau: "cadeau / argent", avis: "avis", fanart: "fan art" };
 
 let root = null, rows = null, q = "", sort = "created";
+const isShown = () => !!(root && root.isConnected && root.dataset.view === "admin");   // page réellement affichée ?
 const PROV = { google: "Google", email: "E-mail" };
 const day = 86400000;
 const date = d => d ? new Date(d).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" }) : "—";
@@ -31,7 +41,7 @@ function filtered() {
 }
 
 function paint() {
-  if (!root || !root.isConnected || !rows) return;
+  if (!isShown() || !rows) return;
   const now = Date.now(), L = filtered();
   const stat = (n, label) => `<div class="st-n"><b>${fmt(n)}</b><span>${label}</span></div>`;
   $("admStats").innerHTML = stat(rows.length, "comptes")
@@ -60,13 +70,107 @@ function exportCsv() {
   toast("Liste exportée (ouvrable dans Excel ou LibreOffice)");
 }
 
-export function render(el) {
+let tab = "comptes";
+const admTabs = () => {
+  const c = SOC.counters;
+  return `<nav class="tabs2" aria-label="Administration">
+    <a href="#/admin" class="${tab === "comptes" ? "on" : ""}">👤 Comptes</a>
+    <a href="#/admin/suggestions" class="${tab === "suggestions" ? "on" : ""}">💡 Suggestions${c.admin_feedback ? ` <span class="nb">${c.admin_feedback}</span>` : ""}</a>
+    <a href="#/admin/signalements" class="${tab === "signalements" ? "on" : ""}">🚩 Signalements${c.admin_reports ? ` <span class="nb">${c.admin_reports}</span>` : ""}</a>
+    <a href="#/admin/fanarts" class="${tab === "fanarts" ? "on" : ""}">🎨 Fan arts${pendingFa ? ` <span class="nb">${pendingFa}</span>` : ""}</a></nav>`;
+};
+
+// ---------- Suggestions ----------
+async function renderSuggestions(el) {
+  el.innerHTML = `<div class="page"><div class="cat-top"><div><h1>Administration</h1><div class="count">Suggestions des membres : réponds-leur directement, ils verront ta réponse dans « Mon compte ».</div></div></div>${admTabs()}<div id="admFb"><p class="loading">Chargement…</p></div></div>`;
+  if (SOC.enabled === false) { $("admFb").innerHTML = `<div class="empty"><p>Lance le script SQL 20261116000000 pour recevoir les suggestions.</p></div>`; return; }
+  const L = await adminFeedback();
+  const box = $("admFb");
+  if (!L.length) { box.innerHTML = `<div class="empty"><p>Aucune suggestion pour l'instant.</p></div>`; return; }
+  box.innerHTML = L.map(f => `<details class="fb-item adm-fb" data-id="${f.id}"${f.status === "nouveau" ? " open" : ""}>
+    <summary><span class="fb-k">${KIND[f.kind]}</span><span class="fb-s"><b>${esc(f.username || "Membre")}</b> · ${esc(f.body.slice(0, 70))}${f.body.length > 70 ? "…" : ""}</span><span class="fb-st st-${f.status}">${f.status === "nouveau" ? "À traiter" : STATUS[f.status]}</span></summary>
+    <p class="hint">${esc(f.email || "")} · page : ${esc(f.page || "—")} · ${new Date(f.created_at).toLocaleString("fr-FR")}</p>
+    <div class="fb-th"><p class="hint">Chargement de l'échange…</p></div>
+    <form class="fb-reply"><textarea maxlength="2000" rows="2" placeholder="Ta réponse à ${esc(f.username || "ce membre")}…"></textarea><button class="btn sm primary" type="submit">Répondre</button></form>
+    <div class="fb-adm-act"><span class="hint">Statut :</span>${Object.entries(STATUS).map(([k, v]) => `<button type="button" class="btn sm${f.status === k ? " on-st" : ""}" data-st="${k}">${v}</button>`).join("")}</div>
+  </details>`).join("");
+  const loadTh = async d => { const f = L.find(x => x.id === d.dataset.id); d.querySelector(".fb-th").innerHTML = threadHTML(f, await feedbackReplies(f.id), false); d.dataset.loaded = "1"; };
+  box.querySelectorAll("details[open]").forEach(loadTh);
+  box.addEventListener("toggle", e => { const d = e.target; if (d.open && !d.dataset.loaded && d.classList.contains("adm-fb")) loadTh(d); }, true);
+  box.addEventListener("submit", async e => {
+    e.preventDefault(); const d = e.target.closest("details"), t = e.target.querySelector("textarea").value.trim(); if (!t) return;
+    try { await replyFeedback(d.dataset.id, t); toast("Réponse envoyée au membre"); renderSuggestions(el); } catch (err) { toast(socialError(err)); }
+  });
+  box.addEventListener("click", async e => {
+    const b = e.target.closest("[data-st]"); if (!b) return;
+    try { await setFeedbackStatus(b.closest("details").dataset.id, b.dataset.st); renderSuggestions(el); } catch (err) { toast(socialError(err)); }
+  });
+}
+
+// ---------- Signalements ----------
+async function renderReports(el) {
+  el.innerHTML = `<div class="page"><div class="cat-top"><div><h1>Administration</h1><div class="count">Signalements : tu ne vois que le message signalé, jamais la conversation.</div></div></div>${admTabs()}<div id="admRep"><p class="loading">Chargement…</p></div></div>`;
+  if (SOC.enabled === false) { $("admRep").innerHTML = `<div class="empty"><p>Lance le script SQL 20261116000000 pour recevoir les signalements.</p></div>`; return; }
+  const L = await adminReports();
+  $("admRep").innerHTML = L.length ? `<div class="rep-list">${L.map(r => `<article class="rep${r.handled ? " done" : ""}${r.auto ? " auto" : ""}" data-id="${r.id}" data-c="${r.comment_id || ""}">
+      ${r.auto ? `<p><span class="rep-auto">🛡️ Détection automatique</span> <b>${esc(CAT[r.category] || r.category || "")}</b> · message de <b>${esc(r.target_name || "Membre")}</b> <span class="hint">(${esc(r.target_email || "")})</span> dans une conversation majeur / mineur · <span class="hint">${new Date(r.created_at).toLocaleString("fr-FR")}</span></p>`
+        : `<p><b>${esc(r.reporter_name || "Membre")}</b> <span class="hint">(${esc(r.reporter_email || "")})</span> signale ${r.comment_id ? "l'avis de" : r.fanart_id ? "le fan art de" : ""} <b>${esc(r.target_name || "Membre")}</b> <span class="hint">(${esc(r.target_email || "")})</span> · <span class="hint">${new Date(r.created_at).toLocaleString("fr-FR")}</span></p>
+      <p>Motif : ${esc(r.reason)}</p>`}${r.excerpt ? `<blockquote>${esc(r.excerpt)}</blockquote>` : ""}
+      <div class="rep-act"><button type="button" class="btn sm" data-h="${r.handled ? 0 : 1}">${r.handled ? "Rouvrir" : "Marquer comme traité"}</button>
+      ${r.comment_id ? `<button type="button" class="btn sm danger-o" data-delc>Supprimer l'avis</button>` : ""}
+      ${r.fanart_id ? `<a class="btn sm" href="#/fanarts/${r.fanart_id}">Voir le fan art</a>` : ""}</div></article>`).join("")}</div>
+      <p class="hint">Les détections automatiques concernent uniquement les conversations entre un majeur et un mineur (secret, photo, rendez-vous, propos intimes, âge, cadeaux). Les coordonnées et les liens y sont bloqués avant l'envoi. Pour sanctionner un compte : supprime-le dans Supabase (Authentication → Users), ou ajoute le mot en cause à la table banned_words. En cas de danger pour un mineur : signalement sur internet-signalement.gouv.fr (PHAROS).</p>`
+    : `<div class="empty"><p>Aucun signalement 👍</p></div>`;
+  $("admRep").addEventListener("click", async e => {
+    const d = e.target.closest("[data-delc]");
+    if (d) { if (!confirm("Supprimer définitivement cet avis ?")) return; const r = d.closest(".rep"); try { await deleteComment(r.dataset.c); await setReportHandled(r.dataset.id, true); toast("Avis supprimé"); renderReports(el); } catch (err) { toast(socialError(err)); } return; }
+    const b = e.target.closest("[data-h]"); if (!b) return;
+    try { await setReportHandled(b.closest(".rep").dataset.id, b.dataset.h === "1"); renderReports(el); } catch (err) { toast(socialError(err)); }
+  });
+}
+
+// ---------- Fan arts à valider ----------
+let faStatus = "pending";
+async function renderFanarts(el) {
+  el.innerHTML = `<div class="page"><div class="cat-top"><div><h1>Administration</h1><div class="count">Fan arts : rien n'est publié sans ta validation.</div></div></div>${admTabs()}
+    <div class="sp-tabs adm-fst">${[["pending", "À vérifier"], ["approved", "Publiés"], ["rejected", "Refusés"]].map(([k, v]) => `<button type="button" data-fs="${k}" class="${faStatus === k ? "on" : ""}">${v}</button>`).join("")}</div>
+    <div id="admFa"><p class="loading">Chargement…</p></div></div>`;
+  let L;
+  try { L = await adminFanarts(faStatus); } catch { $("admFa").innerHTML = `<div class="empty"><p>Lance le script SQL 20261116020000 pour activer les fan arts.</p></div>`; return; }
+  if (L.some(f => f.character_id && !charById.has(f.character_id))) await loadCharacters().catch(() => {});
+  const what = f => [f.character_id && charById.get(f.character_id) ? "🧑 " + (charById.get(f.character_id).name) : "", f.anime_id && byId.get(f.anime_id) ? "🎬 " + titleOf(byId.get(f.anime_id)) : ""].filter(Boolean).join(" · ");
+  $("admFa").innerHTML = L.length ? `<div class="adm-fa">${L.map(f => `<article class="afa" data-id="${f.id}">
+      <a href="${esc(f.url)}" target="_blank" rel="noopener"><img src="${esc(f.url)}" alt="" loading="lazy"></a>
+      <div><b>${esc(f.title)}</b><p class="hint">par <b>${esc(f.username || "Membre")}</b> (${esc(f.email || "")}) · ${new Date(f.created_at).toLocaleString("fr-FR")}</p>
+        ${what(f) ? `<p>${esc(what(f))}</p>` : ""}${f.description ? `<p>${esc(f.description)}</p>` : ""}${f.reject_reason ? `<p class="hint">Motif du refus : ${esc(f.reject_reason)}</p>` : ""}
+        <div class="rep-act">${f.status !== "approved" ? `<button type="button" class="btn sm primary" data-fa="ok">✓ Publier</button>` : ""}
+          ${f.status !== "rejected" ? `<button type="button" class="btn sm" data-fa="no">Refuser…</button>` : ""}
+          <button type="button" class="btn sm danger-o" data-fa="del">Supprimer</button></div></div></article>`).join("")}</div>`
+    : `<div class="empty"><p>${faStatus === "pending" ? "Aucun fan art en attente 👍" : "Rien ici."}</p></div>`;
+  el.querySelector(".adm-fst").addEventListener("click", e => { const b = e.target.closest("[data-fs]"); if (b) { faStatus = b.dataset.fs; renderFanarts(el); } });
+  $("admFa").addEventListener("click", async e => {
+    const b = e.target.closest("[data-fa]"); if (!b) return;
+    const f = L.find(x => x.id === b.closest(".afa").dataset.id);
+    try {
+      if (b.dataset.fa === "ok") { await updateFanart(f.id, { status: "approved" }); toast("Fan art publié 🎨"); }
+      else if (b.dataset.fa === "no") { const r = prompt("Motif du refus (visible par l'auteur) :", "Image sans rapport avec les animés"); if (r === null) return; await updateFanart(f.id, { status: "rejected", reject_reason: r.slice(0, 300) || null }); toast("Fan art refusé"); }
+      else { if (!confirm("Supprimer définitivement ce fan art (et son image) ?")) return; await deleteFanart(f); toast("Fan art supprimé"); }
+      pendingFa = await adminPending(); renderFanarts(el);
+    } catch (err) { toast(socialError(err)); }
+  });
+}
+
+export function render(el, sub) {
   root = el;
   if (!ME.user || !ME.ready) { el.innerHTML = `<div class="page"><p class="loading">Chargement…</p></div>`; return; }
   if (!ME.isAdmin) { el.innerHTML = `<div class="page"><div class="empty"><p>Cette page est réservée à l'administrateur du site.</p><a class="btn" href="#/">Retour à l'accueil</a></div></div>`; return; }
+  tab = ["suggestions", "signalements", "fanarts"].includes(sub) ? sub : "comptes";
+  adminPending().then(n => { if (n !== pendingFa) { pendingFa = n; const t = isShown() && root.querySelector(".tabs2"); if (t) t.outerHTML = admTabs(); } });
+  if (tab !== "comptes") { ({ suggestions: renderSuggestions, signalements: renderReports, fanarts: renderFanarts })[tab](el).catch(err => { console.error(err); toast(socialError(err)); }); return; }
   el.innerHTML = `<div class="page">
     <div class="cat-top"><div><h1>Administration</h1><div class="count">Comptes inscrits. Les collections restent privées : seules ces informations sont visibles.</div></div>
       <div class="cat-tools"><button type="button" class="btn" id="admReload">Actualiser</button><button type="button" class="btn primary" id="admCsv">Exporter (tableur)</button></div></div>
+    ${admTabs()}
     <section class="stats2" id="admStats"></section>
     <div class="adm-tools">
       <input type="search" id="admQ" placeholder="Rechercher un pseudo ou un e-mail…" value="${esc(q)}" autocomplete="off" aria-label="Rechercher un compte">
@@ -88,4 +192,5 @@ export function render(el) {
   if (rows) paint();
   else load().then(paint).catch(err => { console.error(err); if ($("admBody")) $("admBody").innerHTML = `<tr><td colspan="7" class="imp-err">La liste n'a pas pu être chargée${/not_admin/.test(err.message || "") ? " : accès refusé" : ""}.</td></tr>`; });
 }
-onChange(what => { if (root && root.isConnected && (what === "session" || what === "collection")) { if (what === "session") rows = null; render(root); } });
+onChange(what => { if (isShown() && (what === "session" || what === "collection")) { if (what === "session") rows = null; render(root, tab === "comptes" ? "" : tab); } });
+onSocial(what => { if (isShown() && what === "counters") { const t = root.querySelector(".tabs2"); if (t) t.outerHTML = admTabs(); } });

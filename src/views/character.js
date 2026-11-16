@@ -37,7 +37,7 @@ function html(c) {
       <span class="kicker">Personnage</span>
       <h1 id="cTitle">${esc(c.name || c.native)}</h1>
       ${c.native ? `<p class="d-alt">${esc(c.native)}${c.alt.length ? " · " + esc(c.alt.join(" · ")) : ""}</p>` : ""}
-      <div class="c-act"><button type="button" class="btn sm${ME.favChars.has(c.id) ? " fav-on" : ""}" id="cFav" data-c="fav">${favLabel(c.id)}</button></div>
+      <div class="c-act"><button type="button" class="btn sm${ME.favChars.has(c.id) ? " fav-on" : ""}" id="cFav" data-c="fav">${favLabel(c.id)}</button><a class="btn sm" href="#/fanarts/perso/${c.id}">🎨 Fan arts</a></div>
       <div class="c-facts" id="cFacts">${c.fav ? `<span class="fact"><b>♥ ${fmt(c.fav)}</b> fans sur AniList</span>` : ""}</div>
     </div>
   </div>

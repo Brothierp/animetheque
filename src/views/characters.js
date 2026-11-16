@@ -6,6 +6,7 @@ import { $, esc, fmt } from "../ui.js";
 
 const S = { q: "", tags: new Set(), sort: "fav" };
 let root = null, view = [], shown = 0, io = null;
+const isShown = () => !!(root && root.isConnected && root.dataset.view === "personnages");   // page réellement affichée ?
 
 /** Carte de personnage (portrait). */
 export function charCard(c, sub) {
@@ -64,7 +65,7 @@ function renderMore() {
   $("chGrid").insertAdjacentHTML("beforeend", next.map(c => charCard(c)).join(""));
 }
 function refresh() {
-  if (!root || !root.isConnected || !chReady.loaded) return;
+  if (!isShown() || !chReady.loaded) return;
   compute();
   countText();
   $("chQuick").innerHTML = quickBar(); $("chActive").innerHTML = active();
@@ -79,7 +80,7 @@ function countText() {
 }
 // Quand le reste de l'index arrive : sans filtre, on complète la liste sans la redessiner (l'ordre ne change pas).
 onCharsComplete(() => {
-  if (!root || !root.isConnected) return;
+  if (!isShown()) return;
   if (!S.q && !S.tags.size && S.sort === "fav") { compute(); countText(); $("chEmpty").hidden = !!view.length; }
   else refresh();
 });
@@ -116,6 +117,7 @@ export function render(el, params) {
       <div class="cat-tools">
         <div class="chsearch"><input type="search" id="chq" placeholder="Nom du personnage…" value="${esc(S.q)}" autocomplete="off" aria-label="Rechercher un personnage"></div>
         <button type="button" class="btn" id="chFilt">Étiquettes</button>
+        <a class="btn" href="#/fanarts" title="Les dessins des membres">🎨 Fan arts</a>
         <label class="sortsel"><span class="sr">Trier par</span><select id="chSort"><option value="fav">Les plus aimés</option><option value="az">Nom A → Z</option><option value="img">Avec image d'abord</option></select></label>
       </div>
     </div>

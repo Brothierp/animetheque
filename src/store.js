@@ -10,10 +10,12 @@ export const FEATURES = { progress: true, favChars: true };
 const missingColumn = err => err && (err.code === "42703" || err.code === "PGRST204" || /column .* does not exist|could not find the .* column/i.test(err.message || ""));
 const missingTable = err => err && (err.code === "42P01" || err.code === "PGRST205" || /relation .* does not exist|could not find the table/i.test(err.message || ""));
 
-async function fetchAll(table, columns) {
+async function fetchAll(table, columns, userId) {
   const rows = [];
   for (let from = 0; ; from += PAGE) {
-    const { data, error } = await supabase.from(table).select(columns).range(from, from + PAGE - 1);
+    let q = supabase.from(table).select(columns);
+    if (userId) q = q.eq("user_id", userId);   // ses propres lignes seulement (les amis peuvent voir certaines listes)
+    const { data, error } = await q.range(from, from + PAGE - 1);
     if (error) throw error;
     rows.push(...data);
     if (data.length < PAGE) return rows;
@@ -25,6 +27,8 @@ async function fetchAll(table, columns) {
  * Renvoie { entries: Map<animeId, {f, r, c, s, t, l}>, lists: { [listId]: { n, t } } }
  */
 export async function loadCollection() {
+  const { data: { session } } = await supabase.auth.getSession();
+  const uid = session && session.user.id;
   const entriesP = fetchAll("collection_entries", "anime_id, favorite, rating, comment, status, progress, updated_at").catch(err => {
     if (!missingColumn(err)) throw err;
     FEATURES.progress = false;
@@ -34,7 +38,8 @@ export async function loadCollection() {
     if (!missingTable(err)) throw err;
     FEATURES.favChars = false; return [];
   });
-  const [entries, lists, items, favs] = await Promise.all([entriesP, fetchAll("lists", "id, name, created_at"), fetchAll("list_items", "list_id, anime_id, added_at"), favP]);
+  const [entries, lists, items, favs] = await Promise.all([entriesP, fetchAll("lists", "id, name, created_at, visibility", uid).catch(err => missingColumn(err) ? fetchAll("lists", "id, name, created_at", uid) : Promise.reject(err)),
+    fetchAll("list_items", "list_id, anime_id, added_at", uid), favP]);
   const map = new Map();
   const get = id => map.get(id) || (map.set(id, { f: false, r: 0, c: "", s: "", p: 0, t: 0, l: {} }), map.get(id));
   for (const e of entries) {
@@ -47,7 +52,7 @@ export async function loadCollection() {
     x.t = Math.max(x.t, Date.parse(it.added_at));
   }
   const L = {};
-  for (const l of lists) L[l.id] = { n: l.name, t: Date.parse(l.created_at) };
+  for (const l of lists) L[l.id] = { n: l.name, t: Date.parse(l.created_at), v: l.visibility || "private" };
   const favChars = new Map(favs.map(f => [f.character_id, Date.parse(f.created_at)]));
   return { entries: map, lists: L, favChars };
 }

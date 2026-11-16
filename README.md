@@ -65,7 +65,11 @@ note minimale, studio, œuvre d'origine, pays.
 2. **SQL Editor** → colle et exécute, dans l'ordre, les fichiers de `supabase/migrations/` :
    `20261111000000_collection.sql` (tables + RLS), `20261111010000_delete_account.sql`
    (bouton « Supprimer mon compte ») `20261111020000_profiles_birth_year.sql` (année de naissance, contrôle 18+) et
-   `20261111030000_pseudo_avatar_moderation.sql` (pseudo, avatar, filtre de mots interdits). Ou `supabase link` puis `supabase db push` avec la CLI.
+   `20261111030000_pseudo_avatar_moderation.sql` (pseudo, avatar, filtre de mots interdits), puis
+   `20261112000000_progress_fav_characters.sql` (épisodes vus, personnages favoris), `20261112010000_admin.sql` (rôle admin),
+   `20261116000000_social.sql` (suggestions, amis, messagerie, listes partagées, signalements),
+   `20261116010000_safety_comments.sql` (amitiés majeurs / mineurs protégées, analyse automatique, avis sous les animés,
+   langues autorisées) et `20261116020000_fanarts.sql` (galerie de fan arts modérée). Ou `supabase link` puis `supabase db push` avec la CLI.
    Les scripts peuvent être relancés sans risque.
 3. **Authentication → Sign In / Providers**
    - *Email* : activé. Garde « Confirm email » activé (recommandé). Règle la longueur minimale du mot de passe à 8.

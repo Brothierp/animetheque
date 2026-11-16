@@ -16,12 +16,16 @@ import * as account from "./views/account.js";
 import * as characters from "./views/characters.js";
 import * as calendar from "./views/calendar.js";
 import * as admin from "./views/admin.js";
+import * as friends from "./views/friends.js";
+import * as fanarts from "./views/fanarts.js";
+import { SOC, onSocial } from "./social.js";
+import { initFeedback } from "./feedback.js";
 import { openDetail, closeDetail, isDetailOpen } from "./views/detail.js";
 import { openCharacter, closeCharacter, isCharacterOpen } from "./views/character.js";
 const isModalOpen = () => isDetailOpen() || isCharacterOpen();
 const closeModals = () => { closeDetail(); closeCharacter(); };
 
-const VIEWS = { "": home, catalogue, personnages: characters, calendrier: calendar, collection, listes: lists, compte: account, admin };
+const VIEWS = { "": home, catalogue, personnages: characters, calendrier: calendar, collection, listes: lists, compte: account, admin, amis: friends, fanarts };
 const view = $("view");
 let base = null;        // dernière route « page » (hors fiche)
 let depth = 0;          // nombre de fiches ouvertes depuis cette page (pour revenir avec « Retour »)
@@ -40,8 +44,10 @@ function renderPage(parts, params) {
   closeAddMenu(); catalogue.closeDrawer(); characters.closeCharDrawer();
   if (key !== "catalogue" && catalogue.S.q) { catalogue.S.q = ""; $("q").value = ""; }
   setNav(VIEWS[key] ? key || "home" : "home");
-  v.render(view, key === "catalogue" || key === "personnages" ? params : parts[1]);
-  document.title = { "": "Animéthèque", catalogue: "Catalogue · Animéthèque", collection: "Ma collection · Animéthèque", listes: "Mes listes · Animéthèque", personnages: "Personnages · Animéthèque", calendrier: "Calendrier · Animéthèque", admin: "Administration · Animéthèque", compte: "Mon compte · Animéthèque" }[key] || "Animéthèque";
+  setTimeout(paintBadges, 0);
+  view.dataset.view = VIEWS[key] ? key || "home" : "home";   // les pages vérifient qu'elles sont bien celle affichée
+  v.render(view, key === "catalogue" || key === "personnages" ? params : parts[1], parts.slice(2));
+  document.title = { "": "Animéthèque", catalogue: "Catalogue · Animéthèque", collection: "Ma collection · Animéthèque", listes: "Mes listes · Animéthèque", personnages: "Personnages · Animéthèque", calendrier: "Calendrier · Animéthèque", amis: "Amis · Animéthèque", fanarts: "Fan arts · Animéthèque", admin: "Administration · Animéthèque", compte: "Mon compte · Animéthèque" }[key] || "Animéthèque";
 }
 function route() {
   if (!ready.catalogue) return;
@@ -177,7 +183,19 @@ onChange((what, id) => {
 if (supabase) initAuth({ onCompleteProfile: async patch => { await updateProfile(patch); toast("Profil enregistré"); } });
 else $("signIn").hidden = true;
 
+// ---------- Pastilles (messages, demandes d'amis, réponses aux suggestions, admin) ----------
+function paintBadges() {
+  const c = SOC.counters, social = c.messages + c.friend_requests, account = c.feedback_replies + c.admin_feedback + c.admin_reports;
+  document.querySelectorAll('[data-badge="social"]').forEach(b => { b.hidden = !social; b.textContent = social > 99 ? "99+" : social; });
+  document.querySelectorAll('[data-badge="account"]').forEach(b => { b.hidden = !account; b.textContent = account > 99 ? "99+" : account; });
+  const bn = $("bnAcc"); if (bn) bn.classList.toggle("has-nb", !!account);
+  document.title = document.title.replace(/^\(\d+\+?\) /, "");
+  if (social) document.title = `(${social}) ${document.title}`;
+}
+onSocial(what => { if (what === "counters") paintBadges(); });
+
 // ---------- Démarrage ----------
+if (supabase) initFeedback();
 view.innerHTML = `<div class="page"><div class="boot"><div class="spinner" aria-hidden="true"></div><p>Chargement du catalogue…</p></div></div>`;
 // Lien direct vers les personnages : on télécharge leurs fichiers en même temps que le catalogue.
 // (seulement le petit fichier : le gros complément attend l'affichage, pour ne pas ralentir le catalogue)

@@ -9,6 +9,7 @@ import { FEATURES } from "../state.js";
 const TABS = [["all", "Tout"], ["watching", "En cours"], ["plan", "À voir"], ["watched", "Vu"], ["dropped", "Abandonné"], ["fav", "♥ Coups de cœur"], ["rated", "★ Notés"], ["persos", "♥ Personnages"]];
 const SORTS = { recent: "Ajoutés récemment", mine: "Ma note", score: "Note AniList", az: "Titre A → Z" };
 let root = null, tab = "all", sort = "recent";
+const isShown = () => !!(root && root.isConnected && root.dataset.view === "collection");   // page réellement affichée ?
 
 const test = (e, t) => t === "all" ? !isEmpty(e) : t === "fav" ? e.f : t === "rated" ? !!e.r : e.s === t;
 
@@ -71,5 +72,5 @@ function favCharsHTML() {
   if (!L.length) return `<p class="loading">Chargement de tes personnages…</p>`;
   return `<div class="cgrid">${L.map(c => charCard(c)).join("")}</div>`;
 }
-onChange(what => { if (root && root.isConnected && ["collection", "session", "lists", "profile", "entry", "favchar"].includes(what)) render(root); });
+onChange(what => { if (isShown() && ["collection", "session", "lists", "profile", "entry", "favchar"].includes(what)) render(root); });
 export const STATUS_LABELS = STATUSES;

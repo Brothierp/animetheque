@@ -4,8 +4,11 @@ import { ME, ent, inCollection, onChange, FEATURES } from "../state.js";
 import { esc, fmt, row, cover } from "../ui.js";
 import { loadTopCharacters } from "../chars.js";
 import { charCard } from "./characters.js";
+import { listFanarts } from "../fanart-api.js";
+import { supabase } from "../supabase.js";
 
 let root = null, featured = null;
+const isShown = () => !!(root && root.isConnected && root.dataset.view === "home");   // page réellement affichée ?
 
 /** Recommandations : genres et thèmes des titres aimés (♥, 4-5 étoiles, vus, en cours), pondérés par la note AniList. */
 function recommendations(n = 20) {
@@ -112,12 +115,17 @@ export function render(el) {
     ${row("Pépites à découvrir", gems, "#/catalogue?sort=score&minscore=78", "Très bien notés, moins connus")}
     ${row("Bientôt", soon, "#/catalogue?status=NOT_YET_RELEASED", "Pas encore sortis")}
     <div id="homeChars"></div>
+    <div id="homeFa"></div>
     ${genreTiles()}
   </div>`;
   const w = el.querySelector("[data-close-welcome]");
   if (w) w.addEventListener("click", () => { try { localStorage.setItem(TIP_KEY, "1"); } catch {} el.querySelector("#welcome").remove(); });
   renderPersonal();
   if (featured.desc == null) loadDesc(featured).then(t => { const h = el.querySelector("#heroSyn"); if (h) h.textContent = t.slice(0, 260) + (t.length > 260 ? "…" : ""); }).catch(() => {});
+  if (supabase) listFanarts({ sort: "recent", limit: 16 }).then(L => {
+    const h = isShown() && el.querySelector("#homeFa"); if (!h || !L.length) return;
+    h.innerHTML = `<section class="row"><div class="row-h"><h2>Fan arts des membres</h2><span class="row-sub">Les dessins de la communauté</span><a class="more-link" href="#/fanarts">Tout voir →</a></div><div class="row-s fa-row">${L.map(f => `<a class="fa-mini" href="#/fanarts/${f.id}"><img src="${esc(f.url)}" alt="${esc(f.title)}" loading="lazy"><small>${esc(f.title)}</small></a>`).join("")}</div></section>`;
+  }).catch(() => {});
   loadTopCharacters().then(list => {
     const h = el.querySelector("#homeChars"); if (!h) return;
     const top = list.slice(0, 24);
@@ -125,7 +133,7 @@ export function render(el) {
   }).catch(() => {});
 }
 function renderPersonal() {
-  const p = root && root.querySelector("#personal"); if (!p) return;
+  const p = isShown() && root.querySelector("#personal"); if (!p) return;
   if (!ME.user || !ME.ready) { p.innerHTML = ""; return; }
   const watching = [...ME.entries.entries()].filter(([, e]) => e.s === "watching").sort((a, b) => b[1].t - a[1].t).map(([id]) => byId.get(id)).filter(Boolean);
   const plan = [...ME.entries.entries()].filter(([, e]) => e.s === "plan").sort((a, b) => b[1].t - a[1].t).map(([id]) => byId.get(id)).filter(Boolean);
@@ -137,4 +145,4 @@ function renderPersonal() {
     + row("Ma liste « à voir »", plan.slice(0, 20), "#/collection/plan");
   if (!watching.length && !recs.length && !plan.length && !next.length) p.innerHTML = `<div class="tip">Ajoute des titres à ta collection (♥, note, statut) : l'accueil te proposera des recommandations personnalisées.</div>`;
 }
-onChange(what => { if (root && root.isConnected && (what === "collection" || what === "session" || what === "profile")) renderPersonal(); });
+onChange(what => { if (isShown() && (what === "collection" || what === "session" || what === "profile")) renderPersonal(); });

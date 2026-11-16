@@ -5,6 +5,7 @@ import { $, esc, cover, row, starsHTML, openAddMenu } from "../ui.js";
 import { charsOfAnime, imgUrl, ROLE_FR } from "../chars.js";
 import { attachTranslate } from "../translate.js";
 import { toast } from "../toast.js";
+import { mountComments, refreshComments } from "../comments.js";
 
 let el = null, curId = null, onCloseCb = null;
 const ROLE = { M: "Principal", S: "Secondaire", B: "Figurant" };
@@ -23,9 +24,9 @@ function mineHTML(a) {
     <div class="m-lists"><span class="hint">Listes :</span> ${L.map(([k]) => `<span class="lchip">${esc(ME.lists[k].n)}<button type="button" data-d="unlist" data-l="${esc(k)}" aria-label="Retirer de ${esc(ME.lists[k].n)}">×</button></span>`).join("")}
       <button type="button" class="btn sm" data-d="lists">+ Ajouter à une liste</button></div>
     <form class="m-comment" data-d="comment">
-      <label for="cm">Mon avis <span class="hint" id="cmCount">${(e.c || "").length}/280</span></label>
-      <textarea id="cm" maxlength="280" placeholder="Ce que tu en as pensé (privé)…">${esc(e.c || "")}</textarea>
-      <div class="m-c-actions"><button type="submit" class="btn sm primary" id="cmSave" hidden>Enregistrer l'avis</button>
+      <label for="cm">Ma note perso <small class="hint">(privée)</small> <span class="hint" id="cmCount">${(e.c || "").length}/280</span></label>
+      <textarea id="cm" maxlength="280" placeholder="Un mémo pour toi seul·e : où tu en es, ce que tu en as pensé…">${esc(e.c || "")}</textarea>
+      <div class="m-c-actions"><button type="submit" class="btn sm primary" id="cmSave" hidden>Enregistrer</button>
       ${isInCol(e) ? `<button type="button" class="linkbtn" data-d="clear">Retirer de ma collection</button>` : ""}</div>
     </form>
   </div>`;
@@ -88,6 +89,7 @@ function html(a) {
       ${orderHTML(a)}
       ${a.hasDesc ? `<section><h2>Synopsis</h2><p class="syn" id="dSyn">${a.desc ? esc(a.desc) : `<span class="hint">Chargement…</span>`}</p></section>` : ""}
       <section><h2>Personnages</h2><div id="dChars">${chars || (ready.chars ? `<p class="hint">Aucun personnage référencé.</p>` : `<p class="hint">Chargement…</p>`)}</div></section>
+      <section class="d-cms" id="dComments"></section>
     </div>
     <aside class="d-side">
       <div><h3>Genres</h3><div class="tags">${a.genres.map(i => `<a class="g" href="#/catalogue?genre=${encodeURIComponent(T.genres[i])}">${esc(tr("genres", T.genres[i]))}</a>`).join("") || "—"}</div></div>
@@ -117,6 +119,7 @@ export function openDetail(id, onClose) {
   el.classList.add("open"); document.body.classList.add("noscroll");
   panel.focus({ preventScroll: true });
   setTimeout(() => { if (curId === id) $("dSim").innerHTML = row("Dans le même esprit", similar(a, 14, adultAllowed())); }, 30);
+  mountComments($("dComments"), id);
   if (a.desc && $("dSyn")) attachTranslate($("dSyn"), "a" + a.id);
   if ((a.hasDesc && a.desc == null) || (a.nPlats && !a.plats)) loadDetails(a).then(() => {
     if (curId !== id) return;
@@ -166,7 +169,7 @@ function bind() {
   });
   el.addEventListener("submit", e => {
     if (e.target.dataset.d !== "comment") return; e.preventDefault();
-    setEntry(curId, { c: $("cm").value.trim().slice(0, 280) }); toast("Avis enregistré");
+    setEntry(curId, { c: $("cm").value.trim().slice(0, 280) }); toast("Note perso enregistrée");
   });
   addEventListener("keydown", e => { if (e.key === "Escape" && isDetailOpen() && !document.querySelector(".pop")) { if (onCloseCb) onCloseCb(); else closeDetail(); } });
 }
@@ -177,5 +180,5 @@ onChange((what, id) => {
     const t = $("cm"), draft = t && document.activeElement === t ? t.value : null;
     renderMine();
     if (draft != null) { const n = $("cm"); n.value = draft; n.focus(); $("cmSave").hidden = draft.trim() === (ent(curId).c || ""); }
-  } else if (["session", "collection", "lists", "profile"].includes(what)) renderMine();
+  } else if (["session", "collection", "lists", "profile"].includes(what)) { renderMine(); if (what !== "lists") refreshComments(); }
 });

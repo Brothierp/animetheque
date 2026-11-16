@@ -12,6 +12,7 @@ export function resetFilters() { Object.assign(S, DEFAULTS); SETS.forEach(k => S
 
 const SORTS = { pop: "Popularité", score: "Mieux notés", new: "Plus récents", old: "Plus anciens", az: "Titre A → Z", eps: "Nombre d'épisodes" };
 let view = [], shown = 0, io = null, root = null;
+const isShown = () => !!(root && root.isConnected && root.dataset.view === "catalogue");   // page réellement affichée ?
 
 /** Applique des paramètres d'URL (#/catalogue?genre=Isekai&sort=score…). Renvoie vrai s'il y en avait. */
 export function applyParams(p) {
@@ -159,7 +160,7 @@ function renderMore() {
   $("catEnd").hidden = shown < view.length || !view.length;
 }
 export function refresh() {
-  if (!root || !root.isConnected) return;
+  if (!isShown()) return;
   compute();
   $("catCount").innerHTML = `<b>${fmt(view.length)}</b> titre${view.length > 1 ? "s" : ""}`;
   $("genreBar").innerHTML = genreBar();

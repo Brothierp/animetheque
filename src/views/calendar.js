@@ -4,6 +4,7 @@ import { ME, ent, adultAllowed, STATUS_SHORT, onChange, requireUser } from "../s
 import { $, esc, cover } from "../ui.js";
 
 let root = null, data = null, loading = null, day = null;
+const isShown = () => !!(root && root.isConnected && root.dataset.view === "calendrier");   // page réellement affichée ?
 const F = { mine: false, lang: true };
 const DAYS = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
 
@@ -40,7 +41,7 @@ function itemHTML(x) {
 }
 
 function paint() {
-  if (!root || !root.isConnected || !data) return;
+  if (!isShown() || !data) return;
   const ok = adultAllowed(), start = weekStart();
   const visible = data.filter(x => {
     if (x.media.isAdult && !ok) return false;
@@ -79,4 +80,4 @@ export function render(el) {
     loading.then(paint).catch(() => { if ($("calList")) $("calList").innerHTML = `<div class="empty"><p>Le calendrier n'a pas pu être chargé (AniList ne répond pas).</p><button class="btn" onclick="location.reload()">Réessayer</button></div>`; });
   } else paint();
 }
-onChange(what => { if (root && root.isConnected && ["collection", "session", "entry"].includes(what)) paint(); });
+onChange(what => { if (isShown() && ["collection", "session", "entry"].includes(what)) paint(); });

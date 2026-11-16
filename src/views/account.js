@@ -9,8 +9,10 @@ import { byId } from "../data.js";
 import { toast } from "../toast.js";
 import { gate } from "./collection.js";
 import { importHTML, bindImport } from "./importer.js";
+import { mySuggestionsHTML, bindMySuggestions } from "../feedback.js";
 
 let root = null;
+const isShown = () => !!(root && root.isConnected && root.dataset.view === "compte");   // page réellement affichée ?
 
 function html() {
   const u = ME.user, p = ME.profile, name = displayName(u, p);
@@ -43,6 +45,7 @@ function html() {
       ${providers.includes("email") ? `<div class="field"><span>Mot de passe</span><form id="pwdForm" novalidate><input type="password" name="password" autocomplete="new-password" minlength="8" placeholder="Nouveau mot de passe (8 caractères min.)"><button class="btn" type="submit">Modifier</button></form></div>` : ""}
       <div class="field"><span>Membre depuis</span><div class="val">${new Date(u.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}</div></div>
     </div></section>
+    ${mySuggestionsHTML()}
     ${importHTML()}
     <section class="card2"><h2>Exporter mes données</h2>
       <p class="hint" style="margin-top:0">Télécharge une copie complète de ton profil, ta collection (statuts, notes, avis, épisodes vus), tes listes et tes personnages favoris, au format JSON.</p>
@@ -70,7 +73,7 @@ function exportData() {
   toast("Export téléchargé");
 }
 function bind() {
-  bindImport();
+  bindImport(); bindMySuggestions();
   $("exportBtn").addEventListener("click", exportData);
   $("signOut2").addEventListener("click", async () => { await signOut(); location.hash = "#/"; toast("Déconnecté"); });
   let ut, seq = 0;
@@ -146,7 +149,7 @@ export function render(el) {
   el.innerHTML = html(); bind(); paintAvatar();
 }
 onChange(what => {
-  if (!root || !root.isConnected) return;
+  if (!isShown()) return;
   if (["session", "collection", "profile"].includes(what)) {
     const a = document.activeElement; if (a && root.contains(a) && a.tagName === "INPUT" && what === "profile" && a.type !== "file") { paintAvatar(); return; }
     render(root);
