@@ -41,11 +41,12 @@ export async function enablePush() {
   const reg = await registration();
   const key = await publicKey();
   let sub = await reg.pushManager.getSubscription();
-  if (sub) await sub.unsubscribe().catch(() => {});
+  if (sub) { await supabase.from("push_subscriptions").delete().eq("endpoint", sub.endpoint); await sub.unsubscribe().catch(() => {}); }
   sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToBytes(key) });
   const j = sub.toJSON();
   const device = (/android/i.test(navigator.userAgent) ? "Android" : /iphone|ipad/i.test(navigator.userAgent) ? "iPhone / iPad" : /mac/i.test(navigator.userAgent) ? "Mac" : /windows/i.test(navigator.userAgent) ? "Windows" : "Appareil") + " · " + new Date().toLocaleDateString("fr-FR");
-  const { error } = await supabase.from("push_subscriptions").upsert({ endpoint: j.endpoint, p256dh: j.keys.p256dh, auth: j.keys.auth, device }, { onConflict: "endpoint" });
+  // simple ajout (un « upsert » demanderait un droit de modification que la table n'accorde pas)
+  const { error } = await supabase.from("push_subscriptions").insert({ endpoint: j.endpoint, p256dh: j.keys.p256dh, auth: j.keys.auth, device });
   if (error) { await sub.unsubscribe().catch(() => {}); throw error; }
 }
 export async function disablePush() {
@@ -62,5 +63,5 @@ export const pushError = e => {
   return m === "denied" ? "Les notifications sont bloquées pour ce site : autorise-les dans les réglages du navigateur (icône 🔒 à gauche de l'adresse)."
     : m === "sql" ? "Lance d'abord le script SQL 20261117100000 dans Supabase."
     : m === "fonction" ? "La fonction « push » n'est pas encore déployée sur Supabase."
-    : m === "login" ? "Connecte-toi d'abord." : "L'activation a échoué. Réessaie dans un instant.";
+    : m === "login" ? "Connecte-toi d'abord." : `L'activation a échoué. Réessaie dans un instant.${m ? ` (détail : ${m.slice(0, 120)})` : ""}`;
 };
