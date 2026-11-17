@@ -1,0 +1,40 @@
+# Mise à jour automatique du catalogue (statuts, épisodes, notes, nouveaux titres et leurs personnages) depuis AniList.
+# Chaque lundi à 04 h 17 UTC (05 h 17 à Paris en hiver). Lancement manuel : onglet Actions → « Catalogue » → Run workflow.
+# Les fichiers modifiés sont publiés sur la branche de production (main) : Vercel met le site à jour tout seul.
+name: Catalogue
+on:
+  schedule:
+    - cron: "17 4 * * 1"
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency: catalogue
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Mise à jour depuis AniList
+        run: python3 scripts/catalogue_refresh.py
+      - name: Contrôle de cohérence (aucun titre existant modifié par erreur)
+        run: python3 scripts/catalogue_check.py
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Vérification que le site se construit
+        run: npm ci && npm run build
+      - name: Publication
+        run: |
+          if git diff --quiet; then echo "Rien de nouveau cette semaine."; exit 0; fi
+          git config user.name "animetheque-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public src/data.js
+          git commit -m "Catalogue : mise à jour hebdomadaire depuis AniList"
+          git push

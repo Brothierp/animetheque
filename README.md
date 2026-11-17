@@ -202,3 +202,21 @@ insert into public.admins (user_id) select id from auth.users where email = 'ton
 
 La page `#/admin` (lien « Espace administrateur » dans Mon compte) n'apparaît qu'aux administrateurs ; la base refuse
 la liste à tout autre compte. Pour retirer le rôle : `delete from public.admins where user_id = '…';`.
+
+## Automatisation (GitHub Actions)
+
+| Tâche | Quand | Ce qu'elle fait |
+| --- | --- | --- |
+| **Tests** (`.github/workflows/tests.yml`) | à chaque envoi de code | construit le site ; applique puis relance toutes les migrations sur un PostgreSQL vide et compare ~200 vérifications à `tests/sql/attendu.txt` |
+| **Catalogue** (`.github/workflows/catalogue.yml`) | chaque lundi, 04 h 17 UTC | `scripts/catalogue_refresh.py` met à jour statuts, épisodes, notes et popularité, ajoute les nouveaux titres (et leurs personnages) ; `scripts/catalogue_check.py` vérifie qu'aucun titre existant n'a été altéré ; publie sur `main` |
+| **Sauvegarde** (`.github/workflows/sauvegarde.yml`) | chaque dimanche, 03 h 41 UTC | exporte la base Supabase, la chiffre (GPG) et la garde 90 jours dans l'onglet Actions |
+
+Les tâches planifiées ne s'exécutent que depuis la **branche par défaut** du dépôt (`main`). Toutes peuvent aussi être
+lancées à la main : onglet *Actions* → choisir la tâche → *Run workflow*.
+
+Mettre à jour le résultat attendu des tests SQL après un changement volontaire de règle :
+
+    PGHOST=… PGUSER=postgres PGPASSWORD=… bash tests/sql/run.sh --maj
+
+Séries absentes d'AniList (Arcane…) : décrites dans `scripts/extra/*.json`, ajoutées avec `scripts/extra_add.py` ;
+la mise à jour hebdomadaire les conserve (identifiants à partir de 900 000).

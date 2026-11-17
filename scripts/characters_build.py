@@ -5,10 +5,6 @@ import json, gzip, glob, re, sys, collections
 # Usage (dans le dossier de travail de characters_fetch.py) :
 #   python3 characters_build.py ../public/data.json ../public/characters.json [../scripts/extra/arcane-raw.json …]
 # Produit aussi public/characters-top.json (accueil) et public/cshards/*.json (visages par animé).
-DATA = sys.argv[1]           # public/data.json (pour l'ordre des animés)
-OUT = sys.argv[2]            # public/characters.json
-items = json.load(open(DATA))["items"]
-idx_of = {x[0]: i for i, x in enumerate(items)}
 
 COLORS = {  # anglais → (cheveux, yeux)
   "black": ("Cheveux noirs", "Yeux noirs"), "dark": ("Cheveux noirs", None), "blonde": ("Cheveux blonds", None), "blond": ("Cheveux blonds", None),
@@ -122,70 +118,79 @@ def tags_for(c):
         if re.search(rf"(?:wears?|wearing|has|having|with|sports?) (?:[\w'-]+ ){{0,3}}(?:{rx})", t, re.I): out.add(("Physique", lab))
     return out
 
-chars = {}                    # id → données
-apps = collections.defaultdict(list)
-# réponses AniList (raw/*.json.gz), puis séries ajoutées à la main (scripts/extra/*-raw.json, arguments suivants)
-sources = [json.load(gzip.open(fn)) for fn in sorted(glob.glob("raw/*.json.gz"))] + [json.load(open(fn)) for fn in sys.argv[3:]]
-for media in sources:
-    for m in media:
-        ai = idx_of.get(m["id"])
-        if ai is None: continue
-        for e in m["characters"]["edges"]:
-            c = e["node"]
-            if c["id"] not in chars: chars[c["id"]] = c
-            elif c.get("override"):   # personnage ajouté à la main qui existe aussi sur AniList : son image prime
-                old = chars[c["id"]]
-                chars[c["id"]] = dict(old, image=c["image"], gender=old.get("gender") or c.get("gender"),
-                                      description=((old.get("description") or "") + "\n" + (c.get("description") or "")).strip())
-            role = {"MAIN": "M", "SUPPORTING": "S", "BACKGROUND": "B"}.get(e["role"], "B")
-            if not any(x[0] == ai for x in apps[c["id"]]): apps[c["id"]].append([ai, role])
+def main():
+    DATA = sys.argv[1]           # public/data.json (pour l'ordre des animés)
+    OUT = sys.argv[2]            # public/characters.json
+    items = json.load(open(DATA))["items"]
+    idx_of = {x[0]: i for i, x in enumerate(items)}
+    chars = {}                    # id → données
+    apps = collections.defaultdict(list)
+    # réponses AniList (raw/*.json.gz), puis séries ajoutées à la main (scripts/extra/*-raw.json, arguments suivants)
+    sources = [json.load(gzip.open(fn)) for fn in sorted(glob.glob("raw/*.json.gz"))] + [json.load(open(fn)) for fn in sys.argv[3:]]
+    for media in sources:
+        for m in media:
+            ai = idx_of.get(m["id"])
+            if ai is None: continue
+            for e in m["characters"]["edges"]:
+                c = e["node"]
+                if c["id"] not in chars: chars[c["id"]] = c
+                elif c.get("override"):   # personnage ajouté à la main qui existe aussi sur AniList : son image prime
+                    old = chars[c["id"]]
+                    chars[c["id"]] = dict(old, image=c["image"], gender=old.get("gender") or c.get("gender"),
+                                          description=((old.get("description") or "") + "\n" + (c.get("description") or "")).strip())
+                role = {"MAIN": "M", "SUPPORTING": "S", "BACKGROUND": "B"}.get(e["role"], "B")
+                if not any(x[0] == ai for x in apps[c["id"]]): apps[c["id"]].append([ai, role])
 
-tagset = collections.Counter(); per = {}
-for cid, c in chars.items():
-    ts = tags_for(c)
-    roles = {r for _, r in apps[cid]}
-    ts.add(("Rôle dans l'histoire", "Personnage principal" if "M" in roles else "Personnage secondaire" if "S" in roles else "Figurant"))
-    per[cid] = ts
-    for t in ts: tagset[t] += 1
-# n'indexe que les étiquettes portées par au moins 5 personnages
-tags = sorted([t for t, n in tagset.items() if n >= 5], key=lambda t: (CATS.index(t[0]), -tagset[t]))
-tix = {t: i for i, t in enumerate(tags)}
-IMG = "https://s4.anilist.co/file/anilistcdn/character/medium/"
-rows = []
-for cid, c in sorted(chars.items(), key=lambda kv: -(kv[1].get("favourites") or 0)):
-    img = c["image"]["medium"] or ""
-    img = "" if "default" in img else img.replace(IMG, "") if img.startswith(IMG) else img
-    img = re.sub(rf"^([a-z]?){cid}-", r"\1~", img)        # l'identifiant est déjà connu : « b40882-xx.jpg » → « b~xx.jpg »
-    nm = c["name"]
-    alt = [a for a in (nm.get("alternative") or []) if a and len(a) <= 40][:3]
-    fav = c.get("favourites") or 0
-    if not img and not fav and all(r == "B" for _, r in apps[cid]): continue     # figurant sans image ni fan : inutile
-    R = {"M": 0, "S": 1, "B": 2}
-    rows.append([cid, nm.get("full") or "", nm.get("native") or "", img, fav,
-                 sorted(tix[t] for t in per[cid] if t in tix), [ai * 4 + R[r] for ai, r in sorted(apps[cid], key=lambda x: x[0])], alt])
-# Deux fichiers : les 3 000 plus aimés (affichage immédiat), puis tous les autres (chargés en arrière-plan).
-FIRST = 3000
-out = {"img": IMG, "cats": CATS, "tags": [[CATS.index(t[0]), t[1], tagset[t]] for t in tags], "total": len(rows), "chars": rows[:FIRST]}
-json.dump(out, open(OUT, "w"), ensure_ascii=False, separators=(",", ":"))
-json.dump({"chars": rows[FIRST:]}, open(OUT.replace(".json", "-more.json"), "w"), ensure_ascii=False, separators=(",", ":"))
-# visages par animé, découpés en 64 fichiers (fiche d'un animé sans charger l'index complet)
-import os
-SH = 64
-shard_dir = os.path.join(os.path.dirname(OUT), "cshards"); os.makedirs(shard_dir, exist_ok=True)
-by_anime = collections.defaultdict(list)
-for r in rows:
-    for v in r[6]: by_anime[v // 4].append((v & 3, r[0], r[1] or r[2], r[3]))
-shards = [dict() for _ in range(SH)]
-for ai, L in by_anime.items():
-    L.sort(key=lambda x: x[0])      # principaux d'abord (l'ordre de popularité est conservé à rôle égal)
-    shards[ai % SH][ai] = [[cid, name, img, role] for role, cid, name, img in L]
-for i, sh in enumerate(shards):
-    json.dump({"img": IMG, "a": sh}, open(os.path.join(shard_dir, f"{i}.json"), "w"), ensure_ascii=False, separators=(",", ":"))
-# petit fichier pour l'accueil : les 40 personnages les plus aimés (avec image), apparition principale
-top = [[r[0], r[1], r[2], r[3], r[4], [x for x in r[6] if not items[x // 4][22]][:3]] for r in rows if r[3] and any(not items[x // 4][22] for x in r[6])][:40]
-json.dump({"img": IMG, "chars": top}, open(OUT.replace(".json", "-top.json"), "w"), ensure_ascii=False, separators=(",", ":"))
-print(len(rows), "personnages,", len(tags), "étiquettes")
-by = collections.Counter()
-for r in rows:
-    for c in {tags[i][0] for i in r[5]}: by[c] += 1
-print("couverture par catégorie :", {k: f"{v*100//len(rows)}%" for k, v in by.most_common()})
+    tagset = collections.Counter(); per = {}
+    for cid, c in chars.items():
+        ts = tags_for(c)
+        roles = {r for _, r in apps[cid]}
+        ts.add(("Rôle dans l'histoire", "Personnage principal" if "M" in roles else "Personnage secondaire" if "S" in roles else "Figurant"))
+        per[cid] = ts
+        for t in ts: tagset[t] += 1
+    # n'indexe que les étiquettes portées par au moins 5 personnages
+    tags = sorted([t for t, n in tagset.items() if n >= 5], key=lambda t: (CATS.index(t[0]), -tagset[t]))
+    tix = {t: i for i, t in enumerate(tags)}
+    IMG = "https://s4.anilist.co/file/anilistcdn/character/medium/"
+    rows = []
+    for cid, c in sorted(chars.items(), key=lambda kv: -(kv[1].get("favourites") or 0)):
+        img = c["image"]["medium"] or ""
+        img = "" if "default" in img else img.replace(IMG, "") if img.startswith(IMG) else img
+        img = re.sub(rf"^([a-z]?){cid}-", r"\1~", img)        # l'identifiant est déjà connu : « b40882-xx.jpg » → « b~xx.jpg »
+        nm = c["name"]
+        alt = [a for a in (nm.get("alternative") or []) if a and len(a) <= 40][:3]
+        fav = c.get("favourites") or 0
+        if not img and not fav and all(r == "B" for _, r in apps[cid]): continue     # figurant sans image ni fan : inutile
+        R = {"M": 0, "S": 1, "B": 2}
+        rows.append([cid, nm.get("full") or "", nm.get("native") or "", img, fav,
+                     sorted(tix[t] for t in per[cid] if t in tix), [ai * 4 + R[r] for ai, r in sorted(apps[cid], key=lambda x: x[0])], alt])
+    # Deux fichiers : les 3 000 plus aimés (affichage immédiat), puis tous les autres (chargés en arrière-plan).
+    FIRST = 3000
+    out = {"img": IMG, "cats": CATS, "tags": [[CATS.index(t[0]), t[1], tagset[t]] for t in tags], "total": len(rows), "chars": rows[:FIRST]}
+    json.dump(out, open(OUT, "w"), ensure_ascii=False, separators=(",", ":"))
+    json.dump({"chars": rows[FIRST:]}, open(OUT.replace(".json", "-more.json"), "w"), ensure_ascii=False, separators=(",", ":"))
+    # visages par animé, découpés en 64 fichiers (fiche d'un animé sans charger l'index complet)
+    import os
+    SH = 64
+    shard_dir = os.path.join(os.path.dirname(OUT), "cshards"); os.makedirs(shard_dir, exist_ok=True)
+    by_anime = collections.defaultdict(list)
+    for r in rows:
+        for v in r[6]: by_anime[v // 4].append((v & 3, r[0], r[1] or r[2], r[3]))
+    shards = [dict() for _ in range(SH)]
+    for ai, L in by_anime.items():
+        L.sort(key=lambda x: x[0])      # principaux d'abord (l'ordre de popularité est conservé à rôle égal)
+        shards[ai % SH][ai] = [[cid, name, img, role] for role, cid, name, img in L]
+    for i, sh in enumerate(shards):
+        json.dump({"img": IMG, "a": sh}, open(os.path.join(shard_dir, f"{i}.json"), "w"), ensure_ascii=False, separators=(",", ":"))
+    # petit fichier pour l'accueil : les 40 personnages les plus aimés (avec image), apparition principale
+    top = [[r[0], r[1], r[2], r[3], r[4], [x for x in r[6] if not items[x // 4][22]][:3]] for r in rows if r[3] and any(not items[x // 4][22] for x in r[6])][:40]
+    json.dump({"img": IMG, "chars": top}, open(OUT.replace(".json", "-top.json"), "w"), ensure_ascii=False, separators=(",", ":"))
+    print(len(rows), "personnages,", len(tags), "étiquettes")
+    by = collections.Counter()
+    for r in rows:
+        for c in {tags[i][0] for i in r[5]}: by[c] += 1
+    print("couverture par catégorie :", {k: f"{v*100//len(rows)}%" for k, v in by.most_common()})
+
+
+if __name__ == "__main__":
+    main()
