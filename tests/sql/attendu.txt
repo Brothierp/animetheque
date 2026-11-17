@@ -1,0 +1,212 @@
+--- amis
+A cherche « bob » : Bob relation=none autorisé=true
+A cherche « chloe » (mineure) : autorisé=true
+A cherche « inconnu » : 0
+A → Bob : pending
+pending
+ERROR:  not_allowed
+ERROR:  permission denied for table friendships
+B voit le profil d'Alice (demande en cours) : 1
+compteurs B : 1 demande(s)
+B ami avec A : true
+C voit le profil d'Alice (aucun lien) : 0
+--- avatars
+A voit les avatars : bbbbbbbb
+--- messages
+A → B envoyé
+ERROR:  new row violates row-level security policy for table "messages"
+ERROR:  forbidden_word
+HINT:  Ce texte contient un terme interdit.
+ERROR:  new row violates row-level security policy for table "messages"
+B non-lus : 1
+B non-lus après lecture : 0
+ERROR:  permission denied for table messages
+C voit les messages A/B : 0
+ERROR:  rate_limited
+--- listes
+A a créé 3 listes, Bob membre de « Commune »
+ERROR:  new row violates row-level security policy for table "list_members"
+B voit les listes : Commune, Partagée
+B voit les titres : 2,3
+B a ajouté 99 dans « Commune », ajouté par B : true
+ERROR:  new row violates row-level security policy for table "list_items"
+B renomme « Commune » : 0 ligne(s)
+C voit les listes d'Alice : 0
+C voit les titres : 0
+--- suggestions
+statut forcé ignoré : nouveau
+B voit les suggestions de C : 0
+ERROR:  not_admin
+admin : 1 suggestion(s), de Chloe
+compteur admin : 1
+C : réponse non lue=1
+C voit : Merci, c'est noté ! (admin=true)
+réponse de C marquée admin ? false
+C après lecture : 0
+--- signalements et blocage
+admin voit : Bob signale Alice : « Salut Bob ! Tu as vu Frieren ? »
+après blocage, ami ? false
+membre de « Commune » ? 0
+ERROR:  new row violates row-level security policy for table "messages"
+A cherche Bob après blocage : 0
+ERROR:  permission denied for table messages
+ERROR:  permission denied for table feedback
+--- suppression de compte
+après suppression de C : suggestions 0, réponses 0
+=== SÉCURITÉ / AVIS
+E cherche Felix (mineur) : autorisé=true mixte=true
+E → Felix : pending
+profil mixte : true
+--- messages bloqués (attendus : contact_blocked x6)
+ERROR:  contact_blocked
+HINT:  Entre majeurs et mineurs, les coordonnées et les liens ne peuvent pas être échangés.
+ERROR:  contact_blocked
+HINT:  Entre majeurs et mineurs, les coordonnées et les liens ne peuvent pas être échangés.
+ERROR:  contact_blocked
+HINT:  Entre majeurs et mineurs, les coordonnées et les liens ne peuvent pas être échangés.
+ERROR:  contact_blocked
+HINT:  Entre majeurs et mineurs, les coordonnées et les liens ne peuvent pas être échangés.
+ERROR:  contact_blocked
+HINT:  Entre majeurs et mineurs, les coordonnées et les liens ne peuvent pas être échangés.
+ERROR:  contact_blocked
+HINT:  Entre majeurs et mineurs, les coordonnées et les liens ne peuvent pas être échangés.
+--- messages normaux et à risque
+signalements auto : rencontre/true, secret/true
+--- entre majeurs : pas de filtre
+--- avis
+anon lit : 0
+E a publié, liste : Emma mine=true
+F (anglais + titre japonais) OK
+ERROR:  duplicate key value violates unique constraint "anime_comments_anime_id_user_id_key"
+ERROR:  language
+HINT:  Les avis s'écrivent en français ou en anglais.
+ERROR:  language
+HINT:  Les avis s'écrivent en français ou en anglais.
+ERROR:  language
+HINT:  Les avis s'écrivent en français ou en anglais.
+ERROR:  language
+HINT:  Les avis s'écrivent en français ou en anglais.
+F modifie en français : 1
+F modifie l'avis de E : 0 attendu → 0
+admin : 4 signalement(s), dont avis 1, auto 2
+admin supprime avis : reste 1
+F voit les signalements : 1
+--- langue des messages
+ERROR:  language
+HINT:  Seuls le français et l'anglais sont acceptés.
+message français OK
+=== FAN ARTS
+F publie, statut forcé : pending
+ERROR:  new row violates row-level security policy for table "fanarts"
+anon voit (en attente) : 0
+anon liste : 0
+E voit : 0
+ERROR:  new row violates row-level security policy for table "fanart_likes"
+F voit le sien via liste perso : 1 pending
+F tente de valider : pending
+admin file : 1
+badge : 1
+admin valide : approved revu=true
+anon liste après validation : 1 par Felix
+E aime : likes=1 liked=true
+signalé
+F modifie le titre → pending
+ERROR:  language
+--- partage dans un chat mixte
+jetons acceptés dans chat mixte
+admin_reports fanart : 1
+--- faux positifs langue (tous null attendus)
+ok
+ok
+ok
+ok
+ok
+ok
+ok
+ok
+ok
+--- crédit et pseudos décorés
+langue « ˚˖𓍢ִ໋❀𝓜𝓪𝓴𝓸𝓽𝓸 » : ok
+russe : language
+mot interdit stylisé : true
+normalize : makoto makoto
+crédit enregistré : ˚˖𓍢ִ໋❀𝓜𝓪𝓴𝓸𝓽𝓸 → pending
+ERROR:  credit_link
+liste avec crédit : 1
+--- source
+source pinterest : https://www.pinterest.fr/pin/123456/ → pending
+source deviantart OK
+ERROR:  new row for relation "fanarts" violates check constraint "fanarts_source_check"
+ERROR:  new row for relation "fanarts" violates check constraint "fanarts_source_check"
+ERROR:  new row for relation "fanarts" violates check constraint "fanarts_source_check"
+auteur voit son fan art en attente par id : 1 pending
+destinataire ne le voit pas encore : 0
+--- tags et 18+
+E (majeure) publie 18+ : tags=ecchi|one piece adult=true
+ERROR:  adult_minor
+visiteur voit 18+ : 0
+visiteur liste 18+ : 0
+mineur voit 18+ (table/liste/tags) : 0/0/0
+majeur voit 18+ : 1
+filtre tag one piece : 1
+tags top : ecchi=1,one piece=1
+ERROR:  adult_blocked
+ERROR:  new row violates row-level security policy for table "fanart_likes"
+retrait 18+ → pending
+--- images de conversation
+majeur → majeur : approved
+message image envoyé
+majeur → mineur (statut forcé ignoré) : pending
+jeton image accepté dans chat mixte
+mineur voit la ligne : 1, peut lire le fichier : false
+mineur tente de valider : pending
+ERROR:  image_not_allowed
+ERROR:  new row violates row-level security policy for table "chat_images"
+admin file : 1 (Emma → Felix)
+badge : 1
+mineur après validation, fichier lisible : true
+E (destinataire) voit l'image de A : 1 lisible true
+galerie contient des images de chat : 0
+--- signalements manuels
+membre signalé avec contexte
+faux auto → auto=false
+ERROR:  no_target
+admin : urgent=true contexte=true motif=contournement
+JJ/MM HH:MM · Emma : Tu as aimé la saison 2 de Frieren ? La rencontre avec Fern est top
+JJ/MM HH:MM · Emma : Ne le dis à personne, c'est notre secret
+JJ/MM HH:MM · Emma : Tu habites où ?
+JJ/MM HH:MM · Emma : [[image:77777777-0000-0000-0000-000000000002]]
+ordre : contournement!, fanart!, avis!, secret!, rencontre!
+--- âge minimum 15 ans
+compte <15 change son pseudo : Gabin2
+peut ajouter E en ami : false
+ERROR:  too_young
+collection autorisée
+--- modérateurs
+ERROR:  not_admin
+admin nomme : Emma
+ERROR:  moderator_minor
+Emma
+liste : Emma
+modo : staff=true admin=false
+modo voit signalements : 6, e-mails visibles : 0
+modo file fan arts : 2
+modo images chat : 2
+compteur signalements modo : 6, suggestions : 0
+ERROR:  not_admin
+ERROR:  not_admin
+modo traite : 6 traités
+admin voit les e-mails : 4
+Emma
+retiré : 0
+--- notifications et activité
+pending
+Inès notifiée : friend_request
+Hugo notifié : friend_accepted
+lues : 1
+activité sans option : 0
+activité Hugo : status_watching,rating:5,favorite,status_watched
+Inès voit : Hugo status_watching, Hugo rating, Hugo favorite, Hugo status_watched
+Alice (pas amie) voit : 0
+Alice lit les notifications d'Hugo : 0
+Felix notifié : friend_request,fanart_approved,chat_image,fanart_rejected
