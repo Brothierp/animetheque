@@ -891,6 +891,7 @@ img[src*="nocookie.net"] { object-position: 50% 10% }
 .bell-p { position: absolute; right: 0; top: calc(100% + 8px); z-index: 60; width: min(380px, calc(100vw - 24px)); max-height: min(70vh, 560px); overflow-y: auto; border: 1px solid var(--line); border-radius: 16px; background: linear-gradient(180deg, var(--panel-2), var(--panel)); box-shadow: 0 20px 60px rgba(0, 0, 0, .5) }
 .nt-h { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 12px 14px; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: var(--panel-2) }
 .nt-h b { font: 700 15px var(--display) } .nt-h .linkbtn { font-size: 12px }
+.nt-acts { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px 12px } .nt-h .linkbtn.danger { color: #f08a8a }
 .nt-l { display: grid }
 .nt { display: flex; gap: 10px; align-items: center; padding: 10px 14px; color: var(--ink); text-decoration: none; font-size: 13.5px; line-height: 1.35; border-bottom: 1px solid color-mix(in srgb, var(--line) 50%, transparent) }
 .nt:hover { background: var(--panel) }
