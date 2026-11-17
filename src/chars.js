@@ -122,12 +122,18 @@ function extraCharacter(id) {
 }
 export function fetchCharacter(id) {
   if (cache.has(id)) return cache.get(id);
-  if (id >= 900000000) { const p = extraCharacter(id); cache.set(id, p); return p; }
+  // fiches locales (Arcane…) : en priorité, même pour un personnage qui existe aussi sur AniList
+  const pr0 = extraCharacter(id).catch(() => { if (id >= 900000000) throw new Error("extra"); return null; })
+    .then(x => x || anilistCharacter(id));
+  cache.set(id, pr0);
+  pr0.catch(() => cache.delete(id));
+  return pr0;
+}
+function anilistCharacter(id) {
   const q = `query($id:Int){ Character(id:$id){ id name{ full native alternative alternativeSpoiler } description gender age bloodType dateOfBirth{ year month day } favourites siteUrl } }`;
   const pr = fetch("https://graphql.anilist.co", { method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json" }, body: JSON.stringify({ query: q, variables: { id } }) })
     .then(r => r.json()).then(d => { if (!d.data) throw new Error("anilist"); return d.data.Character; })
     .catch(e => { cache.delete(id); throw e; });
-  cache.set(id, pr);
   return pr;
 }
 

@@ -23,13 +23,14 @@
 "day": null
 },
 "favourites": 0,
-"description": "Vi is a fighter and brawler from the undercity of Zaun with pink hair and a tattoo on her face. She is protective of her younger sister."
+"description": "Vi is a fighter and brawler from the undercity of Zaun with pink hair and a tattoo on her face. She is protective of her younger sister.",
+"override": true
 }
 },
 {
 "role": "MAIN",
 "node": {
-"id": 900000002,
+"id": 318488,
 "name": {
 "full": "Jinx",
 "native": null,
@@ -46,13 +47,14 @@
 "day": null
 },
 "favourites": 0,
-"description": "Jinx is a genius inventor with long blue hair braids and pink eyes. She is Vi's younger sister and an antagonist from Zaun."
+"description": "Jinx is a genius inventor with long blue hair braids and pink eyes. She is Vi's younger sister and an antagonist from Zaun.",
+"override": true
 }
 },
 {
 "role": "MAIN",
 "node": {
-"id": 900000003,
+"id": 200022,
 "name": {
 "full": "Caitlyn Kiramman",
 "native": null,
@@ -69,7 +71,8 @@
 "day": null
 },
 "favourites": 0,
-"description": "Caitlyn is a sniper and police officer (enforcer) from Piltover with long dark blue hair. She is from a rich family."
+"description": "Caitlyn is a sniper and police officer (enforcer) from Piltover with long dark blue hair. She is from a rich family.",
+"override": true
 }
 },
 {
@@ -92,7 +95,8 @@
 "day": null
 },
 "favourites": 0,
-"description": "Jayce is a scientist and inventor from Piltover with brown hair. He becomes a politician on the council."
+"description": "Jayce is a scientist and inventor from Piltover with brown hair. He becomes a politician on the council.",
+"override": true
 }
 },
 {
@@ -115,7 +119,8 @@
 "day": null
 },
 "favourites": 0,
-"description": "Viktor is a scientist and genius inventor from Zaun with brown hair who walks with a cane."
+"description": "Viktor is a scientist and genius inventor from Zaun with brown hair who walks with a cane.",
+"override": true
 }
 },
 {
@@ -138,7 +143,8 @@
 "day": null
 },
 "favourites": 0,
-"description": "Mel is a politician and member of the council of Piltover. She comes from a noble family of Noxus."
+"description": "Mel is a politician and member of the council of Piltover. She comes from a noble family of Noxus.",
+"override": true
 }
 },
 {
@@ -161,7 +167,8 @@
 "day": null
 },
 "favourites": 0,
-"description": "Silco is a crime boss and villain of Zaun with a scar over his eye and black hair. He is an antagonist and leader."
+"description": "Silco is a crime boss and villain of Zaun with a scar over his eye and black hair. He is an antagonist and leader.",
+"override": true
 }
 },
 {
@@ -184,13 +191,14 @@
 "day": null
 },
 "favourites": 0,
-"description": "Vander is a former leader of a rebellion from the undercity who runs a bar. He is a strong fighter and father figure."
+"description": "Vander is a former leader of a rebellion from the undercity who runs a bar. He is a strong fighter and father figure.",
+"override": true
 }
 },
 {
 "role": "SUPPORTING",
 "node": {
-"id": 900000009,
+"id": 200025,
 "name": {
 "full": "Ekko",
 "native": null,
@@ -207,7 +215,8 @@
 "day": null
 },
 "favourites": 0,
-"description": "Ekko is a young inventor and leader from Zaun with white hair. He fights with a wooden sword."
+"description": "Ekko is a young inventor and leader from Zaun with white hair. He fights with a wooden sword.",
+"override": true
 }
 },
 {
@@ -230,7 +239,8 @@
 "day": null
 },
 "favourites": 0,
-"description": "Heimerdinger is an immortal yordle scientist and professor with white hair. He is centuries old and a member of the council."
+"description": "Heimerdinger is an immortal yordle scientist and professor with white hair. He is centuries old and a member of the council.",
+"override": true
 }
 },
 {
@@ -253,7 +263,8 @@
 "day": null
 },
 "favourites": 0,
-"description": "Ambessa is a warlord and military commander of Noxus and Mel's mother. She is a warrior."
+"description": "Ambessa is a warlord and military commander of Noxus and Mel's mother. She is a warrior.",
+"override": true
 }
 },
 {
@@ -276,7 +287,8 @@
 "day": null
 },
 "favourites": 0,
-"description": "Sevika is a fighter and gang member from Zaun with a mechanical arm and dark hair."
+"description": "Sevika is a fighter and gang member from Zaun with a mechanical arm and dark hair.",
+"override": true
 }
 },
 {
@@ -299,7 +311,8 @@
 "day": null
 },
 "favourites": 0,
-"description": "Singed is a scientist and inventor from Zaun with scars, working for Silco."
+"description": "Singed is a scientist and inventor from Zaun with scars, working for Silco.",
+"override": true
 }
 },
 {
@@ -322,7 +335,8 @@
 "day": null
 },
 "favourites": 0,
-"description": "Cassandra is a member of the council of Piltover and Caitlyn's mother. She has blue hair."
+"description": "Cassandra is a member of the council of Piltover and Caitlyn's mother. She has blue hair.",
+"override": true
 }
 },
 {
@@ -345,7 +359,8 @@
 "day": null
 },
 "favourites": 0,
-"description": "Smeech is a gang member and thief from Zaun."
+"description": "Smeech is a gang member and thief from Zaun.",
+"override": true
 }
 },
 {
@@ -368,7 +383,8 @@
 "day": null
 },
 "favourites": 0,
-"description": "Marcus is a police officer and commander (enforcer) of Piltover."
+"description": "Marcus is a police officer and commander (enforcer) of Piltover.",
+"override": true
 }
 },
 {
@@ -391,7 +407,8 @@
 "day": null
 },
 "favourites": 0,
-"description": "Claggor is a young member of a gang from the undercity, part of Vi's family."
+"description": "Claggor is a young member of a gang from the undercity, part of Vi's family.",
+"override": true
 }
 },
 {
@@ -414,7 +431,8 @@
 "day": null
 },
 "favourites": 0,
-"description": "Mylo is a young thief from the undercity, part of Vi's family."
+"description": "Mylo is a young thief from the undercity, part of Vi's family.",
+"override": true
 }
 },
 {
@@ -437,7 +455,8 @@
 "day": null
 },
 "favourites": 0,
-"description": "Grayson is a police officer and sheriff of Piltover with grey hair."
+"description": "Grayson is a police officer and sheriff of Piltover with grey hair.",
+"override": true
 }
 },
 {
@@ -460,7 +479,8 @@
 "day": null
 },
 "favourites": 0,
-"description": "Benzo is a merchant from the undercity."
+"description": "Benzo is a merchant from the undercity.",
+"override": true
 }
 },
 {
@@ -483,7 +503,8 @@
 "day": null
 },
 "favourites": 0,
-"description": "Finn is a gang member and leader from Zaun."
+"description": "Finn is a gang member and leader from Zaun.",
+"override": true
 }
 },
 {
@@ -506,7 +527,8 @@
 "day": null
 },
 "favourites": 0,
-"description": "Renni is a gang member from Zaun."
+"description": "Renni is a gang member from Zaun.",
+"override": true
 }
 },
 {
@@ -529,7 +551,8 @@
 "day": null
 },
 "favourites": 0,
-"description": "Tobias is Caitlyn's father from a rich family of Piltover."
+"description": "Tobias is Caitlyn's father from a rich family of Piltover.",
+"override": true
 }
 },
 {
@@ -552,7 +575,8 @@
 "day": null
 },
 "favourites": 0,
-"description": "Steb is a police officer (enforcer) of Piltover."
+"description": "Steb is a police officer (enforcer) of Piltover.",
+"override": true
 }
 },
 {
@@ -575,7 +599,8 @@
 "day": null
 },
 "favourites": 0,
-"description": "Loris is a police officer (enforcer) of Piltover."
+"description": "Loris is a police officer (enforcer) of Piltover.",
+"override": true
 }
 },
 {
@@ -598,7 +623,8 @@
 "day": null
 },
 "favourites": 0,
-"description": "Babette is a business owner from the undercity."
+"description": "Babette is a business owner from the undercity.",
+"override": true
 }
 },
 {
@@ -621,7 +647,8 @@
 "day": null
 },
 "favourites": 0,
-"description": "Shoola is a member of a rebel group from Zaun."
+"description": "Shoola is a member of a rebel group from Zaun.",
+"override": true
 }
 }
 ]
@@ -651,13 +678,14 @@
 "day": null
 },
 "favourites": 0,
-"description": "Vi is a fighter and brawler from the undercity of Zaun with pink hair and a tattoo on her face. She is protective of her younger sister."
+"description": "Vi is a fighter and brawler from the undercity of Zaun with pink hair and a tattoo on her face. She is protective of her younger sister.",
+"override": true
 }
 },
 {
 "role": "MAIN",
 "node": {
-"id": 900000002,
+"id": 318488,
 "name": {
 "full": "Jinx",
 "native": null,
@@ -674,13 +702,14 @@
 "day": null
 },
 "favourites": 0,
-"description": "Jinx is a genius inventor with long blue hair braids and pink eyes. She is Vi's younger sister and an antagonist from Zaun."
+"description": "Jinx is a genius inventor with long blue hair braids and pink eyes. She is Vi's younger sister and an antagonist from Zaun.",
+"override": true
 }
 },
 {
 "role": "MAIN",
 "node": {
-"id": 900000003,
+"id": 200022,
 "name": {
 "full": "Caitlyn Kiramman",
 "native": null,
@@ -697,7 +726,8 @@
 "day": null
 },
 "favourites": 0,
-"description": "Caitlyn is a sniper and police officer (enforcer) from Piltover with long dark blue hair. She is from a rich family."
+"description": "Caitlyn is a sniper and police officer (enforcer) from Piltover with long dark blue hair. She is from a rich family.",
+"override": true
 }
 },
 {
@@ -720,7 +750,8 @@
 "day": null
 },
 "favourites": 0,
-"description": "Jayce is a scientist and inventor from Piltover with brown hair. He becomes a politician on the council."
+"description": "Jayce is a scientist and inventor from Piltover with brown hair. He becomes a politician on the council.",
+"override": true
 }
 },
 {
@@ -743,7 +774,8 @@
 "day": null
 },
 "favourites": 0,
-"description": "Viktor is a scientist and genius inventor from Zaun with brown hair who walks with a cane."
+"description": "Viktor is a scientist and genius inventor from Zaun with brown hair who walks with a cane.",
+"override": true
 }
 },
 {
@@ -766,7 +798,8 @@
 "day": null
 },
 "favourites": 0,
-"description": "Mel is a politician and member of the council of Piltover. She comes from a noble family of Noxus."
+"description": "Mel is a politician and member of the council of Piltover. She comes from a noble family of Noxus.",
+"override": true
 }
 },
 {
@@ -789,7 +822,8 @@
 "day": null
 },
 "favourites": 0,
-"description": "Silco is a crime boss and villain of Zaun with a scar over his eye and black hair. He is an antagonist and leader."
+"description": "Silco is a crime boss and villain of Zaun with a scar over his eye and black hair. He is an antagonist and leader.",
+"override": true
 }
 },
 {
@@ -812,13 +846,14 @@
 "day": null
 },
 "favourites": 0,
-"description": "Vander is a former leader of a rebellion from the undercity who runs a bar. He is a strong fighter and father figure."
+"description": "Vander is a former leader of a rebellion from the undercity who runs a bar. He is a strong fighter and father figure.",
+"override": true
 }
 },
 {
 "role": "MAIN",
 "node": {
-"id": 900000009,
+"id": 200025,
 "name": {
 "full": "Ekko",
 "native": null,
@@ -835,7 +870,8 @@
 "day": null
 },
 "favourites": 0,
-"description": "Ekko is a young inventor and leader from Zaun with white hair. He fights with a wooden sword."
+"description": "Ekko is a young inventor and leader from Zaun with white hair. He fights with a wooden sword.",
+"override": true
 }
 },
 {
@@ -858,7 +894,8 @@
 "day": null
 },
 "favourites": 0,
-"description": "Heimerdinger is an immortal yordle scientist and professor with white hair. He is centuries old and a member of the council."
+"description": "Heimerdinger is an immortal yordle scientist and professor with white hair. He is centuries old and a member of the council.",
+"override": true
 }
 },
 {
@@ -881,7 +918,8 @@
 "day": null
 },
 "favourites": 0,
-"description": "Ambessa is a warlord and military commander of Noxus and Mel's mother. She is a warrior."
+"description": "Ambessa is a warlord and military commander of Noxus and Mel's mother. She is a warrior.",
+"override": true
 }
 },
 {
@@ -904,7 +942,8 @@
 "day": null
 },
 "favourites": 0,
-"description": "Sevika is a fighter and gang member from Zaun with a mechanical arm and dark hair."
+"description": "Sevika is a fighter and gang member from Zaun with a mechanical arm and dark hair.",
+"override": true
 }
 },
 {
@@ -927,7 +966,8 @@
 "day": null
 },
 "favourites": 0,
-"description": "Singed is a scientist and inventor from Zaun with scars, working for Silco."
+"description": "Singed is a scientist and inventor from Zaun with scars, working for Silco.",
+"override": true
 }
 },
 {
@@ -950,7 +990,8 @@
 "day": null
 },
 "favourites": 0,
-"description": "Isha is a young girl from Zaun who cannot speak."
+"description": "Isha is a young girl from Zaun who cannot speak.",
+"override": true
 }
 },
 {
@@ -973,7 +1014,8 @@
 "day": null
 },
 "favourites": 0,
-"description": "Cassandra is a member of the council of Piltover and Caitlyn's mother. She has blue hair."
+"description": "Cassandra is a member of the council of Piltover and Caitlyn's mother. She has blue hair.",
+"override": true
 }
 },
 {
@@ -996,7 +1038,8 @@
 "day": null
 },
 "favourites": 0,
-"description": "Tobias is Caitlyn's father from a rich family of Piltover."
+"description": "Tobias is Caitlyn's father from a rich family of Piltover.",
+"override": true
 }
 },
 {
@@ -1019,7 +1062,8 @@
 "day": null
 },
 "favourites": 0,
-"description": "Scar is a member of a rebel group from Zaun with a scar."
+"description": "Scar is a member of a rebel group from Zaun with a scar.",
+"override": true
 }
 },
 {
@@ -1042,7 +1086,8 @@
 "day": null
 },
 "favourites": 0,
-"description": "Steb is a police officer (enforcer) of Piltover."
+"description": "Steb is a police officer (enforcer) of Piltover.",
+"override": true
 }
 },
 {
@@ -1065,7 +1110,8 @@
 "day": null
 },
 "favourites": 0,
-"description": "Loris is a police officer (enforcer) of Piltover."
+"description": "Loris is a police officer (enforcer) of Piltover.",
+"override": true
 }
 },
 {
@@ -1088,7 +1134,8 @@
 "day": null
 },
 "favourites": 0,
-"description": "Babette is a business owner from the undercity."
+"description": "Babette is a business owner from the undercity.",
+"override": true
 }
 },
 {
@@ -1111,7 +1158,8 @@
 "day": null
 },
 "favourites": 0,
-"description": "Gert lives in the undercity."
+"description": "Gert lives in the undercity.",
+"override": true
 }
 },
 {
@@ -1134,7 +1182,8 @@
 "day": null
 },
 "favourites": 0,
-"description": "Lest is a member of the forces of Piltover."
+"description": "Lest is a member of the forces of Piltover.",
+"override": true
 }
 },
 {
@@ -1157,7 +1206,8 @@
 "day": null
 },
 "favourites": 0,
-"description": "Maddie is a police officer (enforcer) of Piltover with red hair."
+"description": "Maddie is a police officer (enforcer) of Piltover with red hair.",
+"override": true
 }
 },
 {
@@ -1180,7 +1230,8 @@
 "day": null
 },
 "favourites": 0,
-"description": "Jowler is a member of the council of Piltover."
+"description": "Jowler is a member of the council of Piltover.",
+"override": true
 }
 },
 {
@@ -1203,7 +1254,8 @@
 "day": null
 },
 "favourites": 0,
-"description": "Kino is a member of a noble family of Noxus and Mel's brother."
+"description": "Kino is a member of a noble family of Noxus and Mel's brother.",
+"override": true
 }
 },
 {
@@ -1226,7 +1278,8 @@
 "day": null
 },
 "favourites": 0,
-"description": "LeBlanc is a mage and sorceress, leader of a secret society of Noxus."
+"description": "LeBlanc is a mage and sorceress, leader of a secret society of Noxus.",
+"override": true
 }
 },
 {
@@ -1249,7 +1302,8 @@
 "day": null
 },
 "favourites": 0,
-"description": "Rictus is an assassin and soldier of Noxus serving Ambessa."
+"description": "Rictus is an assassin and soldier of Noxus serving Ambessa.",
+"override": true
 }
 },
 {
@@ -1272,7 +1326,8 @@
 "day": null
 },
 "favourites": 0,
-"description": "Shoola is a member of a rebel group from Zaun."
+"description": "Shoola is a member of a rebel group from Zaun.",
+"override": true
 }
 }
 ]

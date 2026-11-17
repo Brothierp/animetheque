@@ -133,6 +133,10 @@ for media in sources:
         for e in m["characters"]["edges"]:
             c = e["node"]
             if c["id"] not in chars: chars[c["id"]] = c
+            elif c.get("override"):   # personnage ajouté à la main qui existe aussi sur AniList : son image prime
+                old = chars[c["id"]]
+                chars[c["id"]] = dict(old, image=c["image"], gender=old.get("gender") or c.get("gender"),
+                                      description=((old.get("description") or "") + "\n" + (c.get("description") or "")).strip())
             role = {"MAIN": "M", "SUPPORTING": "S", "BACKGROUND": "B"}.get(e["role"], "B")
             if not any(x[0] == ai for x in apps[c["id"]]): apps[c["id"]].append([ai, role])
 

@@ -14,13 +14,34 @@ P = lambda f: os.path.join(PUB, f)
 ex = json.load(open(SRC))
 data = json.load(open(P("data.json")))
 T, items = data["tables"], data["items"]
-if any(x[0] in {a["id"] for a in ex["anime"]} for x in items): sys.exit("déjà présent : rien à faire")
+CHARS_ONLY = any(x[0] in {a["id"] for a in ex["anime"]} for x in items)   # déjà ajouté : on ne refait que les personnages
+if CHARS_ONLY: print("animés déjà présents : seuls les personnages sont régénérés")
 
 def idx(table, v):
     if v not in T[table]: T[table].append(v)
     return T[table].index(v)
 
 anime = sorted(ex["anime"], key=lambda a: a["pos"])     # positions finales croissantes
+def write_chars():
+    raw = []
+    for a in anime:
+        si = 0 if a["year"] < 2024 else 1
+        edges = [{"role": {"M": "MAIN", "S": "SUPPORTING", "B": "BACKGROUND"}[ch["roles"][si]],
+                  "node": {"id": ch["id"], "name": {"full": ch["name"], "native": None, "alternative": []}, "image": {"medium": ch["img"]},
+                           "gender": ch["gender"], "age": None, "bloodType": None, "dateOfBirth": {"month": None, "day": None},
+                           "favourites": 0, "description": ch["desc_en"], "override": True}} for ch in ex["chars"] if ch["roles"][si]]
+        raw.append({"id": a["id"], "characters": {"edges": edges}})
+    out = SRC.replace(".json", "-raw.json")
+    json.dump(raw, open(out, "w"), ensure_ascii=False, indent=0)
+    # fiches des personnages (description française, lien) pour le site ; « a » = existe aussi sur AniList
+    xc = json.load(open(P("extra-chars.json"))) if os.path.exists(P("extra-chars.json")) else {}
+    for ch in ex["chars"]:
+        xc = {k: v for k, v in xc.items() if not (v.get("n") == ch["name"] and k != str(ch["id"]))}   # ancien identifiant remplacé
+        xc[str(ch["id"])] = {"d": ch["desc_fr"], "g": ch["gender"], "u": ch["wiki"], "n": ch["name"], **({"a": 1} if ch.get("anilist") else {})}
+    json.dump(xc, open(P("extra-chars.json"), "w"), ensure_ascii=False, separators=(",", ":"))
+    print("personnages :", len(ex["chars"]), "→", out)
+if CHARS_ONLY:
+    write_chars(); sys.exit(0)
 n_old = len(items)
 # ancien index → nouvel index
 final_pos = [a["pos"] for a in anime]
@@ -79,19 +100,6 @@ for a in anime:
     new[a["pos"] % SH][str(a["pos"])] = [a["desc"], [[T["platforms"].index(p), u] for p, u in a["plats"]]]
 for s in range(SH): json.dump(new[s], open(P(f"dshards/{s}.json"), "w"), ensure_ascii=False, separators=(",", ":"))
 
-# 3. personnages au format AniList (pour characters_build.py)
-raw = []
-for a in anime:
-    si = 0 if a["year"] < 2024 else 1
-    edges = [{"role": {"M": "MAIN", "S": "SUPPORTING", "B": "BACKGROUND"}[ch["roles"][si]],
-              "node": {"id": ch["id"], "name": {"full": ch["name"], "native": None, "alternative": []}, "image": {"medium": ch["img"]},
-                       "gender": ch["gender"], "age": None, "bloodType": None, "dateOfBirth": {"month": None, "day": None},
-                       "favourites": 0, "description": ch["desc_en"]}} for ch in ex["chars"] if ch["roles"][si]]
-    raw.append({"id": a["id"], "characters": {"edges": edges}})
-out = SRC.replace(".json", "-raw.json")
-json.dump(raw, open(out, "w"), ensure_ascii=False, indent=0)
-# fiches des personnages (description française, lien) pour le site
-xc = json.load(open(P("extra-chars.json"))) if os.path.exists(P("extra-chars.json")) else {}
-xc.update({str(ch["id"]): {"d": ch["desc_fr"], "g": ch["gender"], "u": ch["wiki"]} for ch in ex["chars"]})
-json.dump(xc, open(P("extra-chars.json"), "w"), ensure_ascii=False, separators=(",", ":"))
-print("ajouté :", [(a["english"], a["pos"]) for a in anime], "→", out)
+# 3. personnages
+write_chars()
+print("ajouté :", [(a["english"], a["pos"]) for a in anime])

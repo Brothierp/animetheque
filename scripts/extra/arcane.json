@@ -132,7 +132,7 @@
    "img": "https://static.wikia.nocookie.net/arcane/images/0/0a/Vi_Arcane_render.png/revision/latest/scale-to-width-down/300?cb=20240524011214"
   },
   {
-   "id": 900000002,
+   "id": 318488,
    "name": "Jinx",
    "wiki": "https://arcane.fandom.com/wiki/Jinx",
    "gender": "Female",
@@ -142,10 +142,11 @@
    ],
    "desc_fr": "Petite sœur de Vi, connue enfant sous le nom de Powder. Génie du bricolage et des explosifs, imprévisible et tourmentée, elle devient une figure aussi fascinante qu'inquiétante des bas-fonds.",
    "desc_en": "Jinx is a genius inventor with long blue hair braids and pink eyes. She is Vi's younger sister and an antagonist from Zaun.",
-   "img": "https://static.wikia.nocookie.net/arcane/images/2/2f/Jinx_Arcane_Season_2_Render.png/revision/latest/scale-to-width-down/300?cb=20241226153010"
+   "img": "https://static.wikia.nocookie.net/arcane/images/2/2f/Jinx_Arcane_Season_2_Render.png/revision/latest/scale-to-width-down/300?cb=20241226153010",
+   "anilist": 318488
   },
   {
-   "id": 900000003,
+   "id": 200022,
    "name": "Caitlyn Kiramman",
    "wiki": "https://arcane.fandom.com/wiki/Caitlyn_Kiramman",
    "gender": "Female",
@@ -155,7 +156,8 @@
    ],
    "desc_fr": "Héritière d'une grande famille de Piltover, Caitlyn est une tireuse d'élite qui rejoint les forces de l'ordre. Idéaliste et tenace, elle enquête là où personne ne veut regarder.",
    "desc_en": "Caitlyn is a sniper and police officer (enforcer) from Piltover with long dark blue hair. She is from a rich family.",
-   "img": "https://static.wikia.nocookie.net/arcane/images/9/95/Caitlyn_Arcane_Render.png/revision/latest?cb=20240524043129"
+   "img": "https://static.wikia.nocookie.net/arcane/images/9/95/Caitlyn_Arcane_Render.png/revision/latest?cb=20240524043129",
+   "anilist": 200022
   },
   {
    "id": 900000004,
@@ -223,7 +225,7 @@
    "img": "https://static.wikia.nocookie.net/arcane/images/5/5d/Vader_%28Human%29.png/revision/latest/scale-to-width-down/300?cb=20241202111630"
   },
   {
-   "id": 900000009,
+   "id": 200025,
    "name": "Ekko",
    "wiki": "https://arcane.fandom.com/wiki/Ekko",
    "gender": "Male",
@@ -233,7 +235,8 @@
    ],
    "desc_fr": "Gamin débrouillard des bas-fonds devenu meneur d'un groupe de rebelles, Ekko est un inventeur ingénieux et un ami d'enfance de Powder.",
    "desc_en": "Ekko is a young inventor and leader from Zaun with white hair. He fights with a wooden sword.",
-   "img": "https://static.wikia.nocookie.net/arcane/images/7/78/Ekko_Arcane_Render.png/revision/latest/scale-to-width-down/300?cb=20240524023846"
+   "img": "https://static.wikia.nocookie.net/arcane/images/7/78/Ekko_Arcane_Render.png/revision/latest/scale-to-width-down/300?cb=20240524023846",
+   "anilist": 200025
   },
   {
    "id": 900000010,
