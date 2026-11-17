@@ -710,7 +710,7 @@ dialog#auth > .hint { margin: 0 0 16px }
 @media (max-width: 900px) {
   .fab { bottom: calc(72px + env(safe-area-inset-bottom, 0px)); right: 12px; padding: 10px 11px } .fab span { display: none }
   .chat-page { height: calc(100vh - var(--top-h) - 76px - env(safe-area-inset-bottom, 0px)) }
-  .bnav { grid-template-columns: repeat(6, 1fr) } .bnav a { font-size: 10px }
+  .bnav { grid-template-columns: repeat(7, 1fr) } .bnav a { font-size: 10px; min-width: 0 } .bnav a > span:last-child { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0 1px }
 }
 @media (max-width: 640px) {
   .msg { max-width: 88% }
