@@ -2,7 +2,7 @@
 // et écran « Complète ton profil » (pseudo, année de naissance) après une première connexion Google.
 // La fenêtre est créée ici pour être partagée par toutes les pages.
 import { supabase } from "./supabase.js";
-import { parseBirthYear, usernameFormatError, usernameProblem, profileErrorMessage, USERNAME_HELP } from "./profile.js";
+import { parseBirthYear, usernameFormatError, usernameProblem, profileErrorMessage, USERNAME_HELP, ageGate } from "./profile.js";
 
 export { parseBirthYear };
 
@@ -33,7 +33,7 @@ const DIALOG_HTML = `
       <label>E-mail <input type="email" name="email" autocomplete="email" required></label>
       <label>Mot de passe <input type="password" name="password" autocomplete="current-password" minlength="8" required></label>
       <label id="birthField" hidden>Année de naissance <input type="number" name="birth" inputmode="numeric" min="1900" placeholder="ex. 1998" autocomplete="bday-year">
-        <small>Sert uniquement à réserver le contenu adulte aux majeurs. Elle ne pourra plus être modifiée.</small></label>
+        <small>Inscription à partir de 15 ans. Sert aussi à réserver le contenu adulte aux majeurs. Elle ne pourra plus être modifiée.</small></label>
       <button type="submit" class="btn primary" id="authSubmit">Se connecter</button>
       <button type="button" class="linkbtn" id="forgot">Mot de passe oublié ?</button>
     </form>
@@ -50,7 +50,7 @@ const DIALOG_HTML = `
     <label id="pfUsername">Pseudo <input type="text" name="username" maxlength="20" autocomplete="username" spellcheck="false" placeholder="ex. Frieren_fan">
       <small class="ustate" data-for="profileForm">${USERNAME_HELP}</small></label>
     <label id="pfBirth">Année de naissance <input type="number" name="birth" inputmode="numeric" min="1900" placeholder="ex. 1998" autocomplete="bday-year">
-      <small>Sert uniquement à réserver le contenu adulte (18+) aux majeurs. Elle ne pourra plus être modifiée.</small></label>
+      <small>Inscription à partir de 15 ans. Sert aussi à réserver le contenu adulte (18+) aux majeurs. Elle ne pourra plus être modifiée.</small></label>
     <button type="submit" class="btn primary">Enregistrer</button>
     <button type="button" class="linkbtn" id="profileLater">Plus tard</button>
   </form>
@@ -182,6 +182,7 @@ export function initAuth(h = {}) {
     if (password.length < 8) return msg("Le mot de passe doit contenir au moins 8 caractères.");
     const birth = mode === "signup" ? parseBirthYear(f.elements.birth.value) : null;
     if (mode === "signup" && !birth) return msg("Indique ton année de naissance (4 chiffres, ex. 1998).");
+    if (mode === "signup") { const g = ageGate(birth); if (g) return msg(g); }
     busy(f, async () => {
       if (mode === "signup") {
         try { const p = await usernameProblem(username); if (p) return msg(p); }
@@ -239,6 +240,7 @@ export function initAuth(h = {}) {
     if (!$("pfBirth").hidden) {
       const y = parseBirthYear(f.elements.birth.value);
       if (!y) return msg("Indique une année valide (4 chiffres, ex. 1998).");
+      const g = ageGate(y); if (g) return msg(g);
       patch.birth_year = y;
     }
     busy(f, async () => {

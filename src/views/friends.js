@@ -3,7 +3,7 @@
 import { byId, A, norm, titleOf, coverStyle, hdUrl } from "../data.js";
 import { ME, adultAllowed, requireUser } from "../state.js";
 import { $, esc, fmt, grid, cover } from "../ui.js";
-import { avatarHTML } from "../profile.js";
+import { avatarHTML, tooYoungYear } from "../profile.js";
 import { toast } from "../toast.js";
 import { gate } from "./collection.js";
 import {
@@ -270,6 +270,7 @@ export function render(el, sub, rest) {
   root = el; route = [sub, ...(rest || [])]; chatUid = null; clearInterval(poll); if (offMsg) { offMsg(); offMsg = null; }
   if (!ME.user) { el.innerHTML = gate("Amis", "Ajoute tes amis, discute avec eux et partage tes listes d'animés."); return; }
   if (!ME.ready || SOC.enabled === null) { el.innerHTML = `<div class="page"><p class="loading">Chargement…</p></div>`; return; }
+  if (tooYoungYear(ME.profile && ME.profile.birth_year)) { el.innerHTML = page("", `<div class="empty"><p>🔒 Fonction réservée aux 15 ans et plus.</p><p class="hint">En France, avant 15 ans, il faut l'accord d'un parent pour échanger avec d'autres membres. Ta collection, tes listes et tout le catalogue restent accessibles.</p></div>`); return; }
   if (SOC.enabled === false) { el.innerHTML = page("", `<div class="empty"><p>Les amis et la messagerie arrivent très bientôt.</p><p class="hint">Cette fonction s'active dès que la base de données est mise à jour (script SQL 20261116000000).</p><button type="button" class="btn" id="socRetry">Réessayer</button></div>`);
     $("socRetry").addEventListener("click", () => refreshCounters());
     refreshCounters(); return; }

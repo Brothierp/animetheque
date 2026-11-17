@@ -2,7 +2,7 @@
 import { supabase } from "../supabase.js";
 import { ME, updateProfile, setProfileLocal, onChange } from "../state.js";
 import { frError, signOut } from "../auth.js";
-import { displayName, avatarUrl, avatarHTML, isAdultYear, parseBirthYear, usernameFormatError, usernameProblem,
+import { displayName, avatarUrl, avatarHTML, isAdultYear, parseBirthYear, ageGate, tooYoungYear, MIN_AGE_MSG, usernameFormatError, usernameProblem,
   prepareAvatar, uploadAvatar, removeAvatar, removeAllAvatars, USERNAME_HELP } from "../profile.js";
 import { $, esc, fmt } from "../ui.js";
 import { byId } from "../data.js";
@@ -41,7 +41,8 @@ function html() {
       <div class="field"><span>Année de naissance</span>
         ${p.birth_year ? `<div class="val">${p.birth_year} · ${isAdultYear(p.birth_year) ? "accès au contenu 18+" : "contenu 18+ non accessible"}</div>`
           : `<form id="birthForm" novalidate><input type="number" name="birth" inputmode="numeric" min="1900" placeholder="ex. 1998"><button class="btn primary" type="submit">Enregistrer</button></form>`}
-        <small>Sert uniquement à réserver le contenu adulte aux majeurs. Ne peut être saisie qu'une fois.</small></div>
+        <small>Inscription à partir de 15 ans ; sert aussi à réserver le contenu adulte aux majeurs. Ne peut être saisie qu'une fois.</small></div>
+      ${tooYoungYear(p.birth_year) ? `<p class="imp-err">Ton compte est limité : l'Animéthèque est désormais réservée aux 15 ans et plus (en France, avant 15 ans, il faut l'accord d'un parent). Ta collection reste accessible, mais les amis, la messagerie, les avis et les fan arts sont désactivés jusqu'à l'année de tes 15 ans. Tu peux aussi supprimer ton compte en bas de cette page.</p>` : ""}
       ${providers.includes("email") ? `<div class="field"><span>Mot de passe</span><form id="pwdForm" novalidate><input type="password" name="password" autocomplete="new-password" minlength="8" placeholder="Nouveau mot de passe (8 caractères min.)"><button class="btn" type="submit">Modifier</button></form></div>` : ""}
       <div class="field"><span>Membre depuis</span><div class="val">${new Date(u.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}</div></div>
     </div></section>
@@ -96,6 +97,7 @@ function bind() {
   if (bf) bf.addEventListener("submit", async e => {
     e.preventDefault(); const y = parseBirthYear(bf.elements.birth.value);
     if (!y) return toast("Indique une année valide (4 chiffres, ex. 1998).");
+    const g = ageGate(y); if (g) return toast(g, 7000);
     if (!confirm(`Confirmer l'année ${y} ? Elle ne pourra plus être modifiée.`)) return;
     try { await updateProfile({ birth_year: y }); toast("Année enregistrée"); } catch (err) { console.error(err); toast(frError(err)); }
   });

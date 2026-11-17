@@ -9,6 +9,7 @@ import { byId, titleOf } from "../data.js";
 import { ME, requireUser, onChange, adultAllowed } from "../state.js";
 import { $, esc, fmt } from "../ui.js";
 import { toast } from "../toast.js";
+import { tooYoungYear } from "../profile.js";
 import { charById, loadCharacters } from "../chars.js";
 import { report, socialError } from "../social.js";
 import { messageHTML, sharePicker, uploadFormHTML, bindUploadForm, checkUpload, uploadError, parseTags } from "../safety.js";
@@ -81,6 +82,7 @@ async function renderMine(el) {
 // ---------- Publier ----------
 function renderPublish(el) {
   if (!ME.user) { el.innerHTML = `<div class="page">${head("Partage tes dessins")}${tabs("publier")}<div class="gate2"><p>Connecte-toi pour publier un fan art.</p><button type="button" class="btn primary" data-need-auth>Se connecter ou créer un compte</button></div></div>`; return; }
+  if (tooYoungYear(ME.profile && ME.profile.birth_year)) { el.innerHTML = `<div class="page">${head("Partage tes dessins")}${tabs("publier")}<div class="empty"><p>🔒 Fonction réservée aux 15 ans et plus.</p><p class="hint">En France, avant 15 ans, il faut l'accord d'un parent pour échanger avec d'autres membres. Ta collection, tes listes et tout le catalogue restent accessibles.</p></div></div>`; return; }
   if (!(ME.profile && ME.profile.username)) { el.innerHTML = `<div class="page">${head("Partage tes dessins")}${tabs("publier")}<div class="empty"><p>Choisis d'abord un pseudo dans <a href="#/compte">Mon compte</a> : il s'affichera sous tes créations.</p></div></div>`; return; }
   let link = { character_id: null, anime_id: null };
   el.innerHTML = `<div class="page fa-page">${head("Partage tes dessins et tes fan arts préférés avec la communauté")}${tabs("publier")}

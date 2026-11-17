@@ -4,6 +4,7 @@ import { supabase } from "./supabase.js";
 import { ME, requireUser } from "./state.js";
 import { esc } from "./ui.js";
 import { toast } from "./toast.js";
+import { tooYoungYear } from "./profile.js";
 import { animeComments, saveComment, deleteComment, report, socialError, isMissing } from "./social.js";
 
 const MAX = 1500;
@@ -14,6 +15,7 @@ const para = s => esc(s).replace(/\n{2,}/g, "</p><p>").replace(/\n/g, "<br>");
 
 function formHTML(mine) {
   if (!ME.user) return `<div class="cm-cta"><p>Connecte-toi pour donner ton avis sur cet animé.</p><button type="button" class="btn sm primary" data-cm="login">Se connecter</button></div>`;
+  if (tooYoungYear(ME.profile && ME.profile.birth_year)) return `<p class="hint">🔒 Publier un avis est réservé aux 15 ans et plus.</p>`;
   if (!(ME.profile && ME.profile.username)) return `<p class="hint">Choisis un pseudo dans <a href="#/compte">Mon compte</a> pour publier un avis.</p>`;
   const v = mine ? mine.body : "";
   return `<form class="cm-form" id="cmForm">

@@ -10,6 +10,17 @@ export function parseBirthYear(v) {
   return Number.isInteger(y) && y >= 1900 && y <= new Date().getFullYear() ? y : null;
 }
 
+/** Âge minimum : 15 ans (en France, l'accord d'un parent est nécessaire avant). */
+export const MIN_AGE_MSG = "L'Animéthèque est réservée aux 15 ans et plus : en France, avant 15 ans, il faut l'accord d'un parent pour créer un compte. Tu peux quand même parcourir le catalogue et les personnages sans compte !";
+export const tooYoungYear = y => !!y && new Date().getFullYear() - y < 15;
+/** Vérifie l'âge minimum ; l'année des 15 ans, demande si l'anniversaire est passé. Renvoie un message d'erreur ou null. */
+export function ageGate(y) {
+  const a = new Date().getFullYear() - y;
+  if (a < 15) return MIN_AGE_MSG;
+  if (a === 15 && !confirm(`Tu es né·e en ${y} : as-tu déjà fêté tes 15 ans ?\n\nOK = oui · Annuler = pas encore`)) return MIN_AGE_MSG;
+  return null;
+}
+
 /** Majeur à coup sûr : avec la seule année, l'accès s'ouvre l'année des 19 ans. */
 export const isAdultYear = y => !!y && new Date().getFullYear() - y > 18;
 
@@ -42,6 +53,7 @@ export function profileErrorMessage(err) {
   if (/profiles_username_format/.test(m)) return STATUS_MSG.invalid;
   if (/birth_year_locked/.test(m)) return "L'année de naissance ne peut plus être modifiée.";
   if (/invalid_birth_year/.test(m)) return "Année de naissance invalide.";
+  if (/too_young/.test(m)) return MIN_AGE_MSG;
   return null;
 }
 
