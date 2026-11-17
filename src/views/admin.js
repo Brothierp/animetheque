@@ -76,8 +76,8 @@ let tab = "comptes";
 const admTabs = () => {
   const c = SOC.counters;
   return `<nav class="tabs2" aria-label="Administration">
-    <a href="#/admin" class="${tab === "comptes" ? "on" : ""}">👤 Comptes</a>
-    <a href="#/admin/suggestions" class="${tab === "suggestions" ? "on" : ""}">💡 Suggestions${c.admin_feedback ? ` <span class="nb">${c.admin_feedback}</span>` : ""}</a>
+    ${ME.isAdmin ? `<a href="#/admin" class="${tab === "comptes" ? "on" : ""}">👤 Comptes</a>
+    <a href="#/admin/suggestions" class="${tab === "suggestions" ? "on" : ""}">💡 Suggestions${c.admin_feedback ? ` <span class="nb">${c.admin_feedback}</span>` : ""}</a>` : ""}
     <a href="#/admin/signalements" class="${tab === "signalements" ? "on" : ""}">🚩 Signalements${c.admin_reports ? ` <span class="nb">${c.admin_reports}</span>` : ""}</a>
     <a href="#/admin/fanarts" class="${tab === "fanarts" ? "on" : ""}">🎨 Images${pendingFa + pendingChat ? ` <span class="nb">${pendingFa + pendingChat}</span>` : ""}</a></nav>`;
 };
@@ -116,8 +116,8 @@ async function renderReports(el) {
   const L = await adminReports();
   await prepareTokens(L.map(r => r.excerpt || ""));
   $("admRep").innerHTML = L.length ? `<div class="rep-list">${L.map(r => `<article class="rep${r.handled ? " done" : ""}${r.auto ? " auto" : ""}${r.urgent && !r.handled ? " urgent" : ""}" data-id="${r.id}" data-c="${r.comment_id || ""}">
-      ${r.auto ? `<p><span class="rep-auto">🛡️ Détection automatique</span> <b>${esc(CAT[r.category] || r.category || "")}</b> · message de <b>${esc(r.target_name || "Membre")}</b> <span class="hint">(${esc(r.target_email || "")})</span> dans une conversation majeur / mineur · <span class="hint">${new Date(r.created_at).toLocaleString("fr-FR")}</span></p>`
-        : `<p><b>${esc(r.reporter_name || "Membre")}</b> <span class="hint">(${esc(r.reporter_email || "")})</span> signale ${r.comment_id ? "l'avis de" : r.fanart_id ? "le fan art de" : ""} <b>${esc(r.target_name || "Membre")}</b> <span class="hint">(${esc(r.target_email || "")})</span> · <span class="hint">${new Date(r.created_at).toLocaleString("fr-FR")}</span></p>
+      ${r.auto ? `<p><span class="rep-auto">🛡️ Détection automatique</span> <b>${esc(CAT[r.category] || r.category || "")}</b> · message de <b>${esc(r.target_name || "Membre")}</b> ${r.target_email ? `<span class="hint">(${esc(r.target_email)})</span>` : ""} dans une conversation majeur / mineur · <span class="hint">${new Date(r.created_at).toLocaleString("fr-FR")}</span></p>`
+        : `<p><b>${esc(r.reporter_name || "Membre")}</b> ${r.reporter_email ? `<span class="hint">(${esc(r.reporter_email)})</span>` : ""} signale ${r.comment_id ? "l'avis de" : r.fanart_id ? "le fan art de" : ""} <b>${esc(r.target_name || "Membre")}</b> ${r.target_email ? `<span class="hint">(${esc(r.target_email)})</span>` : ""} · <span class="hint">${new Date(r.created_at).toLocaleString("fr-FR")}</span></p>
       <p>${r.urgent ? `<span class="rep-urg">⚠️ Mineur concerné</span> ` : ""}${r.category && CAT[r.category] && !r.auto ? `<b>${esc(CAT[r.category])}</b> · ` : ""}Motif : ${esc(r.reason)}</p>`}${r.excerpt ? `<blockquote${r.with_context ? ` class="rep-ctx"` : ""}>${r.with_context ? `<small class="hint">Conversation jointe par la personne qui signale :</small><br>` : ""}${messageHTML(r.excerpt)}</blockquote>` : ""}
       <div class="rep-act"><button type="button" class="btn sm" data-h="${r.handled ? 0 : 1}">${r.handled ? "Rouvrir" : "Marquer comme traité"}</button>
       ${r.comment_id ? `<button type="button" class="btn sm danger-o" data-delc>Supprimer l'avis</button>` : ""}
@@ -189,17 +189,32 @@ async function renderFanarts(el) {
   });
 }
 
+// ---------- Modérateurs ----------
+const setModerator = async (name, enable) => { const { data, error } = await supabase.rpc("admin_set_moderator", { name, enable }); if (error) throw error; return data; };
+const modError = err => { const m = (err && err.message) || ""; return /not_found/.test(m) ? "Aucun membre avec ce pseudo." : /moderator_minor/.test(m) ? "Un modérateur doit être majeur." : /PGRST202|function/.test(m) ? "Lance d'abord le script SQL 20261117060000 (modérateurs)." : "L'action a échoué."; };
+async function paintMods() {
+  const box = $("admMods"); if (!box) return;
+  const { data, error } = await supabase.rpc("admin_moderators");
+  if (error) { box.innerHTML = `<p class="hint">${esc(modError(error))}</p>`; return; }
+  box.innerHTML = data.length ? `<ul class="people">${data.map(m => `<li><b>${esc(m.username || "Membre")}</b><span class="hint">depuis le ${date(m.added_at)}</span><span class="act"><button type="button" class="btn sm" data-unmod="${esc(m.username || "")}">Retirer</button></span></li>`).join("")}</ul>` : `<p class="hint">Aucun modérateur pour l'instant.</p>`;
+}
+
 export function render(el, sub) {
   root = el;
   if (!ME.user || !ME.ready) { el.innerHTML = `<div class="page"><p class="loading">Chargement…</p></div>`; return; }
-  if (!ME.isAdmin) { el.innerHTML = `<div class="page"><div class="empty"><p>Cette page est réservée à l'administrateur du site.</p><a class="btn" href="#/">Retour à l'accueil</a></div></div>`; return; }
+  if (!ME.isStaff) { el.innerHTML = `<div class="page"><div class="empty"><p>Cette page est réservée à l'équipe de modération du site.</p><a class="btn" href="#/">Retour à l'accueil</a></div></div>`; return; }
   tab = ["suggestions", "signalements", "fanarts"].includes(sub) ? sub : "comptes";
+  if (!ME.isAdmin && (tab === "comptes" || tab === "suggestions")) tab = "signalements";   // modérateur
   Promise.all([adminPending(), adminPendingChatImages()]).then(([n, c]) => { if (n !== pendingFa || c !== pendingChat) { pendingFa = n; pendingChat = c; const t = isShown() && root.querySelector(".tabs2"); if (t) t.outerHTML = admTabs(); } });
   if (tab !== "comptes") { ({ suggestions: renderSuggestions, signalements: renderReports, fanarts: renderFanarts })[tab](el).catch(err => { console.error(err); toast(socialError(err)); }); return; }
   el.innerHTML = `<div class="page">
     <div class="cat-top"><div><h1>Administration</h1><div class="count">Comptes inscrits. Les collections restent privées : seules ces informations sont visibles.</div></div>
       <div class="cat-tools"><button type="button" class="btn" id="admReload">Actualiser</button><button type="button" class="btn primary" id="admCsv">Exporter (tableur)</button></div></div>
     ${admTabs()}
+    <section class="card2 adm-mods"><h2>Modérateurs</h2>
+      <p class="hint">Des membres majeurs de confiance qui t'aident : vérification des images et fan arts, signalements, suppression d'avis. Ils ne voient ni les e-mails, ni cette liste de comptes, ni les suggestions.</p>
+      <div id="admMods"><p class="hint">Chargement…</p></div>
+      <form class="newlist" id="admModAdd"><input type="text" maxlength="20" placeholder="Pseudo du membre" autocomplete="off" aria-label="Pseudo du futur modérateur"><button class="btn primary" type="submit">Nommer modérateur</button></form></section>
     <section class="stats2" id="admStats"></section>
     <div class="adm-tools">
       <input type="search" id="admQ" placeholder="Rechercher un pseudo ou un e-mail…" value="${esc(q)}" autocomplete="off" aria-label="Rechercher un compte">
@@ -213,6 +228,16 @@ export function render(el, sub) {
       <tbody id="admBody"><tr><td colspan="7" class="hint">Chargement des comptes…</td></tr></tbody>
     </table></div>
   </div>`;
+  paintMods();
+  $("admModAdd").addEventListener("submit", async e => {
+    e.preventDefault(); const name = e.target.querySelector("input").value.trim(); if (!name) return;
+    try { const n = await setModerator(name, true); toast(`${n} est maintenant modérateur·rice`); e.target.reset(); paintMods(); } catch (err) { toast(modError(err)); }
+  });
+  $("admMods").addEventListener("click", async e => {
+    const b = e.target.closest("[data-unmod]"); if (!b) return;
+    if (!confirm(`Retirer ${b.dataset.unmod} de l'équipe de modération ?`)) return;
+    try { await setModerator(b.dataset.unmod, false); toast("Modérateur retiré"); paintMods(); } catch (err) { toast(modError(err)); }
+  });
   $("admSort").value = sort;
   $("admSort").addEventListener("change", e => { sort = e.target.value; paint(); });
   $("admQ").addEventListener("input", e => { q = e.target.value; paint(); });

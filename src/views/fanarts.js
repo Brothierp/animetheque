@@ -144,7 +144,7 @@ async function renderOne(el, id) {
           ${f.mine && f.adult !== undefined && (f.adult || adultAllowed()) ? `<button type="button" class="btn sm" data-x="adult">${f.adult ? "Retirer 18+" : "🔞 Marquer 18+"}</button>` : ""}
           ${f.mine ? `<button type="button" class="btn sm" data-x="edit">Modifier</button><button type="button" class="btn sm danger-o" data-x="del">Supprimer</button>`
             : ME.user && f.status === "approved" ? `<button type="button" class="linkbtn" data-x="report">signaler</button>` : ""}
-          ${ME.isAdmin && !f.mine ? `<button type="button" class="btn sm danger-o" data-x="del">Supprimer (admin)</button>` : ""}
+          ${ME.isStaff && !f.mine ? `<button type="button" class="btn sm danger-o" data-x="del">Supprimer (modération)</button>` : ""}
         </div>
         ${f.status === "approved" ? `<p class="hint">Pour le montrer à un ami : bouton 🖼️ dans la conversation, onglet « Fan art ».</p>` : ""}
       </div></div>`;

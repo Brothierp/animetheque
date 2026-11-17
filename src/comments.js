@@ -32,7 +32,7 @@ function itemHTML(c) {
   return `<li class="cm${c.mine ? " mine" : ""}${c.spoiler ? " sp" : ""}" data-id="${c.id}">
     <div class="cm-h"><b>${esc(c.username)}</b>${c.mine ? `<span class="cm-me">toi</span>` : ""}<time>${when(c.created_at)}${edited ? " · modifié" : ""}</time>
       <span class="cm-act">${c.mine ? `<button type="button" class="linkbtn" data-cm="edit">modifier</button><button type="button" class="linkbtn" data-cm="del">supprimer</button>`
-        : ME.user ? `<button type="button" class="linkbtn" data-cm="report">signaler</button>${ME.isAdmin ? `<button type="button" class="linkbtn danger" data-cm="adel">supprimer (admin)</button>` : ""}` : ""}</span></div>
+        : ME.user ? `<button type="button" class="linkbtn" data-cm="report">signaler</button>${ME.isStaff ? `<button type="button" class="linkbtn danger" data-cm="adel">supprimer (modération)</button>` : ""}` : ""}</span></div>
     ${c.spoiler ? `<button type="button" class="cm-spb" data-cm="reveal">⚠️ Spoiler : cliquer pour afficher</button>` : ""}
     <div class="cm-b"><p>${para(c.body)}</p></div></li>`;
 }

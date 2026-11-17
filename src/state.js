@@ -7,7 +7,7 @@ import { toast } from "./toast.js";
 export const STATUSES = { plan: "Je veux regarder", watching: "En cours", watched: "Regardé", dropped: "Abandonné" };
 export const STATUS_SHORT = { plan: "À voir", watching: "En cours", watched: "Vu", dropped: "Abandonné" };
 
-export const ME = { user: null, profile: null, entries: new Map(), lists: {}, favChars: new Map(), ready: false, loading: false, isAdmin: false };
+export const ME = { user: null, profile: null, entries: new Map(), lists: {}, favChars: new Map(), ready: false, loading: false, isAdmin: false, isStaff: false };
 export { FEATURES } from "./store.js";
 
 const listeners = new Set();
@@ -152,9 +152,11 @@ async function reload() {
   try {
     // is_admin() : réponse de la base (false si le script « admin » n'a pas été lancé)
     const adminP = supabase.rpc("is_admin").then(r => r.data === true).catch(() => false);
-    const [col, profile, isAdmin] = await Promise.all([store.loadCollection(), loadProfile(), adminP]);
+    // is_staff() : administrateur ou modérateur (script 20261117060000)
+    const staffP = supabase.rpc("is_staff").then(r => r.data === true).catch(() => false);
+    const [col, profile, isAdmin, isStaff] = await Promise.all([store.loadCollection(), loadProfile(), adminP, staffP]);
     if (!ME.user || ME.user.id !== uid) return;
-    ME.entries = col.entries; ME.lists = col.lists; ME.favChars = col.favChars; ME.profile = profile; ME.isAdmin = isAdmin; ME.ready = true;
+    ME.entries = col.entries; ME.lists = col.lists; ME.favChars = col.favChars; ME.profile = profile; ME.isAdmin = isAdmin; ME.isStaff = isAdmin || isStaff; ME.ready = true;
     emit("collection");
     if (first) emit("profile-loaded");
   } catch (err) {
@@ -165,7 +167,7 @@ async function reload() {
 function onSession(session) {
   const user = session ? session.user : null;
   if (user && ME.user && ME.user.id === user.id) { ME.user = user; return; } // simple rafraîchissement de jeton
-  ME.user = user; ME.profile = null; ME.entries = new Map(); ME.lists = {}; ME.favChars = new Map(); ME.ready = false; ME.isAdmin = false;
+  ME.user = user; ME.profile = null; ME.entries = new Map(); ME.lists = {}; ME.favChars = new Map(); ME.ready = false; ME.isAdmin = false; ME.isStaff = false;
   emit("session");
   if (user) reload();
 }
