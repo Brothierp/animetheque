@@ -5,6 +5,7 @@ import { esc, fmt, row, cover } from "../ui.js";
 import { loadTopCharacters } from "../chars.js";
 import { charCard } from "./characters.js";
 import { listFanarts } from "../fanart-api.js";
+import { currentSeason, seasonLabel, seasonTitles } from "./season.js";
 import { supabase } from "../supabase.js";
 
 let root = null, featured = null;
@@ -113,6 +114,7 @@ export function render(el) {
     ${row("Les plus populaires", top(20), "#/catalogue?sort=pop")}
     ${row("Les mieux notés", best, "#/catalogue?sort=score")}
     ${row("Pépites à découvrir", gems, "#/catalogue?sort=score&minscore=78", "Très bien notés, moins connus")}
+    ${(() => { const sc = currentSeason().cur; return row(`Saison ${esc(seasonLabel(sc).toLowerCase())}`, seasonTitles(sc).filter(safe).slice(0, 20), "#/saison", "Les nouveautés et retours de la saison"); })()}
     ${row("Bientôt", soon, "#/catalogue?status=NOT_YET_RELEASED", "Pas encore sortis")}
     <div id="homeChars"></div>
     <div id="homeFa"></div>

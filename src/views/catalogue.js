@@ -27,6 +27,8 @@ export function applyParams(p) {
   for (const g of p.getAll("format")) { const i = idx("format", g); if (i >= 0) S.format.add(i); }
   for (const g of p.getAll("status")) { const i = idx("status", g); if (i >= 0) { S.status.add(i); if (i === UP) S.upcoming = true; } }
   for (const g of p.getAll("studio")) S.studio = norm(g);
+  for (const g of p.getAll("season")) { const i = idx("season", g); if (i >= 0) S.season.add(i); }
+  if (p.get("year")) { S.yMin = S.yMax = +p.get("year"); S.upcoming = true; }
   if (p.get("lang")) S.lang = p.get("lang");
   if (p.get("minscore")) S.score = +p.get("minscore");
   return true;

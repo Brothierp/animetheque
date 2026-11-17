@@ -6,6 +6,7 @@ import { displayName, avatarUrl, avatarHTML, isAdultYear, parseBirthYear, ageGat
   prepareAvatar, uploadAvatar, removeAvatar, removeAllAvatars, USERNAME_HELP } from "../profile.js";
 import { $, esc, fmt } from "../ui.js";
 import { byId } from "../data.js";
+import { canInstall, install } from "../install.js";
 import { toast } from "../toast.js";
 import { gate } from "./collection.js";
 import { importHTML, bindImport } from "./importer.js";
@@ -48,6 +49,7 @@ function html() {
     </div></section>
     ${"share_activity" in p ? `<section class="card2"><h2>Partage avec mes amis</h2>
       <label class="chk"><input type="checkbox" id="shareAct"${p.share_activity ? " checked" : ""}><span><b>Partager mon activité avec mes amis</b> : titres commencés et terminés, notes de 4 ou 5 étoiles, coups de cœur, avis et fan arts publiés. Visible uniquement par tes amis, dans « Amis → Activité ». Ta collection complète reste privée.</span></label></section>` : ""}
+    ${canInstall() ? `<section class="card2"><h2>Application</h2><p class="hint" style="margin-top:0">Ajoute l'Animéthèque à ton écran d'accueil : elle s'ouvrira comme une appli, en plein écran.</p><button type="button" class="btn" id="installBtn">📲 Installer l'appli</button></section>` : ""}
     ${mySuggestionsHTML()}
     ${importHTML()}
     <section class="card2"><h2>Exporter mes données</h2>
@@ -95,6 +97,7 @@ function bind() {
     try { const pb = await usernameProblem(u); if (pb) { toast(pb); return; } await updateProfile({ username: u }); toast("Pseudo enregistré"); }
     catch (err) { console.error(err); toast(frError(err)); } finally { btn.disabled = false; }
   });
+  const ib = $("installBtn"); if (ib) ib.addEventListener("click", () => install());
   const sa = $("shareAct");
   if (sa) sa.addEventListener("change", async () => {
     try { await updateProfile({ share_activity: sa.checked }); toast(sa.checked ? "Ton activité est partagée avec tes amis" : "Ton activité n'est plus partagée"); }

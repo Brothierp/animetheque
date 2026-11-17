@@ -3,6 +3,7 @@ import { byId, titleOf, coverStyle } from "../data.js";
 import { ME, ent, adultAllowed, STATUS_SHORT, onChange, requireUser } from "../state.js";
 import { $, esc, cover } from "../ui.js";
 
+import { tabsHTML as seasonTabs } from "./season.js";
 let root = null, data = null, loading = null, day = null;
 const isShown = () => !!(root && root.isConnected && root.dataset.view === "calendrier");   // page réellement affichée ?
 const F = { mine: false, lang: true };
@@ -69,6 +70,7 @@ export function render(el) {
         <label class="tgl"><input type="checkbox" id="calMine"${F.mine ? " checked" : ""}> Seulement ma collection</label>
         <label class="tgl"><input type="checkbox" id="calLang"${F.lang ? " checked" : ""}> Dispo en FR ou EN</label>
       </div></div>
+    ${seasonTabs("cal")}
     <div class="cal-days" id="calDays"></div>
     <div id="calList"><div class="boot"><div class="spinner" aria-hidden="true"></div><p>Chargement du calendrier…</p></div></div>
   </div>`;

@@ -6,6 +6,7 @@ import { charsOfAnime, imgUrl, ROLE_FR } from "../chars.js";
 import { attachTranslate } from "../translate.js";
 import { toast } from "../toast.js";
 import { mountComments, refreshComments } from "../comments.js";
+import { fetchLive, liveHTML, bindTrailer } from "../live.js";
 
 let el = null, curId = null, onCloseCb = null;
 const ROLE = { M: "Principal", S: "Secondaire", B: "Figurant" };
@@ -85,6 +86,7 @@ function html(a) {
   <div class="d-body">
     <div class="d-main">
       <section class="d-mine" id="dMine">${mineHTML(a)}</section>
+      <div id="dLive"></div>
       ${plats ? `<section><h2>Où regarder</h2><div class="plats" id="dPlats">${plats}</div><p class="hint">FR / EN indique qu'au moins une plateforme propose en général cette langue (doublage ou sous-titres) ; cela peut varier selon le pays.</p></section>` : ""}
       ${orderHTML(a)}
       ${a.hasDesc ? `<section><h2>Synopsis</h2><p class="syn" id="dSyn">${a.desc ? esc(a.desc) : `<span class="hint">Chargement…</span>`}</p></section>` : ""}
@@ -120,6 +122,7 @@ export function openDetail(id, onClose) {
   panel.focus({ preventScroll: true });
   setTimeout(() => { if (curId === id) $("dSim").innerHTML = row("Dans le même esprit", similar(a, 14, adultAllowed())); }, 30);
   mountComments($("dComments"), id);
+  fetchLive(id).then(m => { const b = curId === id && $("dLive"); if (b) b.innerHTML = liveHTML(m); });
   if (a.desc && $("dSyn") && !a.ext) attachTranslate($("dSyn"), "a" + a.id);
   if ((a.hasDesc && a.desc == null) || (a.nPlats && !a.plats)) loadDetails(a).then(() => {
     if (curId !== id) return;
@@ -146,6 +149,7 @@ export function closeDetail() {
 export const isDetailOpen = () => !!(el && el.classList.contains("open"));
 
 function bind() {
+  bindTrailer(el);
   el.addEventListener("click", e => {
     const b = e.target.closest("[data-d]"); if (!b) { if (e.target.closest("a[href^='#/']")) closeDetail(); return; }
     const k = b.dataset.d, id = curId, cur = ent(id);
