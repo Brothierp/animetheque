@@ -29,7 +29,7 @@ export function render(el, sub) {
   items.sort({ recent: (x, y) => y[1].t - x[1].t, mine: (x, y) => (y[1].r || 0) - (x[1].r || 0) || y[1].t - x[1].t,
     score: (x, y) => (y[0].score || 0) - (x[0].score || 0), az: (x, y) => titleOf(x[0]).localeCompare(titleOf(y[0]), "fr") }[sort]);
   el.innerHTML = `<div class="page">
-    <div class="cat-top"><div><h1>Ma collection</h1><div class="count"><b>${fmt(counts.all)}</b> titre${counts.all > 1 ? "s" : ""} · <a href="#/listes">Mes listes →</a></div></div>
+    <div class="cat-top"><div><h1>Ma collection</h1><div class="count"><b>${fmt(counts.all)}</b> titre${counts.all > 1 ? "s" : ""} · <a href="#/listes">Mes listes →</a> · <a href="#/wrapped">📊 Mon année ${new Date().getFullYear()}</a></div></div>
       <label class="sortsel"><span class="sr">Trier par</span><select id="colSort">${Object.entries(SORTS).map(([k, v]) => `<option value="${k}"${sort === k ? " selected" : ""}>${v}</option>`).join("")}</select></label></div>
     ${counts.all && tab === "all" ? statsHTML(all) : ""}
     ${tab === "plan" && counts.plan > 1 ? `<p><button type="button" class="btn" data-random="plan">🎲 Je ne sais pas quoi regarder : tire un titre au hasard</button></p>` : ""}

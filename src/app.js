@@ -19,6 +19,7 @@ import * as admin from "./views/admin.js";
 import * as friends from "./views/friends.js";
 import * as fanarts from "./views/fanarts.js";
 import * as season from "./views/season.js";
+import * as wrapped from "./views/wrapped.js";
 import { SOC, onSocial } from "./social.js";
 import { initFeedback } from "./feedback.js";
 import { initNotifications } from "./notify.js";
@@ -28,7 +29,7 @@ import { openCharacter, closeCharacter, isCharacterOpen } from "./views/characte
 const isModalOpen = () => isDetailOpen() || isCharacterOpen();
 const closeModals = () => { closeDetail(); closeCharacter(); };
 
-const VIEWS = { "": home, catalogue, personnages: characters, calendrier: calendar, collection, listes: lists, compte: account, admin, amis: friends, fanarts, saison: season };
+const VIEWS = { "": home, catalogue, personnages: characters, calendrier: calendar, collection, listes: lists, compte: account, admin, amis: friends, fanarts, saison: season, wrapped };
 const view = $("view");
 let base = null;        // dernière route « page » (hors fiche)
 let depth = 0;          // nombre de fiches ouvertes depuis cette page (pour revenir avec « Retour »)
@@ -51,7 +52,7 @@ function renderPage(parts, params) {
   setTimeout(paintBadges, 0);
   view.dataset.view = VIEWS[key] ? key || "home" : "home";   // les pages vérifient qu'elles sont bien celle affichée
   v.render(view, key === "catalogue" || key === "personnages" ? params : parts[1], parts.slice(2));
-  document.title = { "": "Animéthèque", catalogue: "Catalogue · Animéthèque", collection: "Ma collection · Animéthèque", listes: "Mes listes · Animéthèque", personnages: "Personnages · Animéthèque", calendrier: "Calendrier · Animéthèque", amis: "Amis · Animéthèque", fanarts: "Fan arts · Animéthèque", saison: "Saison en cours · Animéthèque", admin: "Administration · Animéthèque", compte: "Mon compte · Animéthèque" }[key] || "Animéthèque";
+  document.title = { "": "Animéthèque", catalogue: "Catalogue · Animéthèque", collection: "Ma collection · Animéthèque", listes: "Mes listes · Animéthèque", personnages: "Personnages · Animéthèque", calendrier: "Calendrier · Animéthèque", amis: "Amis · Animéthèque", fanarts: "Fan arts · Animéthèque", saison: "Saison en cours · Animéthèque", wrapped: "Mon année en animés · Animéthèque", admin: "Administration · Animéthèque", compte: "Mon compte · Animéthèque" }[key] || "Animéthèque";
 }
 function route() {
   if (!ready.catalogue) return;
