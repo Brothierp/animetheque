@@ -11,7 +11,7 @@ import {
   removeFriend, blockUser, listBlocks, unblock, loadConversations, loadThread, sendMessage, markRead, deleteMessage, report,
   sharedLists, listItemsOf, refreshCounters, addToSharedList, removeFromSharedList, listMembers, socialError
 } from "../social.js";
-import { preventionDialog, mixedBanner, messageHTML, prepareTokens, tokenPreview, sharePicker, reportDialog } from "../safety.js";
+import { preventionDialog, mixedBanner, messageHTML, prepareTokens, tokenPreview, sharePicker, reportDialog, isAdultMe } from "../safety.js";
 import { fanartPickerSource, SOURCE_RE } from "../fanart-api.js";
 import { uploadChatImage } from "../chat-images.js";
 
@@ -106,7 +106,7 @@ async function renderChat(el, uid) {
     $("shareBtn").addEventListener("click", async () => {
       const tok = await sharePicker(fanartPickerSource, {
         sourceRe: SOURCE_RE, error: socialError,
-        send: v => uploadChatImage(v.file, uid)
+        send: v => uploadChatImage(v.file, uid, { minor: person(uid).mixed || !isAdultMe() })
       }); if (!tok) return;
       try { const m = await sendMessage(uid, tok); await prepareTokens([tok]); thread.push(m); paintThread(); }
       catch (err) { toast(socialError(err)); }

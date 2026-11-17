@@ -124,6 +124,7 @@ language sql stable security definer set search_path = '' as $$
   limit least(greatest(p_limit, 1), 100) offset greatest(p_offset, 0)
 $$;
 
+drop function if exists public.admin_fanarts(text);
 create or replace function public.admin_fanarts(p_status text default 'pending')
 returns table (id uuid, user_id uuid, username text, email text, path text, title text, description text, credit text, source_url text,
                tags text[], adult boolean, character_id integer, anime_id integer, status text, reject_reason text, created_at timestamptz)
@@ -147,6 +148,7 @@ language sql stable security definer set search_path = '' as $$
     c.sender = (select auth.uid()) or (c.recipient = (select auth.uid()) and c.status = 'approved') or public.is_staff()))
 $$;
 
+drop function if exists public.admin_chat_images(text);
 create or replace function public.admin_chat_images(p_status text default 'pending')
 returns table (id uuid, path text, status text, created_at timestamptz, sender uuid, sender_name text, sender_adult boolean,
                recipient uuid, recipient_name text, recipient_adult boolean)
@@ -237,3 +239,6 @@ create policy "images chat: suppression" on public.chat_images for delete to aut
 drop policy if exists "images chat: fichier suppression" on storage.objects;
 create policy "images chat: fichier suppression" on storage.objects for delete to authenticated
   using (bucket_id = 'chat-images' and ((storage.foldername(name))[1] = (select auth.uid())::text or public.is_staff()));
+
+revoke all on function public.admin_fanarts(text) from public;
+grant execute on function public.admin_fanarts(text) to authenticated;

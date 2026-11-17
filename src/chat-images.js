@@ -4,6 +4,7 @@ import { supabase } from "./supabase.js";
 import { ME } from "./state.js";
 import { prepareImage } from "./fanart-api.js";
 import { setImageResolver, setTokenPreparer } from "./safety.js";
+import { scanImage, NSFW } from "./nsfw.js";
 
 const BUCKET = "chat-images";
 const CI = new Map();   // id → { status, url, w, h }
@@ -18,13 +19,19 @@ async function sign(rows) {
 }
 
 /** Envoie l'image vers le stockage privé ; renvoie le jeton à mettre dans le message. */
-export async function uploadChatImage(file, recipient) {
+export async function uploadChatImage(file, recipient, { minor = false } = {}) {
   const img = await prepareImage(file);
+  // analyse automatique : refusée d'emblée si un mineur est concerné et que l'image semble à caractère sexuel
+  const ai = await scanImage(img.blob);
+  if (minor && ai && ai.score >= NSFW.BLOCK) throw new Error("nsfw");
   const id = crypto.randomUUID(), path = `${ME.user.id}/${id}.${img.ext}`;
   const up = await supabase.storage.from(BUCKET).upload(path, img.blob, { contentType: img.type, upsert: false });
   if (up.error) throw up.error;
   try {
-    const row = await call(supabase.from("chat_images").insert({ id, recipient, path, width: img.w, height: img.h }).select("id, status").single());
+    const base = { id, recipient, path, width: img.w, height: img.h };
+    let row;
+    try { row = await call(supabase.from("chat_images").insert(ai ? { ...base, ai_score: +ai.score.toFixed(3) } : base).select("id, status").single()); }
+    catch (e) { if (!/PGRST204|ai_score/.test((e.code || "") + (e.message || ""))) throw e; row = await call(supabase.from("chat_images").insert(base).select("id, status").single()); }
     CI.set(id, { status: row.status, url: URL.createObjectURL(img.blob), w: img.w, h: img.h });
     return `[[image:${id}]]`;
   } catch (e) { await supabase.storage.from(BUCKET).remove([path]).catch(() => {}); throw e; }

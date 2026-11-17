@@ -1,7 +1,8 @@
 // Fan arts des membres : accès aux données (Supabase), préparation des images, partage dans la messagerie.
 import { supabase } from "./supabase.js";
 import { ME } from "./state.js";
-import { setFanartResolver, setTokenPreparer } from "./safety.js";
+import { setFanartResolver, setTokenPreparer, isAdultMe } from "./safety.js";
+import { scanImage, NSFW } from "./nsfw.js";
 
 export const FA = { cache: new Map(), missing: false };
 const call = async q => { const r = await q; if (r.error) throw r.error; return r.data; };
@@ -61,12 +62,18 @@ export async function prepareImage(file) {
 export async function tagsTop() { try { return await call(supabase.rpc("fanart_tags_top", { n: 30 })); } catch { return []; } }
 export async function publishFanart(file, { title, description, credit, source_url, tags, adult, character_id, anime_id }) {
   const img = await prepareImage(file);
+  // analyse automatique : une image à caractère sexuel doit être marquée 18+ (et un mineur ne peut pas la publier)
+  const ai = await scanImage(img.blob);
+  if (ai && ai.score >= NSFW.ADULT && !adult) throw new Error(isAdultMe() ? "nsfw_adult" : "nsfw");
   const path = `${ME.user.id}/${crypto.randomUUID()}.${img.ext}`;
   const up = await supabase.storage.from("fanarts").upload(path, img.blob, { contentType: img.type, upsert: false });
   if (up.error) throw up.error;
   try {
-    const row = await call(supabase.from("fanarts").insert({ path, width: img.w, height: img.h, title, description: description || null, character_id: character_id || null, anime_id: anime_id || null,
-      ...(credit ? { credit } : {}), ...(source_url ? { source_url } : {}), ...(tags && tags.length ? { tags } : {}), ...(adult ? { adult: true } : {}) }).select("id").single());
+    const fields = { path, width: img.w, height: img.h, title, description: description || null, character_id: character_id || null, anime_id: anime_id || null,
+      ...(credit ? { credit } : {}), ...(source_url ? { source_url } : {}), ...(tags && tags.length ? { tags } : {}), ...(adult ? { adult: true } : {}) };
+    let row;
+    try { row = await call(supabase.from("fanarts").insert(ai ? { ...fields, ai_score: +ai.score.toFixed(3) } : fields).select("id").single()); }
+    catch (e) { if (!/PGRST204|ai_score/.test((e.code || "") + (e.message || ""))) throw e; row = await call(supabase.from("fanarts").insert(fields).select("id").single()); }
     FA.cache.set(row.id, { id: row.id, path, url: fanartUrl(path), title, status: "pending", username: (ME.profile && ME.profile.username) || "Moi", mine: true });
     return row.id;
   } catch (e) { await supabase.storage.from("fanarts").remove([path]).catch(() => {}); throw e; }

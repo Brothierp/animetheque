@@ -126,6 +126,7 @@ begin
 end $$;
 
 -- File de vérification pour l'administrateur (conversations avec un mineur).
+drop function if exists public.admin_chat_images(text);
 create or replace function public.admin_chat_images(p_status text default 'pending')
 returns table (id uuid, path text, status text, created_at timestamptz, sender uuid, sender_name text, sender_adult boolean,
                recipient uuid, recipient_name text, recipient_adult boolean)

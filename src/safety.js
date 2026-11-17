@@ -148,7 +148,9 @@ export function checkUpload(v, sourceRe) {
 }
 export const uploadError = err => {
   const m = (err && err.message) || "";
-  return m === "format" ? "Ce fichier n'est pas une image lisible (essaie en JPEG ou PNG)." : m === "size" ? "Image trop lourde (25 Mo maximum)." : null;
+  return m === "format" ? "Ce fichier n'est pas une image lisible (essaie en JPEG ou PNG)." : m === "size" ? "Image trop lourde (25 Mo maximum)."
+    : m === "nsfw" ? "🤖 L'analyse automatique a repéré une image à caractère sexuel : elle ne peut pas être envoyée ici."
+    : m === "nsfw_adult" ? "🤖 L'analyse automatique pense que cette image est réservée aux adultes : coche « Contenu 18+ » pour la publier." : null;
 };
 
 export function sharePicker(extra, upload) {

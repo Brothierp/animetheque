@@ -140,7 +140,7 @@ async function renderChatImages(el) {
   $("admFa").innerHTML = `<p class="hint">Images envoyées dans une conversation où participe un mineur. Elles restent privées : seul le destinataire les verra si tu les valides. Entre deux majeurs, les images s'affichent sans vérification.</p>`
     + (L.length ? `<div class="adm-fa">${L.map(r => `<article class="afa" data-id="${r.id}">
       <a href="${esc(r.url)}" target="_blank" rel="noopener"><img src="${esc(r.url)}" alt="" loading="lazy"></a>
-      <div><p><b>${esc(r.sender_name || "Membre")}</b> <span class="hint">(${r.sender_adult ? "majeur" : "mineur"})</span> → <b>${esc(r.recipient_name || "Membre")}</b> <span class="hint">(${r.recipient_adult ? "majeur" : "mineur"})</span></p>
+      <div><p>${r.ai_score != null ? `<span class="ai-sc${r.ai_score >= 0.5 ? " hi" : ""}" title="Analyse automatique avant l'envoi">🤖 ${Math.round(r.ai_score * 100)} % suspect</span>` : ""} <b>${esc(r.sender_name || "Membre")}</b> <span class="hint">(${r.sender_adult ? "majeur" : "mineur"})</span> → <b>${esc(r.recipient_name || "Membre")}</b> <span class="hint">(${r.recipient_adult ? "majeur" : "mineur"})</span></p>
         <p class="hint">${new Date(r.created_at).toLocaleString("fr-FR")}</p>
         <div class="rep-act"><button type="button" class="btn sm primary" data-ci="approved">✓ Afficher au destinataire</button><button type="button" class="btn sm" data-ci="rejected">Refuser</button><button type="button" class="btn sm danger-o" data-ci="del">Supprimer</button></div></div></article>`).join("")}</div>`
       : `<div class="empty"><p>Aucune image en attente 👍</p></div>`);
@@ -169,7 +169,7 @@ async function renderFanarts(el) {
   const what = f => [f.character_id && charById.get(f.character_id) ? "🧑 " + (charById.get(f.character_id).name) : "", f.anime_id && byId.get(f.anime_id) ? "🎬 " + titleOf(byId.get(f.anime_id)) : ""].filter(Boolean).join(" · ");
   $("admFa").innerHTML = L.length ? `<div class="adm-fa">${L.map(f => `<article class="afa" data-id="${f.id}">
       <a href="${esc(f.url)}" target="_blank" rel="noopener"><img src="${esc(f.url)}" alt="" loading="lazy"></a>
-      <div><b>${esc(f.title)}</b><p class="hint">par <b>${esc(f.username || "Membre")}</b> (${esc(f.email || "")}) · ${new Date(f.created_at).toLocaleString("fr-FR")}</p>
+      <div><b>${esc(f.title)}</b> ${f.ai_score != null ? `<span class="ai-sc${f.ai_score >= 0.5 ? " hi" : ""}" title="Analyse automatique avant l'envoi">🤖 ${Math.round(f.ai_score * 100)} % suspect</span>` : ""}<p class="hint">par <b>${esc(f.username || "Membre")}</b> (${esc(f.email || "")}) · ${new Date(f.created_at).toLocaleString("fr-FR")}</p>
         ${f.adult ? `<p><span class="fa-18 inline">18+</span> marqué 18+ par l'auteur : visible seulement par les majeurs connectés</p>` : ""}${f.tags && f.tags.length ? `<p class="hint">${f.tags.map(t => "#" + esc(t)).join(" ")}</p>` : ""}${f.credit ? `<p>🎨 Artiste crédité : <b>${esc(f.credit)}</b></p>` : ""}${f.source_url ? `<p>Source : <a href="${esc(f.source_url)}" target="_blank" rel="noopener noreferrer nofollow">${esc(f.source_url)}</a></p>` : ""}${what(f) ? `<p>${esc(what(f))}</p>` : ""}${f.description ? `<p>${esc(f.description)}</p>` : ""}${f.reject_reason ? `<p class="hint">Motif du refus : ${esc(f.reject_reason)}</p>` : ""}
         <div class="rep-act">${f.status !== "approved" ? `<button type="button" class="btn sm primary" data-fa="ok">✓ Publier</button>` : ""}
           ${f.status !== "rejected" ? `<button type="button" class="btn sm" data-fa="no">Refuser…</button>` : ""}
