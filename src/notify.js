@@ -26,6 +26,8 @@ function text(n) {
     case "fanart_approved": return ["Ton fan art a été publié dans la galerie", `#/fanarts/${n.ref}`, "🎨"];
     case "fanart_rejected": return ["Ton fan art n'a pas été accepté (motif dans « Mes fan arts »)", "#/fanarts/mes", "🎨"];
     case "feedback_reply": return ["L'administrateur a répondu à ta suggestion", "#/compte", "💡"];
+    case "episode_reply": { const [aid, ep] = String(n.ref || "").split(":"); const a = byId.get(+aid);
+      return [`${who} t'a répondu sur l'épisode ${esc(ep)}${a ? ` de <b>${esc(titleOf(a))}</b>` : ""}`, `#/anime/${aid}`, "💬"]; }
     case "chat_image": return [`Une image envoyée par ${who} est maintenant visible`, `#/amis/chat/${n.actor}`, "🖼️"];
     default: return ["Nouvelle notification", "#/", "🔔"];
   }

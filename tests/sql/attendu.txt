@@ -210,3 +210,13 @@ Inès voit : Hugo status_watching, Hugo rating, Hugo favorite, Hugo status_watch
 Alice (pas amie) voit : 0
 Alice lit les notifications d'Hugo : 0
 Felix notifié : friend_request,fanart_approved,chat_image,fanart_rejected
+--- discussions par épisode
+Hugo publie sur l'épisode 7
+fil épisode 7 : Hugo, Ines (réponse)
+Hugo notifié : episode_reply 21:7
+visiteur lit : 2
+compteurs : 7=2
+ERROR:  too_young
+ERROR:  language
+message signalé : Épisode 7 : Cet épisode est incroyable, la fin m'a surpris
+Inès supprime le message d'Hugo : 1 restant(s)

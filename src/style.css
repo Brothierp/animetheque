@@ -920,3 +920,26 @@ img[src*="nocookie.net"] { object-position: 50% 10% }
 .install-bar { position: fixed; left: 12px; right: 12px; bottom: 16px; z-index: 45; display: flex; gap: 10px; align-items: center; max-width: 620px; margin: 0 auto; padding: 10px 12px 10px 16px; border: 1px solid var(--line); border-radius: 16px; background: linear-gradient(180deg, var(--panel-2), var(--panel)); box-shadow: 0 16px 50px rgba(0, 0, 0, .5); font-size: 13.5px; line-height: 1.35 }
 .install-bar span { flex: 1 }
 @media (max-width: 900px) { .install-bar { bottom: calc(70px + env(safe-area-inset-bottom, 0px)) } }
+
+/* ---------- Discussions par épisode ---------- */
+.d-eps { margin-bottom: 28px }
+.ep-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(54px, 1fr)); gap: 6px; max-height: 236px; overflow-y: auto; padding: 2px }
+.ep { display: grid; place-items: center; gap: 1px; padding: 7px 4px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); color: var(--ink); font: inherit; cursor: pointer; min-height: 48px }
+.ep b { font: 700 15px var(--display) } .ep small { font-size: 10.5px; color: var(--muted) }
+.ep:hover { border-color: var(--violet) }
+.ep.has { border-color: var(--violet-soft); background: linear-gradient(180deg, var(--violet-soft), var(--panel)) }
+.ep.locked { opacity: .55; background: var(--bg-2) }
+.ep.on { background: var(--accent); border-color: var(--accent); color: var(--accent-ink) } .ep.on small { color: var(--accent-ink) }
+.ep-th { margin-top: 14px; padding: 14px; border: 1px solid var(--line); border-radius: 16px; background: var(--panel) }
+.ep-th-h { display: flex; gap: 10px; align-items: baseline; margin-bottom: 10px } .ep-th-h .x { margin-left: auto }
+.ep-posts { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 10px; max-height: 480px; overflow-y: auto }
+.ep-post { padding: 10px 12px; border-radius: 12px; background: var(--bg-2) }
+.ep-post.mine { background: color-mix(in srgb, var(--violet-soft) 70%, var(--bg-2)) }
+.ep-meta { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; font-size: 13px } .ep-meta time { color: var(--muted); font-size: 12px }
+.ep-act { margin-left: auto; display: flex; gap: 10px } .ep-act .linkbtn { font-size: 12px }
+.ep-post p { margin: 6px 0 0; line-height: 1.5; overflow-wrap: anywhere }
+.ep-q { margin: 6px 0 0; padding: 4px 10px; border-left: 3px solid var(--violet); color: var(--muted); font-size: 12.5px }
+.ep-form { display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap }
+.ep-form textarea { flex: 1; min-width: 200px; resize: vertical; padding: 9px 11px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); color: var(--ink); font: inherit }
+.ep-form textarea:focus { border-color: var(--accent); outline: none }
+.ep-rep { width: 100%; margin: 0; font-size: 12.5px; color: var(--muted) }

@@ -141,7 +141,7 @@ async function reportFlow(uid, { messageId }) {
 }
 
 // ---------- Activité des amis ----------
-const ACT = { status_watched: "a terminé", status_watching: "a commencé", rating: "a noté", favorite: "a eu un coup de cœur pour", fanart: "a publié un fan art", comment: "a donné son avis sur" };
+const ACT = { episode_post: "a discuté d'un épisode de", status_watched: "a terminé", status_watching: "a commencé", rating: "a noté", favorite: "a eu un coup de cœur pour", fanart: "a publié un fan art", comment: "a donné son avis sur" };
 async function renderActivity(el) {
   el.innerHTML = page("activite", `<div id="act"><p class="loading">Chargement…</p></div>`);
   let L;

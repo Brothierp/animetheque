@@ -7,6 +7,7 @@ import { attachTranslate } from "../translate.js";
 import { toast } from "../toast.js";
 import { mountComments, refreshComments } from "../comments.js";
 import { fetchLive, liveHTML, bindTrailer } from "../live.js";
+import { mountEpisodes, refreshEpisodes } from "../episodes.js";
 
 let el = null, curId = null, onCloseCb = null;
 const ROLE = { M: "Principal", S: "Secondaire", B: "Figurant" };
@@ -91,6 +92,7 @@ function html(a) {
       ${orderHTML(a)}
       ${a.hasDesc ? `<section><h2>Synopsis</h2><p class="syn" id="dSyn">${a.desc ? esc(a.desc) : `<span class="hint">Chargement…</span>`}</p></section>` : ""}
       <section><h2>Personnages</h2><div id="dChars">${chars || (ready.chars ? `<p class="hint">Aucun personnage référencé.</p>` : `<p class="hint">Chargement…</p>`)}</div></section>
+      <section class="d-eps" id="dEpisodes"></section>
       <section class="d-cms" id="dComments"></section>
     </div>
     <aside class="d-side">
@@ -122,7 +124,9 @@ export function openDetail(id, onClose) {
   panel.focus({ preventScroll: true });
   setTimeout(() => { if (curId === id) $("dSim").innerHTML = row("Dans le même esprit", similar(a, 14, adultAllowed())); }, 30);
   mountComments($("dComments"), id);
-  fetchLive(id).then(m => { const b = curId === id && $("dLive"); if (b) b.innerHTML = liveHTML(m); });
+  const liveP = fetchLive(id);
+  liveP.then(m => { const b = curId === id && $("dLive"); if (b) b.innerHTML = liveHTML(m); });
+  mountEpisodes($("dEpisodes"), id, liveP);
   if (a.desc && $("dSyn") && !a.ext) attachTranslate($("dSyn"), "a" + a.id);
   if ((a.hasDesc && a.desc == null) || (a.nPlats && !a.plats)) loadDetails(a).then(() => {
     if (curId !== id) return;
@@ -182,7 +186,7 @@ onChange((what, id) => {
   if (what === "entry" && id === curId) {
     // ne pas effacer un commentaire en cours de saisie
     const t = $("cm"), draft = t && document.activeElement === t ? t.value : null;
-    renderMine();
+    renderMine(); refreshEpisodes();
     if (draft != null) { const n = $("cm"); n.value = draft; n.focus(); $("cmSave").hidden = draft.trim() === (ent(curId).c || ""); }
   } else if (["session", "collection", "lists", "profile"].includes(what)) { renderMine(); if (what !== "lists") refreshComments(); }
 });
