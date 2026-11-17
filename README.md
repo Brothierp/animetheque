@@ -69,7 +69,7 @@ note minimale, studio, œuvre d'origine, pays.
    `20261112000000_progress_fav_characters.sql` (épisodes vus, personnages favoris), `20261112010000_admin.sql` (rôle admin),
    `20261116000000_social.sql` (suggestions, amis, messagerie, listes partagées, signalements),
    `20261116010000_safety_comments.sql` (amitiés majeurs / mineurs protégées, analyse automatique, avis sous les animés,
-   langues autorisées) et `20261116020000_fanarts.sql` (galerie de fan arts modérée), `20261117000000_fanart_credit.sql` (crédit des artistes, pseudos décorés) et `20261117010000_fanart_source.sql` (lien vers la source des fan arts) et `20261117020000_fanart_tags.sql` (étiquettes et 18+). Ou `supabase link` puis `supabase db push` avec la CLI.
+   langues autorisées) et `20261116020000_fanarts.sql` (galerie de fan arts modérée), `20261117000000_fanart_credit.sql` (crédit des artistes, pseudos décorés) et `20261117010000_fanart_source.sql` (lien vers la source des fan arts) et `20261117020000_fanart_tags.sql` (étiquettes et 18+) et `20261117030000_chat_images.sql` (images privées dans les conversations). Ou `supabase link` puis `supabase db push` avec la CLI.
    Les scripts peuvent être relancés sans risque.
 3. **Authentication → Sign In / Providers**
    - *Email* : activé. Garde « Confirm email » activé (recommandé). Règle la longueur minimale du mot de passe à 8.

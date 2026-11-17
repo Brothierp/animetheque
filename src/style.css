@@ -854,3 +854,11 @@ dialog#auth > .hint { margin: 0 0 16px }
 .adult-chk { padding: 8px 10px; border: 1px solid var(--ex-soft); border-radius: 10px; background: linear-gradient(90deg, var(--ex-soft), transparent) }
 .bn-svg { width: 20px; height: 20px; display: block; margin: 2px auto 1px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linejoin: round; stroke-linecap: round }
 .bn-svg circle { fill: currentColor; stroke: none }
+
+/* ---------- Images privées des conversations ---------- */
+.sh-img { position: relative; display: block; width: min(240px, 62vw); min-height: 60px; margin: 2px 0; border-radius: 12px; overflow: hidden; background: var(--bg-2); line-height: 0 }
+.sh-img img { width: 100%; height: auto; max-height: 360px; object-fit: cover; display: block }
+.sh-pend { position: absolute; left: 6px; right: 6px; bottom: 6px; line-height: 1.3; font-size: 11.5px; padding: 4px 8px; border-radius: 8px; background: rgba(10, 6, 20, .85); color: var(--accent) }
+.sh-img.none { display: grid; gap: 2px; padding: 10px 12px; line-height: 1.35; font-size: 13px; color: var(--muted); border: 1px dashed var(--line) }
+.sh-img.none em { font-style: normal; font-size: 11.5px }
+.msg .bub:has(> .sh-img:only-child) { padding: 4px }

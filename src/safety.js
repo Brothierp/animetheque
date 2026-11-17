@@ -1,5 +1,5 @@
 // Prévention (amitiés majeur / mineur) et partage d'images dans la messagerie : fiches d'animés, personnages,
-// fan arts. Une image envoyée depuis l'appareil devient un fan art, vérifié par l'administrateur avant d'être visible.
+// fan arts de la galerie, et images envoyées depuis l'appareil (privées : elles restent dans la conversation).
 import { A, byId, norm, titleOf, hdUrl, loadCatalogue } from "./data.js";
 import { ME, adultAllowed } from "./state.js";
 import { esc } from "./ui.js";
@@ -44,14 +44,16 @@ export const mixedBanner = () => `<div class="safe-ban" role="note">🛡️ <spa
 
 // ---------- Partage d'images du site ----------
 // Un message peut contenir [[anime:123]], [[perso:456]] ou [[fanart:<uuid>]] : affichés comme des cartes.
-const TOKEN = /\[\[(anime|perso|fanart):([0-9a-f-]{1,36})\]\]/g;
+const TOKEN = /\[\[(anime|perso|fanart|image):([0-9a-f-]{1,36})\]\]/g;
 export const hasTokens = s => /\[\[(anime|perso|fanart):/.test(s || "");
-export const tokenPreview = s => (s || "").replace(TOKEN, (_, k) => ({ anime: "🎬 Animé partagé", perso: "🧑 Personnage partagé", fanart: "🎨 Fan art partagé" })[k]);
+export const tokenPreview = s => (s || "").replace(TOKEN, (_, k) => ({ anime: "🎬 Animé partagé", perso: "🧑 Personnage partagé", fanart: "🎨 Fan art partagé", image: "🖼️ Image" })[k]);
 
 let fanartResolver = () => null;
 export const setFanartResolver = fn => { fanartResolver = fn; };
-let extraPrep = async () => {};
-export const setTokenPreparer = fn => { extraPrep = fn; };
+const preparers = [];
+export const setTokenPreparer = fn => { preparers.push(fn); };
+let imageResolver = () => null;
+export const setImageResolver = fn => { imageResolver = fn; };
 
 function shareCard(kind, id) {
   if (kind === "anime") {
@@ -64,6 +66,13 @@ function shareCard(kind, id) {
     const a = mainAnime(c, adultAllowed());
     return `<a class="sh-card" href="#/personnage/${c.id}">${imgUrl(c) ? `<img src="${esc(imgUrl(c))}" alt="" loading="lazy" referrerpolicy="no-referrer">` : ""}<span><small>Personnage</small><b>${esc(c.name || c.native)}</b>${a ? `<em>${esc(titleOf(a))}</em>` : ""}</span></a>`;
   }
+  if (kind === "image") {
+    const im = imageResolver(id);
+    if (!im) return `<span class="sh-img none">🖼️ Image indisponible</span>`;
+    if (im.status === "rejected") return `<span class="sh-img none">🚫 Image refusée par la modération</span>`;
+    if (!im.url) return `<span class="sh-img none">⏳ Image en cours de vérification<em>conversation avec un·e mineur·e : elle s'affichera après validation</em></span>`;
+    return `<a class="sh-img" href="${esc(im.url)}" target="_blank" rel="noopener"><img src="${esc(im.url)}" alt="Image partagée" loading="lazy"${im.w && im.h ? ` style="aspect-ratio:${im.w}/${im.h}"` : ""}>${im.status === "pending" ? `<span class="sh-pend">⏳ visible par ton ami après vérification</span>` : ""}</a>`;
+  }
   const f = fanartResolver(id);
   return f ? `<a class="sh-card fan" href="#/fanarts/${esc(id)}">${f.url ? `<img src="${esc(f.url)}" alt="" loading="lazy">` : ""}<span><small>${f.pending ? "Image · en vérification ⏳" : "Fan art"}</small><b>${esc(f.title)}</b>${f.pending ? `<em>visible par ton ami après validation</em>` : f.by ? `<em>par ${esc(f.by)}</em>` : ""}</span></a>`
     : `<a class="sh-card" href="#/fanarts/${esc(id)}"><span><small>Image</small><b>En cours de vérification</b><em>bientôt visible</em></span></a>`;
@@ -75,7 +84,7 @@ export function messageHTML(body) {
 /** Les personnages partagés doivent être chargés pour afficher leur carte. */
 export async function prepareTokens(bodies) {
   const need = bodies.some(b => /\[\[perso:/.test(b || ""));
-  await Promise.all([need ? loadCharacters().catch(() => {}) : null, extraPrep(bodies).catch(() => {})]);
+  await Promise.all([need ? loadCharacters().catch(() => {}) : null, ...preparers.map(fn => fn(bodies).catch(() => {}))]);
 }
 
 /** Fenêtre « Partager un animé ou un personnage » ; renvoie le jeton à envoyer, ou null. */
@@ -83,10 +92,15 @@ export const TAG_SUGGEST = ["fan art", "chibi", "croquis", "aquarelle", "digital
 export const parseTags = s => [...new Set((s || "").split(/[,;\n]+/).map(t => t.trim().replace(/^#+/, "").toLowerCase().slice(0, 24)).filter(t => t.length >= 2 && !["18+", "+18", "nsfw", "18"].includes(t)))].slice(0, 8);
 
 /** Formulaire d'envoi d'une image depuis l'appareil (galerie du téléphone, fichiers de l'ordinateur). */
-export function uploadFormHTML(id) {
+export function uploadFormHTML(id, { simple = false } = {}) {
+  const drop = `<label class="fa-drop up-drop"><input type="file" accept="image/*" hidden data-up="file">
+      <span data-up="prev"><b>📁 Choisir une image</b><small>Galerie du téléphone ou fichier de l'ordinateur · tu peux aussi la coller (Ctrl+V) ou la glisser ici</small></span></label>`;
+  if (simple) return `<form class="up-form" id="${id}" novalidate>${drop}
+    <label class="chk"><input type="checkbox" data-up="ok"><span>Ce n'est <b>pas une photo personnelle</b> (de moi ou d'une vraie personne) et rien de choquant${isAdultMe() ? "" : " ni d'adulte"}.</span></label>
+    <p class="hint up-note">L'image reste dans cette conversation : seuls toi et ton ami la voyez. Si l'un de vous est mineur, elle est vérifiée par l'administrateur avant de s'afficher chez ton ami.</p>
+  </form>`;
   return `<form class="up-form" id="${id}" novalidate>
-    <label class="fa-drop up-drop"><input type="file" accept="image/*" hidden data-up="file">
-      <span data-up="prev"><b>📁 Choisir une image</b><small>Galerie du téléphone ou fichier de l'ordinateur · tu peux aussi la coller (Ctrl+V) ou la glisser ici</small></span></label>
+    ${drop}
     <label>Titre <input type="text" data-up="title" maxlength="80" required placeholder="Ex. : Frieren sous les étoiles"></label>
     <label><span>Artiste <small class="hint">(si ce n'est pas ton dessin)</small></span><input type="text" data-up="credit" maxlength="80" placeholder="Pseudo de l'artiste (symboles acceptés)"></label>
     <label><span>Lien vers la source <small class="hint">(facultatif)</small></span><input type="url" data-up="source" maxlength="300" inputmode="url" placeholder="https://www.pinterest.fr/pin/…  ·  DeviantArt, ArtStation, Pixiv…"></label>
@@ -94,7 +108,7 @@ export function uploadFormHTML(id) {
     <div class="tag-sug" aria-label="Étiquettes suggérées">${TAG_SUGGEST.map(t => `<button type="button" class="tchip" data-addtag="${esc(t)}">+ ${esc(t)}</button>`).join("")}</div>
     ${isAdultMe() ? `<label class="chk adult-chk"><input type="checkbox" data-up="adult"><span>🔞 <b>Contenu 18+</b> (nudité, ecchi, violence…) : visible seulement par les membres majeurs connectés, jamais par les mineurs ni les visiteurs. Aucun personnage mineur ou d'apparence mineure.</span></label>` : ""}
     <label class="chk"><input type="checkbox" data-up="ok"><span>C'est un <b>dessin ou une illustration</b> (le mien, ou celui d'un artiste que je crédite), sans <b>vraie personne</b>${isAdultMe() ? " ; tout contenu adulte est marqué 18+" : " ni contenu adulte, violent ou choquant"}.</span></label>
-    <p class="hint up-note">Chaque image est vérifiée par l'administrateur avant d'être visible (en général sous 48 h). Elle rejoint aussi la galerie Fan arts.</p>
+    <p class="hint up-note">Chaque fan art est vérifié par l'administrateur avant d'être visible dans la galerie (en général sous 48 h).</p>
   </form>`;
 }
 /** Branche le formulaire : glisser-déposer, coller, aperçu ; renvoie une fonction qui lit les champs. */
@@ -105,11 +119,12 @@ export function bindUploadForm(form, { onPick } = {}) {
     if (!f || (f.type && !f.type.startsWith("image/"))) return;
     file = f; const u = URL.createObjectURL(f);
     $u("prev").innerHTML = `<img src="${u}" alt=""><small>${esc(f.name || "image collée")} · cliquer pour changer</small>`;
-    if (!$u("title").value && f.name) $u("title").value = f.name.replace(/\.[a-z0-9]+$/i, "").replace(/[_-]+/g, " ").slice(0, 80);
+    if ($u("title") && !$u("title").value && f.name) $u("title").value = f.name.replace(/\.[a-z0-9]+$/i, "").replace(/[_-]+/g, " ").slice(0, 80);
     if (onPick) onPick(f);
   };
   $u("file").addEventListener("change", e => pick(e.target.files[0]));
-  form.querySelector(".tag-sug").addEventListener("click", e => {
+  const sug = form.querySelector(".tag-sug");
+  if (sug) sug.addEventListener("click", e => {
     const b = e.target.closest("[data-addtag]"); if (!b) return;
     const L = parseTags($u("tags").value); if (!L.includes(b.dataset.addtag) && L.length < 8) L.push(b.dataset.addtag);
     $u("tags").value = L.join(", "); b.hidden = true;
@@ -120,12 +135,13 @@ export function bindUploadForm(form, { onPick } = {}) {
   drop.addEventListener("drop", e => { e.preventDefault(); drop.classList.remove("over"); pick(e.dataTransfer.files[0]); });
   const paste = e => { const it = [...(e.clipboardData && e.clipboardData.items || [])].find(x => x.type.startsWith("image/")); if (it) { e.preventDefault(); pick(it.getAsFile()); } };
   (form.closest("dialog") || document).addEventListener("paste", paste);
-  return () => ({ file, title: $u("title").value.trim(), credit: $u("credit").value.trim(), source_url: $u("source").value.trim(), tags: parseTags($u("tags").value), adult: !!($u("adult") && $u("adult").checked), ok: $u("ok").checked });
+  const val = k => ($u(k) ? $u(k).value.trim() : "");
+  return () => ({ file, simple: !$u("title"), title: val("title"), credit: val("credit"), source_url: val("source"), tags: parseTags(val("tags")), adult: !!($u("adult") && $u("adult").checked), ok: $u("ok").checked });
 }
 /** Vérifie les champs ; renvoie un message d'erreur ou null. */
 export function checkUpload(v, sourceRe) {
   if (!v.file) return "Choisis une image 🙂";
-  if (v.title.length < 2) return "Donne un titre à l'image";
+  if (!v.simple && v.title.length < 2) return "Donne un titre à l'image";
   if (v.source_url && !sourceRe.test(v.source_url)) return "Lien de source non accepté : Pinterest, DeviantArt, ArtStation, Pixiv, X, Instagram, Tumblr, Bluesky, Reddit ou Behance (adresse en https://).";
   if (!v.ok) return "Coche la case de certification pour continuer";
   return null;
@@ -138,11 +154,11 @@ export const uploadError = err => {
 export function sharePicker(extra, upload) {
   return new Promise(res => {
     const d = dialog(`<h2>🖼️ Partager une image</h2>
-      <p class="hint">${upload ? "Envoie une image de ton téléphone ou de ton ordinateur (fan art, dessin…), ou partage une fiche du site." : `Partage la fiche d'un animé, d'un personnage${extra ? " ou un fan art validé" : ""}.`} Pas de photos personnelles : on partage des dessins et des illustrations.</p>
+      <p class="hint">${upload ? "Envoie une image de ton téléphone ou de ton ordinateur (fan art, dessin, capture d'animé…), ou partage une fiche du site." : `Partage la fiche d'un animé, d'un personnage${extra ? " ou un fan art de la galerie" : ""}.`}</p>
       <div class="sp-tabs" role="tablist">${[...(upload ? [["device", "📁 Mon appareil"]] : []), ["anime", "Animé"], ["perso", "Personnage"], ...(extra ? [["fanart", "Fan art"]] : [])].map(([k, v], i) => `<button type="button" data-k="${k}" class="${i ? "" : "on"}">${v}</button>`).join("")}</div>
       <div class="sp-pick"><input type="search" class="sp-q" placeholder="Rechercher…" autocomplete="off" aria-label="Rechercher">
       <div class="sp-res"></div></div>
-      ${upload ? `<div class="sp-up" hidden>${uploadFormHTML("spUp")}</div>` : ""}
+      ${upload ? `<div class="sp-up" hidden>${uploadFormHTML("spUp", { simple: true })}</div>` : ""}
       <p class="imp-err sp-err" hidden></p>
       <div class="fb-act"><button type="button" class="btn" data-x>Fermer</button>${upload ? `<button type="button" class="btn primary" data-send hidden>Envoyer l'image</button>` : ""}</div>`);
     let kind = upload ? "device" : "anime", out = null, t;

@@ -71,7 +71,7 @@ create or replace function public.messages_safety() returns trigger
 language plpgsql security definer set search_path = '' as $$
 declare
   -- les fiches partagées du site ([[anime:12]], [[perso:34]], [[fanart:<id>]]) ne comptent pas
-  b text := regexp_replace(coalesce(new.body, ''), '\[\[(anime|perso|fanart):[0-9a-f-]{1,36}\]\]', ' ', 'g');
+  b text := regexp_replace(coalesce(new.body, ''), '\[\[(anime|perso|fanart|image):[0-9a-f-]{1,36}\]\]', ' ', 'g');
   raw text := lower(b);
   t text := public.safety_text(b);
   digits text := regexp_replace(b, '[^0-9]', '', 'g');

@@ -7,7 +7,9 @@ import { SOC, onSocial, adminFeedback, feedbackReplies, replyFeedback, setFeedba
 import { KIND, STATUS, threadHTML } from "../feedback.js";
 import { deleteComment } from "../social.js";
 import { adminFanarts, updateFanart, deleteFanart, adminPending } from "../fanart-api.js";
+import { adminChatImages, adminPendingChatImages, reviewChatImage, deleteChatImage } from "../chat-images.js";
 import { byId, titleOf } from "../data.js";
+import { messageHTML, prepareTokens } from "../safety.js";
 import { charById, loadCharacters } from "../chars.js";
 
 let pendingFa = 0;
@@ -77,7 +79,7 @@ const admTabs = () => {
     <a href="#/admin" class="${tab === "comptes" ? "on" : ""}">👤 Comptes</a>
     <a href="#/admin/suggestions" class="${tab === "suggestions" ? "on" : ""}">💡 Suggestions${c.admin_feedback ? ` <span class="nb">${c.admin_feedback}</span>` : ""}</a>
     <a href="#/admin/signalements" class="${tab === "signalements" ? "on" : ""}">🚩 Signalements${c.admin_reports ? ` <span class="nb">${c.admin_reports}</span>` : ""}</a>
-    <a href="#/admin/fanarts" class="${tab === "fanarts" ? "on" : ""}">🎨 Fan arts${pendingFa ? ` <span class="nb">${pendingFa}</span>` : ""}</a></nav>`;
+    <a href="#/admin/fanarts" class="${tab === "fanarts" ? "on" : ""}">🎨 Images${pendingFa + pendingChat ? ` <span class="nb">${pendingFa + pendingChat}</span>` : ""}</a></nav>`;
 };
 
 // ---------- Suggestions ----------
@@ -112,10 +114,11 @@ async function renderReports(el) {
   el.innerHTML = `<div class="page"><div class="cat-top"><div><h1>Administration</h1><div class="count">Signalements : tu ne vois que le message signalé, jamais la conversation.</div></div></div>${admTabs()}<div id="admRep"><p class="loading">Chargement…</p></div></div>`;
   if (SOC.enabled === false) { $("admRep").innerHTML = `<div class="empty"><p>Lance le script SQL 20261116000000 pour recevoir les signalements.</p></div>`; return; }
   const L = await adminReports();
+  await prepareTokens(L.map(r => r.excerpt || ""));
   $("admRep").innerHTML = L.length ? `<div class="rep-list">${L.map(r => `<article class="rep${r.handled ? " done" : ""}${r.auto ? " auto" : ""}" data-id="${r.id}" data-c="${r.comment_id || ""}">
       ${r.auto ? `<p><span class="rep-auto">🛡️ Détection automatique</span> <b>${esc(CAT[r.category] || r.category || "")}</b> · message de <b>${esc(r.target_name || "Membre")}</b> <span class="hint">(${esc(r.target_email || "")})</span> dans une conversation majeur / mineur · <span class="hint">${new Date(r.created_at).toLocaleString("fr-FR")}</span></p>`
         : `<p><b>${esc(r.reporter_name || "Membre")}</b> <span class="hint">(${esc(r.reporter_email || "")})</span> signale ${r.comment_id ? "l'avis de" : r.fanart_id ? "le fan art de" : ""} <b>${esc(r.target_name || "Membre")}</b> <span class="hint">(${esc(r.target_email || "")})</span> · <span class="hint">${new Date(r.created_at).toLocaleString("fr-FR")}</span></p>
-      <p>Motif : ${esc(r.reason)}</p>`}${r.excerpt ? `<blockquote>${esc(r.excerpt)}</blockquote>` : ""}
+      <p>Motif : ${esc(r.reason)}</p>`}${r.excerpt ? `<blockquote>${messageHTML(r.excerpt)}</blockquote>` : ""}
       <div class="rep-act"><button type="button" class="btn sm" data-h="${r.handled ? 0 : 1}">${r.handled ? "Rouvrir" : "Marquer comme traité"}</button>
       ${r.comment_id ? `<button type="button" class="btn sm danger-o" data-delc>Supprimer l'avis</button>` : ""}
       ${r.fanart_id ? `<a class="btn sm" href="#/fanarts/${r.fanart_id}">Voir le fan art</a>` : ""}</div></article>`).join("")}</div>
@@ -129,12 +132,37 @@ async function renderReports(el) {
   });
 }
 
+// ---------- Images des conversations avec un mineur ----------
+let pendingChat = 0;
+async function renderChatImages(el) {
+  let L;
+  try { L = await adminChatImages("pending"); } catch { $("admFa").innerHTML = `<div class="empty"><p>Lance le script SQL 20261117030000 pour activer les images dans les conversations.</p></div>`; return; }
+  $("admFa").innerHTML = `<p class="hint">Images envoyées dans une conversation où participe un mineur. Elles restent privées : seul le destinataire les verra si tu les valides. Entre deux majeurs, les images s'affichent sans vérification.</p>`
+    + (L.length ? `<div class="adm-fa">${L.map(r => `<article class="afa" data-id="${r.id}">
+      <a href="${esc(r.url)}" target="_blank" rel="noopener"><img src="${esc(r.url)}" alt="" loading="lazy"></a>
+      <div><p><b>${esc(r.sender_name || "Membre")}</b> <span class="hint">(${r.sender_adult ? "majeur" : "mineur"})</span> → <b>${esc(r.recipient_name || "Membre")}</b> <span class="hint">(${r.recipient_adult ? "majeur" : "mineur"})</span></p>
+        <p class="hint">${new Date(r.created_at).toLocaleString("fr-FR")}</p>
+        <div class="rep-act"><button type="button" class="btn sm primary" data-ci="approved">✓ Afficher au destinataire</button><button type="button" class="btn sm" data-ci="rejected">Refuser</button><button type="button" class="btn sm danger-o" data-ci="del">Supprimer</button></div></div></article>`).join("")}</div>`
+      : `<div class="empty"><p>Aucune image en attente 👍</p></div>`);
+  $("admFa").onclick = async e => {
+    const b = e.target.closest("[data-ci]"); if (!b) return;
+    const r = L.find(x => x.id === b.closest(".afa").dataset.id);
+    try {
+      if (b.dataset.ci === "del") { if (!confirm("Supprimer définitivement cette image ?")) return; await deleteChatImage(r); toast("Image supprimée"); }
+      else { await reviewChatImage(r.id, b.dataset.ci); toast(b.dataset.ci === "approved" ? "Image affichée au destinataire" : "Image refusée"); }
+      pendingChat = await adminPendingChatImages(); renderFanarts(el);
+    } catch (err) { toast(socialError(err)); }
+  };
+}
+
 // ---------- Fan arts à valider ----------
 let faStatus = "pending";
 async function renderFanarts(el) {
   el.innerHTML = `<div class="page"><div class="cat-top"><div><h1>Administration</h1><div class="count">Fan arts : rien n'est publié sans ta validation.</div></div></div>${admTabs()}
-    <div class="sp-tabs adm-fst">${[["pending", "À vérifier"], ["approved", "Publiés"], ["rejected", "Refusés"]].map(([k, v]) => `<button type="button" data-fs="${k}" class="${faStatus === k ? "on" : ""}">${v}</button>`).join("")}</div>
+    <div class="sp-tabs adm-fst">${[["pending", "À vérifier"], ["approved", "Publiés"], ["rejected", "Refusés"], ["chat", `Images du chat${pendingChat ? ` (${pendingChat})` : ""}`]].map(([k, v]) => `<button type="button" data-fs="${k}" class="${faStatus === k ? "on" : ""}">${v}</button>`).join("")}</div>
     <div id="admFa"><p class="loading">Chargement…</p></div></div>`;
+  el.querySelector(".adm-fst").addEventListener("click", e => { const b = e.target.closest("[data-fs]"); if (b) { faStatus = b.dataset.fs; renderFanarts(el); } });
+  if (faStatus === "chat") return renderChatImages(el);
   let L;
   try { L = await adminFanarts(faStatus); } catch { $("admFa").innerHTML = `<div class="empty"><p>Lance le script SQL 20261116020000 pour activer les fan arts.</p></div>`; return; }
   if (L.some(f => f.character_id && !charById.has(f.character_id))) await loadCharacters().catch(() => {});
@@ -148,7 +176,6 @@ async function renderFanarts(el) {
           ${f.adult !== undefined ? `<button type="button" class="btn sm" data-fa="adult">${f.adult ? "Retirer 18+" : "🔞 Marquer 18+"}</button>` : ""}
           <button type="button" class="btn sm danger-o" data-fa="del">Supprimer</button></div></div></article>`).join("")}</div>`
     : `<div class="empty"><p>${faStatus === "pending" ? "Aucun fan art en attente 👍" : "Rien ici."}</p></div>`;
-  el.querySelector(".adm-fst").addEventListener("click", e => { const b = e.target.closest("[data-fs]"); if (b) { faStatus = b.dataset.fs; renderFanarts(el); } });
   $("admFa").addEventListener("click", async e => {
     const b = e.target.closest("[data-fa]"); if (!b) return;
     const f = L.find(x => x.id === b.closest(".afa").dataset.id);
@@ -167,7 +194,7 @@ export function render(el, sub) {
   if (!ME.user || !ME.ready) { el.innerHTML = `<div class="page"><p class="loading">Chargement…</p></div>`; return; }
   if (!ME.isAdmin) { el.innerHTML = `<div class="page"><div class="empty"><p>Cette page est réservée à l'administrateur du site.</p><a class="btn" href="#/">Retour à l'accueil</a></div></div>`; return; }
   tab = ["suggestions", "signalements", "fanarts"].includes(sub) ? sub : "comptes";
-  adminPending().then(n => { if (n !== pendingFa) { pendingFa = n; const t = isShown() && root.querySelector(".tabs2"); if (t) t.outerHTML = admTabs(); } });
+  Promise.all([adminPending(), adminPendingChatImages()]).then(([n, c]) => { if (n !== pendingFa || c !== pendingChat) { pendingFa = n; pendingChat = c; const t = isShown() && root.querySelector(".tabs2"); if (t) t.outerHTML = admTabs(); } });
   if (tab !== "comptes") { ({ suggestions: renderSuggestions, signalements: renderReports, fanarts: renderFanarts })[tab](el).catch(err => { console.error(err); toast(socialError(err)); }); return; }
   el.innerHTML = `<div class="page">
     <div class="cat-top"><div><h1>Administration</h1><div class="count">Comptes inscrits. Les collections restent privées : seules ces informations sont visibles.</div></div>

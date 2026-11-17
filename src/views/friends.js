@@ -12,7 +12,8 @@ import {
   sharedLists, listItemsOf, refreshCounters, addToSharedList, removeFromSharedList, listMembers, socialError
 } from "../social.js";
 import { preventionDialog, mixedBanner, messageHTML, prepareTokens, tokenPreview, sharePicker } from "../safety.js";
-import { fanartPickerSource, publishFanart, SOURCE_RE } from "../fanart-api.js";
+import { fanartPickerSource, SOURCE_RE } from "../fanart-api.js";
+import { uploadChatImage } from "../chat-images.js";
 
 let root = null, route = [], chatUid = null, offMsg = null, thread = [], curTab = "", poll = null;
 const isShown = () => !!(root && root.isConnected && root.dataset.view === "amis");   // page réellement affichée ?
@@ -104,7 +105,7 @@ async function renderChat(el, uid) {
     $("shareBtn").addEventListener("click", async () => {
       const tok = await sharePicker(fanartPickerSource, {
         sourceRe: SOURCE_RE, error: socialError,
-        send: async v => `[[fanart:${await publishFanart(v.file, { title: v.title, credit: v.credit, source_url: v.source_url })}]]`
+        send: v => uploadChatImage(v.file, uid)
       }); if (!tok) return;
       try { const m = await sendMessage(uid, tok); await prepareTokens([tok]); thread.push(m); paintThread(); }
       catch (err) { toast(socialError(err)); }
