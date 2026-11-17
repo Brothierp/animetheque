@@ -53,7 +53,9 @@ function paintPanel() {
     ...rows.map(n => { const [t, href, ico] = text(n); return { t: Date.parse(n.created_at), read: !!n.read_at, html: `<a class="nt${n.read_at ? "" : " new"}" href="${href}"><i>${ico}</i><span><span>${t}</span><small>${ago(n.created_at)}</small></span></a>` }; }),
   ].sort((x, y) => y.t - x.t);
   const offer = pushOffer ? `<button type="button" class="nt-push" data-nt="push">📲 <span><b>Recevoir ces notifications sur cet appareil</b><small>même quand le site est fermé</small></span></button>` : "";
-  p.innerHTML = `<div class="nt-h"><b>Notifications</b>${items.some(i => !i.read) ? `<button type="button" class="linkbtn" data-nt="read">Tout marquer comme lu</button>` : ""}</div>
+  const acts = (items.some(i => !i.read) ? `<button type="button" class="linkbtn" data-nt="read">Tout marquer comme lu</button>` : "")
+    + (items.some(i => i.read) ? `<button type="button" class="linkbtn danger" data-nt="clear">🗑 Supprimer les lues</button>` : "");
+  p.innerHTML = `<div class="nt-h"><b>Notifications</b>${acts ? `<span class="nt-acts">${acts}</span>` : ""}</div>
     ${offer}${items.length ? `<div class="nt-l">${items.map(i => i.html).join("")}</div>` : `<p class="hint nt-empty">Rien de nouveau pour l'instant.${missing ? "" : " Tu seras prévenu·e des demandes d'amis, des fan arts validés et des nouveaux épisodes de tes séries en cours."}</p>`}`;
 }
 
@@ -98,6 +100,22 @@ async function markAllRead() {
   if (ids.length) await supabase.from("notifications").update({ read_at: new Date().toISOString() }).in("id", ids);
 }
 
+/** Supprime les notifications déjà lues (base de données et épisodes gardés sur l'appareil). */
+async function clearRead() {
+  const ids = rows.filter(n => n.read_at).map(n => n.id);
+  const keepRows = rows, keepEp = episodes;
+  rows = rows.filter(n => !n.read_at);
+  episodes = episodes.filter(e => !e.read);
+  const n = ids.length + keepEp.length - episodes.length;
+  const st = loadEp(); st.list = episodes; saveEp(st);
+  paintBell(); paintPanel();
+  const done = () => toast(`${n} notification${n > 1 ? "s" : ""} supprimée${n > 1 ? "s" : ""}`);
+  if (!ids.length) return done();
+  const { error } = await supabase.from("notifications").delete().in("id", ids);
+  if (error) { rows = keepRows; episodes = keepEp; paintPanel(); toast("La suppression a échoué. Réessaie dans un instant."); }
+  else done();
+}
+
 export function initNotifications() {
   const wrap = document.createElement("div"); wrap.className = "bell-w";
   wrap.innerHTML = `<button type="button" class="bell" id="bell" hidden aria-haspopup="true" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16V11a6 6 0 1 1 12 0v5l1.5 2h-15Z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg><span class="nb" hidden></span></button>
@@ -109,7 +127,7 @@ export function initNotifications() {
   p.addEventListener("click", async e => {
     if (e.target.closest("[data-nt=push]")) { e.stopPropagation(); try { await enablePush(); pushOffer = false; paintPanel(); toast("🔔 Notifications activées sur cet appareil"); } catch (err) { toast(pushError(err), 6000); } return; }
   });
-  p.addEventListener("click", e => { if (e.target.closest("[data-nt=read]")) { e.stopPropagation(); markAllRead(); } else if (e.target.closest("a")) { toggle(false); markAllRead(); } });
+  p.addEventListener("click", e => { if (e.target.closest("[data-nt=read]")) { e.stopPropagation(); markAllRead(); } else if (e.target.closest("[data-nt=clear]")) { e.stopPropagation(); clearRead(); } else if (e.target.closest("a")) { toggle(false); markAllRead(); } });
   document.addEventListener("click", e => { if (open && !wrap.contains(e.target)) toggle(false); });
   addEventListener("keydown", e => { if (e.key === "Escape" && open) toggle(false); });
   addEventListener("focus", () => refresh());
