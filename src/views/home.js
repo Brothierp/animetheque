@@ -5,6 +5,7 @@ import { esc, fmt, row, cover } from "../ui.js";
 import { loadTopCharacters } from "../chars.js";
 import { charCard } from "./characters.js";
 import { listFanarts } from "../fanart-api.js";
+import { currentSeason, seasonLabel, seasonTitles } from "./season.js";
 import { supabase } from "../supabase.js";
 
 let root = null, featured = null;
@@ -108,11 +109,14 @@ export function render(el) {
   const best = onePerFranchise(A.filter(a => safe(a) && a.rank < 2500 && a.score).sort((a, b) => b.score - a.score), 20);
   const gems = onePerFranchise(A.filter(a => safe(a) && a.rank >= 1500 && a.rank < 8000 && a.score >= 78 && a.status !== UP).sort((a, b) => b.score - a.score), 20);
   const soon = A.filter(a => safe(a) && a.status === UP).slice(0, 20);
-  el.innerHTML = `<div class="page home">${hero(featured)}${welcome()}<div id="personal"></div>
+  const d = new Date(), wrY = d.getMonth() === 11 ? d.getFullYear() : d.getMonth() === 0 && d.getDate() <= 15 ? d.getFullYear() - 1 : 0;
+  const wrapped = wrY && ME.user ? `<a class="wr-banner" href="#/wrapped/${wrY}"><span>🎁</span><span><b>Ton année ${wrY} en animés est prête !</b><small>Heures passées, genre préféré, coup de cœur… et une image à partager.</small></span><b class="wr-go">Découvrir →</b></a>` : "";
+  el.innerHTML = `<div class="page home">${hero(featured)}${wrapped}${welcome()}<div id="personal"></div>
     ${row("En ce moment", airing, "#/catalogue?status=RELEASING", "Les séries en cours de diffusion")}
     ${row("Les plus populaires", top(20), "#/catalogue?sort=pop")}
     ${row("Les mieux notés", best, "#/catalogue?sort=score")}
     ${row("Pépites à découvrir", gems, "#/catalogue?sort=score&minscore=78", "Très bien notés, moins connus")}
+    ${(() => { const sc = currentSeason().cur; return row(`Saison ${esc(seasonLabel(sc).toLowerCase())}`, seasonTitles(sc).filter(safe).slice(0, 20), "#/saison", "Les nouveautés et retours de la saison"); })()}
     ${row("Bientôt", soon, "#/catalogue?status=NOT_YET_RELEASED", "Pas encore sortis")}
     <div id="homeChars"></div>
     <div id="homeFa"></div>

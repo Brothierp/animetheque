@@ -13,7 +13,7 @@ import { messageHTML, prepareTokens } from "../safety.js";
 import { charById, loadCharacters } from "../chars.js";
 
 let pendingFa = 0;
-const CAT = { contournement: "contourne les contrôles", sexuel: "propos sexuels ou déplacés", photos_rdv: "demande de photos ou de rendez-vous", harcelement: "harcèlement / insultes", arnaque: "spam / arnaque", autre: "autre", secret: "secret demandé", photos: "demande de photo", rencontre: "rencontre / adresse", intime: "propos intimes", age: "question sur l'âge", cadeau: "cadeau / argent", avis: "avis", fanart: "fan art" };
+const CAT = { discussion: "discussion d'épisode", contournement: "contourne les contrôles", sexuel: "propos sexuels ou déplacés", photos_rdv: "demande de photos ou de rendez-vous", harcelement: "harcèlement / insultes", arnaque: "spam / arnaque", autre: "autre", secret: "secret demandé", photos: "demande de photo", rencontre: "rencontre / adresse", intime: "propos intimes", age: "question sur l'âge", cadeau: "cadeau / argent", avis: "avis", fanart: "fan art" };
 
 let root = null, rows = null, q = "", sort = "created";
 const isShown = () => !!(root && root.isConnected && root.dataset.view === "admin");   // page réellement affichée ?

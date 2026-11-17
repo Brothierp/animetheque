@@ -220,3 +220,18 @@ Mettre à jour le résultat attendu des tests SQL après un changement volontair
 
 Séries absentes d'AniList (Arcane…) : décrites dans `scripts/extra/*.json`, ajoutées avec `scripts/extra_add.py` ;
 la mise à jour hebdomadaire les conserve (identifiants à partir de 900 000).
+
+## Notifications sur l'appareil (Web Push)
+
+1. Exécuter `supabase/migrations/20261117100000_push.sql` (crée les tables, la configuration privée, les déclencheurs
+   et la tâche horaire ; active `pg_net` et `pg_cron`).
+2. Déployer la fonction `supabase/functions/push/index.ts` sous le nom **push** (Supabase → Edge Functions →
+   Deploy a new function → Via Editor), puis **désactiver « Enforce JWT verification »** dans ses réglages :
+   les appels de la base sont protégés par un secret partagé.
+3. Ouvrir une fois `https://<projet>.supabase.co/functions/v1/push` : la fonction crée ses clés VAPID
+   (le site le fait aussi tout seul à la première activation).
+
+## Liens partagés
+
+`/u/<pseudo>` et `/l/<id>` passent par `api/share.js` (fonction Vercel) qui renvoie l'aperçu Open Graph puis redirige
+vers `#/u/…` ou `#/l/…`. Elle lit `VITE_SUPABASE_URL` et `VITE_SUPABASE_ANON_KEY` dans les variables d'environnement Vercel.

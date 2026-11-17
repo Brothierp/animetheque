@@ -20,6 +20,7 @@ const missing = err => err && (err.code === "PGRST202" || err.code === "42883" |
 export function socialError(err) {
   const m = (err && (err.message || "")) + " " + (err && err.code || "");
   if (/forbidden_word/.test(m)) return "Ce message contient un terme interdit (insulte, propos haineux…).";
+  if (/public_minor/.test(m)) return "Le partage public est réservé aux membres majeurs.";
   if (/too_young/.test(m)) return "Fonction réservée aux 15 ans et plus.";
   if (/contact_blocked/.test(m)) return "Message bloqué : entre majeurs et mineurs, on n'échange ni numéro, ni e-mail, ni réseau social, ni lien. Restez sur l'Animéthèque.";
   if (/credit_link/.test(m)) return "Le nom de l'artiste ne peut pas contenir de lien ni d'adresse.";
@@ -123,8 +124,8 @@ export async function markRead(uid) {
   refreshCounters();
 }
 export async function deleteMessage(id) { await call(supabase.from("messages").delete().eq("id", id)); }
-export async function report({ messageId, commentId, fanartId, targetUser, reason, category, context }) {
-  await call(supabase.from("reports").insert({ message_id: messageId || null, comment_id: commentId || null, ...(fanartId ? { fanart_id: fanartId } : {}),
+export async function report({ messageId, commentId, fanartId, postId, targetUser, reason, category, context }) {
+  await call(supabase.from("reports").insert({ message_id: messageId || null, comment_id: commentId || null, ...(fanartId ? { fanart_id: fanartId } : {}), ...(postId ? { post_id: postId } : {}),
     ...(category ? { category } : {}), ...(context ? { with_context: true } : {}), target_user: targetUser || null, reason: reason.trim().slice(0, 500) }));
 }
 

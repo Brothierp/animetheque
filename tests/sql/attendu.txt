@@ -210,3 +210,27 @@ Inès voit : Hugo status_watching, Hugo rating, Hugo favorite, Hugo status_watch
 Alice (pas amie) voit : 0
 Alice lit les notifications d'Hugo : 0
 Felix notifié : friend_request,fanart_approved,chat_image,fanart_rejected
+--- discussions par épisode
+Hugo publie sur l'épisode 7
+fil épisode 7 : Hugo, Ines (réponse)
+Hugo notifié : episode_reply 21:7
+visiteur lit : 2
+compteurs : 7=2
+ERROR:  too_young
+ERROR:  language
+message signalé : Épisode 7 : Cet épisode est incroyable, la fin m'a surpris
+Inès supprime le message d'Hugo : 1 restant(s)
+--- notifications sur l'appareil
+abonnement : 1
+test créé : test
+clé publique (pas encore créée) : aucune
+Alice voit les abonnements d'Hugo : 0
+ERROR:  permission denied for function push_config_get
+ERROR:  permission denied for function push_watchers
+ERROR:  new row for relation "push_subscriptions" violates check constraint "push_subscriptions_endpoint_check"
+--- profils et listes publics
+profil privé : invisible
+profil public : {"lists": [{"id": "22222222-0000-0000-0000-000000000001", "name": "Mes isekai préférés", "count": 1}], "counts": {"plan": 0, "rated": 1, "watched": 2, "watching": 0, "favorites": 1}, "username": "Hugo", "watching": [], "favorites": [21], "top_rated": [21]}
+liste publique : Mes isekai préférés par Hugo
+ERROR:  public_minor
+ERROR:  public_minor

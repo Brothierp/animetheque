@@ -6,6 +6,9 @@ import { displayName, avatarUrl, avatarHTML, isAdultYear, parseBirthYear, ageGat
   prepareAvatar, uploadAvatar, removeAvatar, removeAllAvatars, USERNAME_HELP } from "../profile.js";
 import { $, esc, fmt } from "../ui.js";
 import { byId } from "../data.js";
+import { canInstall, install } from "../install.js";
+import { shareUrl, shareLink } from "./public.js";
+import { pushState, enablePush, disablePush, testPush, pushError } from "../push.js";
 import { toast } from "../toast.js";
 import { gate } from "./collection.js";
 import { importHTML, bindImport } from "./importer.js";
@@ -46,8 +49,13 @@ function html() {
       ${providers.includes("email") ? `<div class="field"><span>Mot de passe</span><form id="pwdForm" novalidate><input type="password" name="password" autocomplete="new-password" minlength="8" placeholder="Nouveau mot de passe (8 caractères min.)"><button class="btn" type="submit">Modifier</button></form></div>` : ""}
       <div class="field"><span>Membre depuis</span><div class="val">${new Date(u.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}</div></div>
     </div></section>
+    ${"public_profile" in p && isAdultYear(p.birth_year) && p.username ? `<section class="card2"><h2>Profil public</h2>
+      <label class="chk"><input type="checkbox" id="pubProfile"${p.public_profile ? " checked" : ""}><span><b>Rendre mon profil public</b> : pseudo, nombre de titres, coups de cœur, titres notés 5 ★ et listes publiques, visibles par toute personne qui a le lien. Jamais ton e-mail, ton âge ni le reste de ta collection.</span></label>
+      ${p.public_profile ? `<p class="pub-link"><code>${esc(shareUrl("u", p.username))}</code> <button type="button" class="btn sm primary" id="pubShare">📤 Partager mon profil</button> <a class="btn sm" href="#/u/${encodeURIComponent(p.username)}">Voir</a></p>` : ""}</section>` : ""}
     ${"share_activity" in p ? `<section class="card2"><h2>Partage avec mes amis</h2>
       <label class="chk"><input type="checkbox" id="shareAct"${p.share_activity ? " checked" : ""}><span><b>Partager mon activité avec mes amis</b> : titres commencés et terminés, notes de 4 ou 5 étoiles, coups de cœur, avis et fan arts publiés. Visible uniquement par tes amis, dans « Amis → Activité ». Ta collection complète reste privée.</span></label></section>` : ""}
+    ${canInstall() ? `<section class="card2"><h2>Application</h2><p class="hint" style="margin-top:0">Ajoute l'Animéthèque à ton écran d'accueil : elle s'ouvrira comme une appli, en plein écran.</p><button type="button" class="btn" id="installBtn">📲 Installer l'appli</button></section>` : ""}
+    <section class="card2" id="pushCard"><h2>Notifications sur cet appareil</h2><div id="pushBox"><p class="hint">Vérification…</p></div></section>
     ${mySuggestionsHTML()}
     ${importHTML()}
     <section class="card2"><h2>Exporter mes données</h2>
@@ -95,6 +103,14 @@ function bind() {
     try { const pb = await usernameProblem(u); if (pb) { toast(pb); return; } await updateProfile({ username: u }); toast("Pseudo enregistré"); }
     catch (err) { console.error(err); toast(frError(err)); } finally { btn.disabled = false; }
   });
+  paintPush();
+  const ib = $("installBtn"); if (ib) ib.addEventListener("click", () => install());
+  const pp = $("pubProfile");
+  if (pp) pp.addEventListener("change", async () => {
+    try { await updateProfile({ public_profile: pp.checked }); toast(pp.checked ? "Ton profil est public : partage son lien 🌍" : "Ton profil n'est plus public"); render(root); }
+    catch (err) { pp.checked = !pp.checked; toast(frError(err)); }
+  });
+  const ps = $("pubShare"); if (ps) ps.addEventListener("click", () => shareLink(shareUrl("u", p.username), `Mon profil anime : ${p.username}`));
   const sa = $("shareAct");
   if (sa) sa.addEventListener("change", async () => {
     try { await updateProfile({ share_activity: sa.checked }); toast(sa.checked ? "Ton activité est partagée avec tes amis" : "Ton activité n'est plus partagée"); }
@@ -164,3 +180,30 @@ onChange(what => {
     render(root);
   }
 });
+
+// ---------- Notifications sur l'appareil ----------
+async function paintPush() {
+  const box = $("pushBox"); if (!box) return;
+  const st = await pushState().catch(() => "unsupported");
+  const T = {
+    on: `<p>✅ <b>Activées sur cet appareil.</b> Tu es prévenu·e des nouveaux épisodes de tes séries en cours, des messages, des demandes d'amis et des réponses, même site fermé.</p>
+      <p class="hint">Le site vérifie les nouveaux épisodes toutes les heures, pour les séries au statut « En cours » de ta collection.</p>
+      <div class="rep-act"><button type="button" class="btn sm" data-push="test">Envoyer une notification de test</button><button type="button" class="btn sm danger-o" data-push="off">Désactiver sur cet appareil</button></div>`,
+    off: `<p>Sois prévenu·e <b>dès qu'un épisode de tes séries en cours sort</b>, quand un ami t'écrit ou te répond, même quand le site est fermé.</p>
+      <button type="button" class="btn primary" data-push="on">🔔 Activer les notifications</button>`,
+    denied: `<p class="imp-err">Les notifications sont bloquées pour ce site. Autorise-les dans les réglages du navigateur (icône 🔒 à gauche de l'adresse), puis recharge la page.</p>`,
+    "ios-install": `<p>Sur iPhone, les notifications fonctionnent une fois l'Animéthèque <b>installée sur l'écran d'accueil</b> (iOS 16.4 ou plus récent) : bouton Partager ⬆️ → « Sur l'écran d'accueil », puis ouvre l'appli depuis son icône et reviens ici.</p>`,
+    unsupported: `<p class="hint">Ce navigateur ne gère pas les notifications. Essaie avec Chrome, Edge, Firefox ou Safari récent.</p>`,
+  };
+  box.innerHTML = T[st] || T.unsupported;
+  box.onclick = async e => {
+    const b = e.target.closest("[data-push]"); if (!b) return;
+    b.disabled = true;
+    try {
+      if (b.dataset.push === "on") { await enablePush(); toast("🔔 Notifications activées sur cet appareil"); }
+      else if (b.dataset.push === "off") { await disablePush(); toast("Notifications désactivées sur cet appareil"); }
+      else { await testPush(); toast("Notification de test envoyée : elle arrive dans quelques secondes"); }
+    } catch (err) { toast(pushError(err), 6000); }
+    paintPush();
+  };
+}

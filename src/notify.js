@@ -5,9 +5,11 @@ import { ME, onChange } from "./state.js";
 import { byId, titleOf, hdUrl, loadCatalogue } from "./data.js";
 import { esc } from "./ui.js";
 import { person, loadPeople } from "./social.js";
+import { pushState, enablePush, pushError } from "./push.js";
+import { toast } from "./toast.js";
 
 const EP_KEY = "animetheque:episodes";     // nouveaux épisodes déjà connus (par appareil)
-let rows = [], episodes = [], open = false, timer = null, missing = false;
+let rows = [], episodes = [], open = false, timer = null, missing = false, pushOffer = false;
 
 const ago = d => {
   const s = (Date.now() - Date.parse(d)) / 1000;
@@ -26,6 +28,11 @@ function text(n) {
     case "fanart_approved": return ["Ton fan art a été publié dans la galerie", `#/fanarts/${n.ref}`, "🎨"];
     case "fanart_rejected": return ["Ton fan art n'a pas été accepté (motif dans « Mes fan arts »)", "#/fanarts/mes", "🎨"];
     case "feedback_reply": return ["L'administrateur a répondu à ta suggestion", "#/compte", "💡"];
+    case "episode_reply": { const [aid, ep] = String(n.ref || "").split(":"); const a = byId.get(+aid);
+      return [`${who} t'a répondu sur l'épisode ${esc(ep)}${a ? ` de <b>${esc(titleOf(a))}</b>` : ""}`, `#/anime/${aid}`, "💬"]; }
+    case "episode": { const [aid, ep] = String(n.ref || "").split(":"); const a = byId.get(+aid);
+      return [`<b>Épisode ${esc(ep)}</b> de ${esc(a ? titleOf(a) : n.title || "ta série")} est sorti`, `#/anime/${aid}`, "📺"]; }
+    case "test": return ["Notification de test : tout fonctionne 🔔", "#/compte", "🔔"];
     case "chat_image": return [`Une image envoyée par ${who} est maintenant visible`, `#/amis/chat/${n.actor}`, "🖼️"];
     default: return ["Nouvelle notification", "#/", "🔔"];
   }
@@ -45,15 +52,20 @@ function paintPanel() {
     ...episodes.map(e => { const a = byId.get(e.id); return { t: e.at * 1000, read: e.read, html: `<a class="nt${e.read ? "" : " new"}" href="#/anime/${e.id}">${a && hdUrl(a, "medium") ? `<img src="${esc(hdUrl(a, "medium"))}" alt="" loading="lazy" referrerpolicy="no-referrer">` : `<i>📺</i>`}<span><span><b>Épisode ${e.ep}</b> de ${esc(a ? titleOf(a) : e.title)} est sorti</span><small>${ago(e.at * 1000)}</small></span></a>` }; }),
     ...rows.map(n => { const [t, href, ico] = text(n); return { t: Date.parse(n.created_at), read: !!n.read_at, html: `<a class="nt${n.read_at ? "" : " new"}" href="${href}"><i>${ico}</i><span><span>${t}</span><small>${ago(n.created_at)}</small></span></a>` }; }),
   ].sort((x, y) => y.t - x.t);
+  const offer = pushOffer ? `<button type="button" class="nt-push" data-nt="push">📲 <span><b>Recevoir ces notifications sur cet appareil</b><small>même quand le site est fermé</small></span></button>` : "";
   p.innerHTML = `<div class="nt-h"><b>Notifications</b>${items.some(i => !i.read) ? `<button type="button" class="linkbtn" data-nt="read">Tout marquer comme lu</button>` : ""}</div>
-    ${items.length ? `<div class="nt-l">${items.map(i => i.html).join("")}</div>` : `<p class="hint nt-empty">Rien de nouveau pour l'instant.${missing ? "" : " Tu seras prévenu·e des demandes d'amis, des fan arts validés et des nouveaux épisodes de tes séries en cours."}</p>`}`;
+    ${offer}${items.length ? `<div class="nt-l">${items.map(i => i.html).join("")}</div>` : `<p class="hint nt-empty">Rien de nouveau pour l'instant.${missing ? "" : " Tu seras prévenu·e des demandes d'amis, des fan arts validés et des nouveaux épisodes de tes séries en cours."}</p>`}`;
 }
 
 async function refresh() {
   if (!ME.user || !supabase) return;
   try {
-    const { data, error } = await supabase.from("notifications").select("id, kind, actor, ref, created_at, read_at").order("id", { ascending: false }).limit(40);
-    if (error) { missing = true; rows = []; } else { rows = data || []; await loadPeople(rows.map(n => n.actor).filter(Boolean)).catch(() => {}); }
+    const { data, error } = await supabase.from("notifications").select("*").order("id", { ascending: false }).limit(40);
+    if (error) { missing = true; rows = []; } else {
+      if (data && data.some(n => n.kind === "episode")) {   // épisodes déjà signalés par le serveur : pas de doublon local
+        const srv = new Set(data.filter(n => n.kind === "episode").map(n => n.ref));
+        episodes = episodes.filter(e => !srv.has(e.id + ":" + e.ep));
+      } rows = data || []; await loadPeople(rows.map(n => n.actor).filter(Boolean)).catch(() => {}); }
   } catch { rows = []; }
   await checkEpisodes().catch(() => {});
   paintBell(); if (open) paintPanel();
@@ -92,8 +104,11 @@ export function initNotifications() {
     <div class="bell-p" id="bellPanel" hidden></div>`;
   document.querySelector("header .account").before(wrap);
   const b = wrap.querySelector("#bell"), p = wrap.querySelector("#bellPanel");
-  const toggle = v => { open = v; p.hidden = !v; b.setAttribute("aria-expanded", v); if (v) paintPanel(); };
+  const toggle = v => { open = v; p.hidden = !v; b.setAttribute("aria-expanded", v); if (v) { paintPanel(); if (!missing) pushState().then(st => { const o = st === "off"; if (o !== pushOffer) { pushOffer = o; if (open) paintPanel(); } }).catch(() => {}); } };
   b.addEventListener("click", e => { e.stopPropagation(); toggle(!open); });
+  p.addEventListener("click", async e => {
+    if (e.target.closest("[data-nt=push]")) { e.stopPropagation(); try { await enablePush(); pushOffer = false; paintPanel(); toast("🔔 Notifications activées sur cet appareil"); } catch (err) { toast(pushError(err), 6000); } return; }
+  });
   p.addEventListener("click", e => { if (e.target.closest("[data-nt=read]")) { e.stopPropagation(); markAllRead(); } else if (e.target.closest("a")) { toggle(false); markAllRead(); } });
   document.addEventListener("click", e => { if (open && !wrap.contains(e.target)) toggle(false); });
   addEventListener("keydown", e => { if (e.key === "Escape" && open) toggle(false); });
