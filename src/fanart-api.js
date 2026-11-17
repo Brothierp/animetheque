@@ -37,9 +37,14 @@ export async function adminPending() { try { return Number(await call(supabase.r
 
 /** Image → WebP (≤ 1600 px, ≤ 3 Mo). Le ré-encodage supprime les métadonnées (position GPS, appareil…). */
 export async function prepareImage(file) {
-  if (!/^image\/(png|jpeg|webp|gif)$/.test(file.type)) throw new Error("format");
-  if (file.size > 20 * 1024 * 1024) throw new Error("size");
-  const bmp = await createImageBitmap(file);
+  if (file.type && !file.type.startsWith("image/")) throw new Error("format");
+  if (file.size > 25 * 1024 * 1024) throw new Error("size");
+  let bmp;
+  try { bmp = await createImageBitmap(file); }
+  catch {   // certains formats (HEIC sur ordinateur…) ne se décodent qu'en passant par une balise <img>
+    bmp = await new Promise((ok, ko) => { const i = new Image(), u = URL.createObjectURL(file); i.onload = () => { URL.revokeObjectURL(u); ok(i); }; i.onerror = () => { URL.revokeObjectURL(u); ko(new Error("format")); }; i.src = u; });
+  }
+  if (!bmp.width || !bmp.height) throw new Error("format");
   const k = Math.min(1, 1600 / Math.max(bmp.width, bmp.height));
   const w = Math.round(bmp.width * k), h = Math.round(bmp.height * k);
   const c = document.createElement("canvas"); c.width = w; c.height = h;
@@ -52,18 +57,27 @@ export async function prepareImage(file) {
   if (jpg && jpg.size <= 3 * 1024 * 1024) return { blob: jpg, ext: "jpg", type: "image/jpeg", w, h };
   throw new Error("size");
 }
-export async function publishFanart(file, { title, description, credit, character_id, anime_id }) {
+/** Publie un fan art (en attente de vérification) ; renvoie son identifiant. */
+export async function publishFanart(file, { title, description, credit, source_url, character_id, anime_id }) {
   const img = await prepareImage(file);
   const path = `${ME.user.id}/${crypto.randomUUID()}.${img.ext}`;
   const up = await supabase.storage.from("fanarts").upload(path, img.blob, { contentType: img.type, upsert: false });
   if (up.error) throw up.error;
   try {
-    await call(supabase.from("fanarts").insert({ path, width: img.w, height: img.h, title, description: description || null, character_id: character_id || null, anime_id: anime_id || null, ...(credit ? { credit } : {}) }));
+    const row = await call(supabase.from("fanarts").insert({ path, width: img.w, height: img.h, title, description: description || null, character_id: character_id || null, anime_id: anime_id || null,
+      ...(credit ? { credit } : {}), ...(source_url ? { source_url } : {}) }).select("id").single());
+    FA.cache.set(row.id, { id: row.id, path, url: fanartUrl(path), title, status: "pending", username: (ME.profile && ME.profile.username) || "Moi", mine: true });
+    return row.id;
   } catch (e) { await supabase.storage.from("fanarts").remove([path]).catch(() => {}); throw e; }
 }
 
 // Partage dans la messagerie : seuls les fan arts validés (les tiens ou ceux des autres).
-setFanartResolver(id => { const f = FA.cache.get(id); return f && f.status === "approved" ? { url: f.url, title: f.title, by: f.username } : null; });
+// Ton propre fan art encore en vérification s'affiche pour toi avec la mention « en vérification » ;
+// ton ami ne le voit qu'une fois validé.
+setFanartResolver(id => { const f = FA.cache.get(id); return f && (f.status === "approved" || f.mine) ? { url: f.url, title: f.title, by: f.username, pending: f.status !== "approved" } : null; });
+/** Sites acceptés pour la source d'un fan art. */
+export const SOURCE_RE = /^https:\/\/([a-z0-9-]+\.)*(pinterest\.[a-z]{2,3}(\.[a-z]{2})?|pin\.it|deviantart\.com|artstation\.com|pixiv\.net|x\.com|twitter\.com|instagram\.com|tumblr\.com|bsky\.app|reddit\.com|behance\.net)(\/\S*)?$/i;
+export const sourceName = u => { try { const h = new URL(u).hostname.replace(/^www\./, ""); return /pinterest|pin\.it/.test(h) ? "Pinterest" : /deviantart/.test(h) ? "DeviantArt" : /artstation/.test(h) ? "ArtStation" : /pixiv/.test(h) ? "Pixiv" : /^(x|twitter)\.com/.test(h) ? "X (Twitter)" : /instagram/.test(h) ? "Instagram" : /tumblr/.test(h) ? "Tumblr" : /bsky/.test(h) ? "Bluesky" : /reddit/.test(h) ? "Reddit" : /behance/.test(h) ? "Behance" : h; } catch { return "source"; } };
 export async function fanartPickerSource(q) {
   const rows = await listFanarts({ sort: "recent", limit: 100 }).catch(() => []);
   const s = (q || "").toLowerCase();

@@ -142,7 +142,7 @@ async function renderFanarts(el) {
   $("admFa").innerHTML = L.length ? `<div class="adm-fa">${L.map(f => `<article class="afa" data-id="${f.id}">
       <a href="${esc(f.url)}" target="_blank" rel="noopener"><img src="${esc(f.url)}" alt="" loading="lazy"></a>
       <div><b>${esc(f.title)}</b><p class="hint">par <b>${esc(f.username || "Membre")}</b> (${esc(f.email || "")}) · ${new Date(f.created_at).toLocaleString("fr-FR")}</p>
-        ${f.credit ? `<p>🎨 Artiste crédité : <b>${esc(f.credit)}</b></p>` : ""}${what(f) ? `<p>${esc(what(f))}</p>` : ""}${f.description ? `<p>${esc(f.description)}</p>` : ""}${f.reject_reason ? `<p class="hint">Motif du refus : ${esc(f.reject_reason)}</p>` : ""}
+        ${f.credit ? `<p>🎨 Artiste crédité : <b>${esc(f.credit)}</b></p>` : ""}${f.source_url ? `<p>Source : <a href="${esc(f.source_url)}" target="_blank" rel="noopener noreferrer nofollow">${esc(f.source_url)}</a></p>` : ""}${what(f) ? `<p>${esc(what(f))}</p>` : ""}${f.description ? `<p>${esc(f.description)}</p>` : ""}${f.reject_reason ? `<p class="hint">Motif du refus : ${esc(f.reject_reason)}</p>` : ""}
         <div class="rep-act">${f.status !== "approved" ? `<button type="button" class="btn sm primary" data-fa="ok">✓ Publier</button>` : ""}
           ${f.status !== "rejected" ? `<button type="button" class="btn sm" data-fa="no">Refuser…</button>` : ""}
           <button type="button" class="btn sm danger-o" data-fa="del">Supprimer</button></div></div></article>`).join("")}</div>`

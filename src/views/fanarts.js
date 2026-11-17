@@ -11,8 +11,8 @@ import { $, esc, fmt } from "../ui.js";
 import { toast } from "../toast.js";
 import { charById, loadCharacters } from "../chars.js";
 import { report, socialError } from "../social.js";
-import { messageHTML, sharePicker } from "../safety.js";
-import { FA, listFanarts, getFanart, toggleLike, deleteFanart, publishFanart, updateFanart } from "../fanart-api.js";
+import { messageHTML, sharePicker, uploadFormHTML, bindUploadForm, checkUpload, uploadError } from "../safety.js";
+import { FA, SOURCE_RE, sourceName, listFanarts, getFanart, toggleLike, deleteFanart, publishFanart, updateFanart } from "../fanart-api.js";
 
 let root = null, sort = "recent", route = [];
 const isShown = () => !!(root && root.isConnected && root.dataset.view === "fanarts");
@@ -73,29 +73,19 @@ async function renderMine(el) {
 function renderPublish(el) {
   if (!ME.user) { el.innerHTML = `<div class="page">${head("Partage tes dessins")}${tabs("publier")}<div class="gate2"><p>Connecte-toi pour publier un fan art.</p><button type="button" class="btn primary" data-need-auth>Se connecter ou créer un compte</button></div></div>`; return; }
   if (!(ME.profile && ME.profile.username)) { el.innerHTML = `<div class="page">${head("Partage tes dessins")}${tabs("publier")}<div class="empty"><p>Choisis d'abord un pseudo dans <a href="#/compte">Mon compte</a> : il s'affichera sous tes créations.</p></div></div>`; return; }
-  let link = { character_id: null, anime_id: null }, file = null;
-  el.innerHTML = `<div class="page fa-page">${head("Partage tes dessins avec la communauté")}${tabs("publier")}
-    <form class="card2 fa-form" id="faForm" novalidate>
-      <label class="fa-drop" id="faDrop"><input type="file" id="faFile" accept="image/png,image/jpeg,image/webp" hidden>
-        <span id="faPrev"><b>🖼️ Choisir une image</b><small>PNG, JPEG ou WebP · elle sera redimensionnée (1600 px max)</small></span></label>
-      <div class="fa-fields">
-        <label>Titre <input type="text" id="faTitle" maxlength="80" required placeholder="Ex. : Frieren sous les étoiles"></label>
-        <div><span class="lbl">Personnage ou animé représenté</span><div id="faLink" class="fa-link"></div>
-          <button type="button" class="btn sm" id="faPick">Choisir…</button></div>
-        <label><span>Description <small class="hint">(facultatif)</small></span><textarea id="faDesc" maxlength="500" rows="3" placeholder="Technique, inspiration… (en français ou en anglais)"></textarea></label>
-        <label><span>Artiste <small class="hint">(si ce n'est pas ton dessin)</small></span><input type="text" id="faCredit" maxlength="80" placeholder="Nom ou pseudo de l'artiste (symboles acceptés, pas de lien)"></label>
-        <label class="chk"><input type="checkbox" id="faOk"><span>Je certifie que c'est <b>ma création</b> (ou que j'ai l'accord de l'artiste, crédité ci-dessus), qu'elle ne montre <b>aucune vraie personne</b> et aucun contenu adulte, violent ou choquant.</span></label>
-        <p class="hint">Chaque fan art est vérifié par l'administrateur avant d'être visible (en général sous 48 h). Pas de photo personnelle : uniquement des dessins, illustrations ou montages autour des animés.</p>
-        <button class="btn primary" type="submit" id="faSend">Envoyer pour vérification</button>
-      </div>
-    </form></div>`;
-  const paintLink = () => { $("faLink").innerHTML = link.character_id || link.anime_id ? messageHTML(linkTokens(link)) + `<button type="button" class="linkbtn" id="faUnlink">retirer</button>` : `<span class="hint">Aucun (facultatif)</span>`; };
+  let link = { character_id: null, anime_id: null };
+  el.innerHTML = `<div class="page fa-page">${head("Partage tes dessins et tes fan arts préférés avec la communauté")}${tabs("publier")}
+    <div class="card2 fa-pub">${uploadFormHTML("faForm")}
+      <p class="imp-err" id="faErr" hidden></p>
+      <p class="fa-send"><button class="btn primary" type="button" id="faSend">Envoyer pour vérification</button></p></div></div>`;
+  // champs propres à la galerie : personnage / animé représenté, description
+  el.querySelector(".up-note").insertAdjacentHTML("beforebegin", `
+    <div><span class="lbl">Personnage ou animé représenté <small class="hint">(facultatif)</small></span><div id="faLink" class="fa-link"></div>
+      <button type="button" class="btn sm" id="faPick">Choisir…</button></div>
+    <label><span>Description <small class="hint">(facultatif)</small></span><textarea id="faDesc" maxlength="500" rows="3" placeholder="Technique, inspiration… (en français ou en anglais)"></textarea></label>`);
+  const read = bindUploadForm($("faForm"));
+  const paintLink = () => { $("faLink").innerHTML = link.character_id || link.anime_id ? messageHTML(linkTokens(link)) + `<button type="button" class="linkbtn" id="faUnlink">retirer</button>` : `<span class="hint">Aucun</span>`; };
   paintLink();
-  $("faFile").addEventListener("change", e => {
-    file = e.target.files[0] || null; if (!file) return;
-    const u = URL.createObjectURL(file);
-    $("faPrev").innerHTML = `<img src="${u}" alt=""><small>${esc(file.name)} · cliquer pour changer</small>`;
-  });
   $("faPick").addEventListener("click", async () => {
     const t = await sharePicker(); if (!t) return;
     const m = t.match(/\[\[(anime|perso):(\d+)\]\]/); if (!m) return;
@@ -103,18 +93,15 @@ function renderPublish(el) {
     paintLink();
   });
   $("faLink").addEventListener("click", e => { if (e.target.id === "faUnlink") { link = { character_id: null, anime_id: null }; paintLink(); } else if (e.target.closest("a")) e.preventDefault(); });
-  $("faForm").addEventListener("submit", async e => {
-    e.preventDefault();
-    const title = $("faTitle").value.trim();
-    if (!file) return toast("Choisis une image 🙂");
-    if (title.length < 2) return toast("Donne un titre à ton fan art");
-    if (!$("faOk").checked) return toast("Coche la case de certification pour continuer");
+  $("faSend").addEventListener("click", async () => {
+    const v = read(), bad = checkUpload(v, SOURCE_RE), errBox = $("faErr");
+    if (bad) { errBox.textContent = bad; errBox.hidden = false; return; }
+    errBox.hidden = true;
     const b = $("faSend"); b.disabled = true; b.textContent = "Envoi…";
-    try { await publishFanart(file, { title, description: $("faDesc").value.trim(), credit: $("faCredit").value.trim(), ...link }); toast("Merci ! Ton fan art sera visible après vérification 🎨", 4500); location.hash = "#/fanarts/mes"; }
+    try { await publishFanart(v.file, { title: v.title, description: $("faDesc").value.trim(), credit: v.credit, source_url: v.source_url, ...link }); toast("Merci ! Ton fan art sera visible après vérification 🎨", 4500); location.hash = "#/fanarts/mes"; }
     catch (err) {
-      const m = err && err.message;
-      toast(m === "format" ? "Format non pris en charge : PNG, JPEG ou WebP." : m === "size" ? "Image trop lourde." : /row-level|42501/.test((m || "") + err.code) ? "Envoi refusé : vérifie ton pseudo et réessaie." : socialError(err), 5000);
-      b.disabled = false; b.textContent = "Envoyer pour vérification";
+      errBox.textContent = uploadError(err) || (/row-level|42501/.test((err.message || "") + err.code) ? "Envoi refusé : vérifie ton pseudo et réessaie." : socialError(err));
+      errBox.hidden = false; b.disabled = false; b.textContent = "Envoyer pour vérification";
     }
   });
 }
@@ -133,7 +120,7 @@ async function renderOne(el, id) {
       <figure class="fa-big"><img src="${esc(f.url)}" alt="${esc(f.title)}"></figure>
       <div class="fa-info">
         <h1>${esc(f.title)}</h1>
-        ${f.credit ? `<p class="fa-credit">🎨 Artiste : <b>${esc(f.credit)}</b></p>` : ""}
+        ${f.credit || f.source_url ? `<p class="fa-credit">${f.credit ? `🎨 Artiste : <b>${esc(f.credit)}</b>` : ""}${f.credit && f.source_url ? " · " : ""}${f.source_url ? `<a href="${esc(f.source_url)}" target="_blank" rel="noopener noreferrer nofollow">Source : ${esc(sourceName(f.source_url))} ↗</a>` : ""}</p>` : ""}
         <p class="hint">${f.credit ? "publié par" : "par"} <b>${esc(f.username)}</b> · ${new Date(f.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}</p>
         ${f.status !== "approved" ? `<p class="fa-st st-${f.status} inline">${STATUS[f.status]}${f.reject_reason ? ` : ${esc(f.reject_reason)}` : ""}</p>` : ""}
         ${linkTokens(f) ? `<div class="fa-link">${messageHTML(linkTokens(f))}</div>` : ""}

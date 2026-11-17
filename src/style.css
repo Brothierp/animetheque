@@ -815,3 +815,28 @@ dialog#auth > .hint { margin: 0 0 16px }
   .cm-act { margin-left: 0; width: 100% }
 }
 .fa-credit { margin: 6px 0 2px; font-size: 14.5px; overflow-wrap: anywhere }
+
+/* ---------- Envoi d'images (chat et galerie) ---------- */
+.up-form { display: grid; gap: 12px }
+.up-form > label:not(.chk) { display: grid; gap: 6px; font-weight: 600; font-size: 13.5px }
+.up-form input[type=text], .up-form input[type=url], .up-form textarea { padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); color: var(--ink); font: inherit; font-weight: 400; min-width: 0 }
+.up-form input:focus, .up-form textarea:focus { border-color: var(--accent); outline: none }
+.up-form .lbl { display: block; font-weight: 600; font-size: 13.5px; margin-bottom: 6px }
+.up-note { margin: 0 }
+.fa-drop.over { border-color: var(--accent); background: var(--accent-soft) }
+.up-drop { min-height: 150px }
+.up-drop img { max-height: 220px }
+.sp-up { max-height: 58vh; overflow-y: auto; padding: 2px 2px 4px }
+.sp-err { margin: 10px 0 0 }
+.fa-pub .up-form { grid-template-columns: minmax(220px, 340px) 1fr; column-gap: 20px; align-items: start }
+.fa-pub .up-form > * { grid-column: 2 }
+.fa-pub .up-drop { grid-column: 1; grid-row: 1 / span 8; min-height: 300px }
+.fa-pub .up-drop img { max-height: 380px }
+.fa-send { display: flex; justify-content: flex-end; margin: 14px 0 0 }
+.fa-credit a { color: var(--violet) }
+@media (max-width: 720px) {
+  .fa-pub .up-form { grid-template-columns: 1fr }
+  .fa-pub .up-form > *, .fa-pub .up-drop { grid-column: 1; grid-row: auto }
+  .fa-pub .up-drop { min-height: 180px }
+  .fa-send .btn { width: 100% }
+}
