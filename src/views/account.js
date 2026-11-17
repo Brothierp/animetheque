@@ -7,6 +7,7 @@ import { displayName, avatarUrl, avatarHTML, isAdultYear, parseBirthYear, ageGat
 import { $, esc, fmt } from "../ui.js";
 import { byId } from "../data.js";
 import { canInstall, install } from "../install.js";
+import { shareUrl, shareLink } from "./public.js";
 import { pushState, enablePush, disablePush, testPush, pushError } from "../push.js";
 import { toast } from "../toast.js";
 import { gate } from "./collection.js";
@@ -48,6 +49,9 @@ function html() {
       ${providers.includes("email") ? `<div class="field"><span>Mot de passe</span><form id="pwdForm" novalidate><input type="password" name="password" autocomplete="new-password" minlength="8" placeholder="Nouveau mot de passe (8 caractères min.)"><button class="btn" type="submit">Modifier</button></form></div>` : ""}
       <div class="field"><span>Membre depuis</span><div class="val">${new Date(u.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}</div></div>
     </div></section>
+    ${"public_profile" in p && isAdultYear(p.birth_year) && p.username ? `<section class="card2"><h2>Profil public</h2>
+      <label class="chk"><input type="checkbox" id="pubProfile"${p.public_profile ? " checked" : ""}><span><b>Rendre mon profil public</b> : pseudo, nombre de titres, coups de cœur, titres notés 5 ★ et listes publiques, visibles par toute personne qui a le lien. Jamais ton e-mail, ton âge ni le reste de ta collection.</span></label>
+      ${p.public_profile ? `<p class="pub-link"><code>${esc(shareUrl("u", p.username))}</code> <button type="button" class="btn sm primary" id="pubShare">📤 Partager mon profil</button> <a class="btn sm" href="#/u/${encodeURIComponent(p.username)}">Voir</a></p>` : ""}</section>` : ""}
     ${"share_activity" in p ? `<section class="card2"><h2>Partage avec mes amis</h2>
       <label class="chk"><input type="checkbox" id="shareAct"${p.share_activity ? " checked" : ""}><span><b>Partager mon activité avec mes amis</b> : titres commencés et terminés, notes de 4 ou 5 étoiles, coups de cœur, avis et fan arts publiés. Visible uniquement par tes amis, dans « Amis → Activité ». Ta collection complète reste privée.</span></label></section>` : ""}
     ${canInstall() ? `<section class="card2"><h2>Application</h2><p class="hint" style="margin-top:0">Ajoute l'Animéthèque à ton écran d'accueil : elle s'ouvrira comme une appli, en plein écran.</p><button type="button" class="btn" id="installBtn">📲 Installer l'appli</button></section>` : ""}
@@ -101,6 +105,12 @@ function bind() {
   });
   paintPush();
   const ib = $("installBtn"); if (ib) ib.addEventListener("click", () => install());
+  const pp = $("pubProfile");
+  if (pp) pp.addEventListener("change", async () => {
+    try { await updateProfile({ public_profile: pp.checked }); toast(pp.checked ? "Ton profil est public : partage son lien 🌍" : "Ton profil n'est plus public"); render(root); }
+    catch (err) { pp.checked = !pp.checked; toast(frError(err)); }
+  });
+  const ps = $("pubShare"); if (ps) ps.addEventListener("click", () => shareLink(shareUrl("u", p.username), `Mon profil anime : ${p.username}`));
   const sa = $("shareAct");
   if (sa) sa.addEventListener("change", async () => {
     try { await updateProfile({ share_activity: sa.checked }); toast(sa.checked ? "Ton activité est partagée avec tes amis" : "Ton activité n'est plus partagée"); }

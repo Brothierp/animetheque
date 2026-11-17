@@ -228,3 +228,9 @@ Alice voit les abonnements d'Hugo : 0
 ERROR:  permission denied for function push_config_get
 ERROR:  permission denied for function push_watchers
 ERROR:  new row for relation "push_subscriptions" violates check constraint "push_subscriptions_endpoint_check"
+--- profils et listes publics
+profil privé : invisible
+profil public : {"lists": [{"id": "22222222-0000-0000-0000-000000000001", "name": "Mes isekai préférés", "count": 1}], "counts": {"plan": 0, "rated": 1, "watched": 2, "watching": 0, "favorites": 1}, "username": "Hugo", "watching": [], "favorites": [21], "top_rated": [21]}
+liste publique : Mes isekai préférés par Hugo
+ERROR:  public_minor
+ERROR:  public_minor

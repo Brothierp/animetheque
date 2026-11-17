@@ -20,6 +20,7 @@ const missing = err => err && (err.code === "PGRST202" || err.code === "42883" |
 export function socialError(err) {
   const m = (err && (err.message || "")) + " " + (err && err.code || "");
   if (/forbidden_word/.test(m)) return "Ce message contient un terme interdit (insulte, propos haineux…).";
+  if (/public_minor/.test(m)) return "Le partage public est réservé aux membres majeurs.";
   if (/too_young/.test(m)) return "Fonction réservée aux 15 ans et plus.";
   if (/contact_blocked/.test(m)) return "Message bloqué : entre majeurs et mineurs, on n'échange ni numéro, ni e-mail, ni réseau social, ni lien. Restez sur l'Animéthèque.";
   if (/credit_link/.test(m)) return "Le nom de l'artiste ne peut pas contenir de lien ni d'adresse.";

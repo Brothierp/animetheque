@@ -1,4 +1,6 @@
 // Vues « Mes listes » (cartes en mosaïque) et « Liste » (grille, ajout par recherche, renommer, supprimer).
+import { shareUrl, shareLink } from "./public.js";
+import { isAdultMe } from "../safety.js";
 import { A, byId, norm, titleOf, coverStyle, hdUrl } from "../data.js";
 import { ME, sortedLists, listItems, createList, renameList, deleteList, setInList, adultAllowed, onChange } from "../state.js";
 import { $, esc, fmt, grid, cover } from "../ui.js";
@@ -48,7 +50,8 @@ async function renderShare(lid) {
     const fr = friendsList().filter(f => !members.some(m => m.user_id === f.uid));
     p.innerHTML = `<h2>Partage</h2>
       <div class="share-row"><span class="lbl">Qui peut voir cette liste ?</span>
-        <div class="seg seg2"><button type="button" data-vis="private" class="${l.v !== "friends" ? "on" : ""}">🔒 Moi seul${members.length ? " + membres" : ""}</button><button type="button" data-vis="friends" class="${l.v === "friends" ? "on" : ""}">👥 Tous mes amis</button></div></div>
+        <div class="seg seg3b"><button type="button" data-vis="private" class="${l.v !== "friends" && l.v !== "public" ? "on" : ""}">🔒 Moi seul${members.length ? " + membres" : ""}</button><button type="button" data-vis="friends" class="${l.v === "friends" ? "on" : ""}">👥 Mes amis</button>${isAdultMe() ? `<button type="button" data-vis="public" class="${l.v === "public" ? "on" : ""}">🌍 Public (lien)</button>` : ""}</div>
+        ${l.v === "public" ? `<p class="pub-link"><span>Toute personne qui a le lien peut voir cette liste :</span> <code>${esc(shareUrl("l", lid))}</code> <button type="button" class="btn sm primary" data-pubshare>📤 Partager</button></p>` : ""}</div>
       <div class="share-row"><span class="lbl">Liste commune <span class="hint">· ces amis peuvent ajouter et retirer des animés</span></span>
         <ul class="people">${members.map(m => `<li>${avatarHTML(person(m.user_id).avatar, person(m.user_id).username)}<b>${esc(person(m.user_id).username)}</b><span class="act"><button type="button" class="linkbtn" data-unmember="${m.user_id}">retirer</button></span></li>`).join("") || `<li class="hint">Personne pour l'instant.</li>`}</ul>
         ${fr.length ? `<div class="newlist"><select id="addMember" aria-label="Ami à inviter"><option value="">Inviter un ami…</option>${fr.map(f => `<option value="${f.uid}">${esc(person(f.uid).username)}</option>`).join("")}</select><button type="button" class="btn sm primary" id="addMemberBtn">Inviter</button></div>`
@@ -56,7 +59,8 @@ async function renderShare(lid) {
     p.onclick = async e => {
       const v = e.target.closest("[data-vis]"), u = e.target.closest("[data-unmember]");
       try {
-        if (v) { await setListVisibility(lid, v.dataset.vis); l.v = v.dataset.vis; toast(v.dataset.vis === "friends" ? "Liste visible par tous tes amis" : "Liste privée"); renderShare(lid); const b = $("lShareBtn"); if (b) b.textContent = "👥 Partage" + (l.v === "friends" ? " · visible" : ""); }
+        if (e.target.closest("[data-pubshare]")) return shareLink(shareUrl("l", lid), l.n);
+        if (v) { await setListVisibility(lid, v.dataset.vis); l.v = v.dataset.vis; toast(v.dataset.vis === "friends" ? "Liste visible par tous tes amis" : v.dataset.vis === "public" ? "Liste publique : partage son lien 🌍" : "Liste privée"); renderShare(lid); const b = $("lShareBtn"); if (b) b.textContent = "👥 Partage" + (l.v === "friends" ? " · visible" : ""); }
         else if (u) { await removeListMember(lid, u.dataset.unmember); toast("Membre retiré"); renderShare(lid); }
         else if (e.target.id === "addMemberBtn") { const id = $("addMember").value; if (!id) return; await addListMember(lid, id); toast(`${person(id).username} peut maintenant modifier cette liste`); renderShare(lid); }
       } catch (err) { toast(socialError(err)); }

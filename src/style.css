@@ -977,3 +977,11 @@ img[src*="nocookie.net"] { object-position: 50% 10% }
 .wr-banner > span:first-child { font-size: 30px } .wr-banner span { display: grid; gap: 2px } .wr-banner small { color: #d9d2ee }
 .wr-banner .wr-go { margin-left: auto; color: var(--accent); white-space: nowrap }
 @media (max-width: 640px) { .wr-banner .wr-go { display: none } }
+/* ---------- Pages publiques ---------- */
+.pub-h { display: flex; gap: 16px; align-items: center; margin-bottom: 18px; flex-wrap: wrap }
+.pub-h h1 { font: 900 30px/1.1 var(--display) } .pub-h p { margin: 4px 0 0 } .pub-h .btn { margin-left: auto }
+.pub-av { width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; font: 900 28px var(--display); background: linear-gradient(135deg, var(--violet), var(--accent)); color: #1a1306 }
+.pub-lists { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px }
+.pub-link { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 10px 0 0; font-size: 13px }
+.pub-link code { padding: 4px 8px; border-radius: 8px; background: var(--bg-2); border: 1px solid var(--line); overflow-wrap: anywhere; font-size: 12px }
+.seg3b { display: flex; flex-wrap: wrap; gap: 0 } .seg3b button { flex: 1 1 auto }
