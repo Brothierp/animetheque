@@ -34,18 +34,22 @@ async function config() {
 async function sendTo(userId: string, payload: Record<string, string>) {
   const c = await config();
   webpush.setVapidDetails(c.subject, c.public_key, c.private_key);
-  const { data: subs } = await db.from("push_subscriptions").select("id, endpoint, p256dh, auth").eq("user_id", userId);
+  const { data: subs, error } = await db.from("push_subscriptions").select("id, endpoint, p256dh, auth").eq("user_id", userId);
+  if (error) return { sent: 0, erreur: "lecture des appareils : " + error.message };
   let sent = 0;
+  const erreurs: string[] = [];
   for (const s of subs || []) {
     try {
-      await webpush.sendNotification({ endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, JSON.stringify(payload), { TTL: 6 * 3600 });
+      await webpush.sendNotification({ endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, JSON.stringify(payload), { TTL: 6 * 3600, urgency: "high" });
       sent++;
     } catch (e) {
-      const code = (e as { statusCode?: number }).statusCode;
-      if (code === 404 || code === 410) await db.from("push_subscriptions").delete().eq("id", s.id);   // appareil désabonné
+      const x = e as { statusCode?: number; body?: string; message?: string };
+      erreurs.push(`${x.statusCode ?? "?"} ${String(x.body || x.message || e).slice(0, 160)}`);
+      if (x.statusCode === 404 || x.statusCode === 410) await db.from("push_subscriptions").delete().eq("id", s.id);   // appareil désabonné
     }
   }
-  return sent;
+  if (erreurs.length) console.error("push", erreurs);
+  return { sent, appareils: (subs || []).length, ...(erreurs.length ? { erreurs } : {}) };
 }
 const username = async (id: string | null) => {
   if (!id) return "Quelqu'un";
@@ -54,8 +58,8 @@ const username = async (id: string | null) => {
 };
 
 async function notification(id: number) {
-  const { data: n } = await db.from("notifications").select("*").eq("id", id).maybeSingle();
-  if (!n) return 0;
+  const { data: n, error } = await db.from("notifications").select("*").eq("id", id).maybeSingle();
+  if (!n) return { sent: 0, erreur: "notification introuvable" + (error ? " : " + error.message : "") };
   const who = await username(n.actor);
   const [aid, ep] = String(n.ref || "").split(":");
   const m: Record<string, [string, string, string]> = {
@@ -74,8 +78,8 @@ async function notification(id: number) {
 }
 
 async function message(id: number) {
-  const { data: msg } = await db.from("messages").select("sender, recipient, body").eq("id", id).maybeSingle();
-  if (!msg) return 0;
+  const { data: msg, error } = await db.from("messages").select("sender, recipient, body").eq("id", id).maybeSingle();
+  if (!msg) return { sent: 0, erreur: "message introuvable" + (error ? " : " + error.message : "") };
   const who = await username(msg.sender);
   const text = String(msg.body).replace(/\[\[(anime|perso|fanart|image):[^\]]+\]\]/g, "🖼️").slice(0, 120);
   return sendTo(msg.recipient, { title: `💬 ${who}`, body: text, url: `${SITE}/#/amis/chat/${msg.sender}`, tag: `msg-${msg.sender}` });
@@ -115,8 +119,8 @@ Deno.serve(async req => {
     if (req.method === "GET") return json({ publicKey: c.public_key });
     if (req.headers.get("x-push-secret") !== c.secret) return json({ error: "forbidden" }, 403);
     const b = await req.json().catch(() => ({}));
-    if (b.notification_id) return json({ sent: await notification(+b.notification_id) });
-    if (b.message_id) return json({ sent: await message(+b.message_id) });
+    if (b.notification_id) return json(await notification(+b.notification_id));
+    if (b.message_id) return json(await message(+b.message_id));
     if (b.episodes) return json({ notified: await episodes() });
     return json({ error: "rien à faire" }, 400);
   } catch (e) {
