@@ -852,3 +852,5 @@ dialog#auth > .hint { margin: 0 0 16px }
 .fa-18 { position: absolute; top: 8px; right: 8px; font: 700 11px var(--mono); padding: 3px 7px; border-radius: 6px; background: var(--ex); color: #2a0d12 }
 .fa-18.inline { position: static; display: inline-block; margin-right: 6px }
 .adult-chk { padding: 8px 10px; border: 1px solid var(--ex-soft); border-radius: 10px; background: linear-gradient(90deg, var(--ex-soft), transparent) }
+.bn-svg { width: 20px; height: 20px; display: block; margin: 2px auto 1px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linejoin: round; stroke-linecap: round }
+.bn-svg circle { fill: currentColor; stroke: none }
