@@ -22,8 +22,10 @@ export function socialError(err) {
   if (/forbidden_word/.test(m)) return "Ce message contient un terme interdit (insulte, propos haineux…).";
   if (/contact_blocked/.test(m)) return "Message bloqué : entre majeurs et mineurs, on n'échange ni numéro, ni e-mail, ni réseau social, ni lien. Restez sur l'Animéthèque.";
   if (/credit_link/.test(m)) return "Le nom de l'artiste ne peut pas contenir de lien ni d'adresse.";
+  if (/adult_minor/.test(m)) return "Le contenu 18+ est réservé aux comptes majeurs.";
+  if (/adult_blocked/.test(m)) return "Un fan art 18+ ne peut pas être envoyé à un mineur.";
   if (/fanarts_source_check/.test(m)) return "Lien de source non accepté (Pinterest, DeviantArt, ArtStation, Pixiv, X, Instagram, Tumblr, Bluesky, Reddit, Behance).";
-  if (/PGRST204|credit|source_url/.test(m)) return "Cette fonction arrive bientôt : lance les derniers scripts SQL (20261117…) dans Supabase.";
+  if (/PGRST204|PGRST202|credit|source_url|tags|adult/.test(m)) return "Cette fonction arrive bientôt : lance les derniers scripts SQL (20261117…) dans Supabase.";
   if (/language/.test(m)) return "Seuls le français et l'anglais sont acceptés (le japonais uniquement pour citer un titre).";
   if (/rate_limited/.test(m)) return "Doucement ! Trop d'envois d'un coup, réessaie dans un instant.";
   if (/not_allowed/.test(m)) return "Impossible d'ajouter cette personne.";

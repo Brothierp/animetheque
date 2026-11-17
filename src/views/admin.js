@@ -142,9 +142,10 @@ async function renderFanarts(el) {
   $("admFa").innerHTML = L.length ? `<div class="adm-fa">${L.map(f => `<article class="afa" data-id="${f.id}">
       <a href="${esc(f.url)}" target="_blank" rel="noopener"><img src="${esc(f.url)}" alt="" loading="lazy"></a>
       <div><b>${esc(f.title)}</b><p class="hint">par <b>${esc(f.username || "Membre")}</b> (${esc(f.email || "")}) · ${new Date(f.created_at).toLocaleString("fr-FR")}</p>
-        ${f.credit ? `<p>🎨 Artiste crédité : <b>${esc(f.credit)}</b></p>` : ""}${f.source_url ? `<p>Source : <a href="${esc(f.source_url)}" target="_blank" rel="noopener noreferrer nofollow">${esc(f.source_url)}</a></p>` : ""}${what(f) ? `<p>${esc(what(f))}</p>` : ""}${f.description ? `<p>${esc(f.description)}</p>` : ""}${f.reject_reason ? `<p class="hint">Motif du refus : ${esc(f.reject_reason)}</p>` : ""}
+        ${f.adult ? `<p><span class="fa-18 inline">18+</span> marqué 18+ par l'auteur : visible seulement par les majeurs connectés</p>` : ""}${f.tags && f.tags.length ? `<p class="hint">${f.tags.map(t => "#" + esc(t)).join(" ")}</p>` : ""}${f.credit ? `<p>🎨 Artiste crédité : <b>${esc(f.credit)}</b></p>` : ""}${f.source_url ? `<p>Source : <a href="${esc(f.source_url)}" target="_blank" rel="noopener noreferrer nofollow">${esc(f.source_url)}</a></p>` : ""}${what(f) ? `<p>${esc(what(f))}</p>` : ""}${f.description ? `<p>${esc(f.description)}</p>` : ""}${f.reject_reason ? `<p class="hint">Motif du refus : ${esc(f.reject_reason)}</p>` : ""}
         <div class="rep-act">${f.status !== "approved" ? `<button type="button" class="btn sm primary" data-fa="ok">✓ Publier</button>` : ""}
           ${f.status !== "rejected" ? `<button type="button" class="btn sm" data-fa="no">Refuser…</button>` : ""}
+          ${f.adult !== undefined ? `<button type="button" class="btn sm" data-fa="adult">${f.adult ? "Retirer 18+" : "🔞 Marquer 18+"}</button>` : ""}
           <button type="button" class="btn sm danger-o" data-fa="del">Supprimer</button></div></div></article>`).join("")}</div>`
     : `<div class="empty"><p>${faStatus === "pending" ? "Aucun fan art en attente 👍" : "Rien ici."}</p></div>`;
   el.querySelector(".adm-fst").addEventListener("click", e => { const b = e.target.closest("[data-fs]"); if (b) { faStatus = b.dataset.fs; renderFanarts(el); } });
@@ -152,7 +153,8 @@ async function renderFanarts(el) {
     const b = e.target.closest("[data-fa]"); if (!b) return;
     const f = L.find(x => x.id === b.closest(".afa").dataset.id);
     try {
-      if (b.dataset.fa === "ok") { await updateFanart(f.id, { status: "approved" }); toast("Fan art publié 🎨"); }
+      if (b.dataset.fa === "adult") { await updateFanart(f.id, { adult: !f.adult }); toast(f.adult ? "Étiquette 18+ retirée" : "Marqué 18+ : caché aux mineurs et aux visiteurs"); }
+      else if (b.dataset.fa === "ok") { await updateFanart(f.id, { status: "approved" }); toast("Fan art publié 🎨"); }
       else if (b.dataset.fa === "no") { const r = prompt("Motif du refus (visible par l'auteur) :", "Image sans rapport avec les animés"); if (r === null) return; await updateFanart(f.id, { status: "rejected", reject_reason: r.slice(0, 300) || null }); toast("Fan art refusé"); }
       else { if (!confirm("Supprimer définitivement ce fan art (et son image) ?")) return; await deleteFanart(f); toast("Fan art supprimé"); }
       pendingFa = await adminPending(); renderFanarts(el);

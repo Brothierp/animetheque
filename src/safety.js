@@ -79,6 +79,9 @@ export async function prepareTokens(bodies) {
 }
 
 /** Fenêtre « Partager un animé ou un personnage » ; renvoie le jeton à envoyer, ou null. */
+export const TAG_SUGGEST = ["fan art", "chibi", "croquis", "aquarelle", "digital", "pixel art", "paysage", "humour", "romance", "action", "crossover", "redraw", "oc"];
+export const parseTags = s => [...new Set((s || "").split(/[,;\n]+/).map(t => t.trim().replace(/^#+/, "").toLowerCase().slice(0, 24)).filter(t => t.length >= 2 && !["18+", "+18", "nsfw", "18"].includes(t)))].slice(0, 8);
+
 /** Formulaire d'envoi d'une image depuis l'appareil (galerie du téléphone, fichiers de l'ordinateur). */
 export function uploadFormHTML(id) {
   return `<form class="up-form" id="${id}" novalidate>
@@ -87,7 +90,10 @@ export function uploadFormHTML(id) {
     <label>Titre <input type="text" data-up="title" maxlength="80" required placeholder="Ex. : Frieren sous les étoiles"></label>
     <label><span>Artiste <small class="hint">(si ce n'est pas ton dessin)</small></span><input type="text" data-up="credit" maxlength="80" placeholder="Pseudo de l'artiste (symboles acceptés)"></label>
     <label><span>Lien vers la source <small class="hint">(facultatif)</small></span><input type="url" data-up="source" maxlength="300" inputmode="url" placeholder="https://www.pinterest.fr/pin/…  ·  DeviantArt, ArtStation, Pixiv…"></label>
-    <label class="chk"><input type="checkbox" data-up="ok"><span>C'est un <b>dessin ou une illustration</b> (le mien, ou celui d'un artiste que je crédite), sans <b>vraie personne</b> ni contenu adulte, violent ou choquant.</span></label>
+    <label><span>Étiquettes <small class="hint">(jusqu'à 8, séparées par des virgules)</small></span><input type="text" data-up="tags" maxlength="200" autocomplete="off" placeholder="ex. : one piece, chibi, aquarelle"></label>
+    <div class="tag-sug" aria-label="Étiquettes suggérées">${TAG_SUGGEST.map(t => `<button type="button" class="tchip" data-addtag="${esc(t)}">+ ${esc(t)}</button>`).join("")}</div>
+    ${isAdultMe() ? `<label class="chk adult-chk"><input type="checkbox" data-up="adult"><span>🔞 <b>Contenu 18+</b> (nudité, ecchi, violence…) : visible seulement par les membres majeurs connectés, jamais par les mineurs ni les visiteurs. Aucun personnage mineur ou d'apparence mineure.</span></label>` : ""}
+    <label class="chk"><input type="checkbox" data-up="ok"><span>C'est un <b>dessin ou une illustration</b> (le mien, ou celui d'un artiste que je crédite), sans <b>vraie personne</b>${isAdultMe() ? " ; tout contenu adulte est marqué 18+" : " ni contenu adulte, violent ou choquant"}.</span></label>
     <p class="hint up-note">Chaque image est vérifiée par l'administrateur avant d'être visible (en général sous 48 h). Elle rejoint aussi la galerie Fan arts.</p>
   </form>`;
 }
@@ -103,13 +109,18 @@ export function bindUploadForm(form, { onPick } = {}) {
     if (onPick) onPick(f);
   };
   $u("file").addEventListener("change", e => pick(e.target.files[0]));
+  form.querySelector(".tag-sug").addEventListener("click", e => {
+    const b = e.target.closest("[data-addtag]"); if (!b) return;
+    const L = parseTags($u("tags").value); if (!L.includes(b.dataset.addtag) && L.length < 8) L.push(b.dataset.addtag);
+    $u("tags").value = L.join(", "); b.hidden = true;
+  });
   const drop = form.querySelector(".fa-drop");
   drop.addEventListener("dragover", e => { e.preventDefault(); drop.classList.add("over"); });
   drop.addEventListener("dragleave", () => drop.classList.remove("over"));
   drop.addEventListener("drop", e => { e.preventDefault(); drop.classList.remove("over"); pick(e.dataTransfer.files[0]); });
   const paste = e => { const it = [...(e.clipboardData && e.clipboardData.items || [])].find(x => x.type.startsWith("image/")); if (it) { e.preventDefault(); pick(it.getAsFile()); } };
   (form.closest("dialog") || document).addEventListener("paste", paste);
-  return () => ({ file, title: $u("title").value.trim(), credit: $u("credit").value.trim(), source_url: $u("source").value.trim(), ok: $u("ok").checked });
+  return () => ({ file, title: $u("title").value.trim(), credit: $u("credit").value.trim(), source_url: $u("source").value.trim(), tags: parseTags($u("tags").value), adult: !!($u("adult") && $u("adult").checked), ok: $u("ok").checked });
 }
 /** Vérifie les champs ; renvoie un message d'erreur ou null. */
 export function checkUpload(v, sourceRe) {

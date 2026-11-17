@@ -840,3 +840,15 @@ dialog#auth > .hint { margin: 0 0 16px }
   .fa-pub .up-drop { min-height: 180px }
   .fa-send .btn { width: 100% }
 }
+
+/* ---------- Étiquettes des fan arts ---------- */
+.tchip { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border: 1px solid var(--line); border-radius: 999px; background: transparent; color: var(--muted); font: inherit; font-size: 12.5px; text-decoration: none; cursor: pointer; white-space: nowrap }
+.tchip:hover { color: var(--ink); border-color: var(--muted) }
+.tchip.on { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600 }
+.tchip.t18 { color: var(--ex); border-color: var(--ex-soft) } .tchip.t18.on { background: var(--ex); color: #2a0d12 }
+.tag-sug { display: flex; flex-wrap: wrap; gap: 6px; margin-top: -4px }
+.fa-tagbar { display: flex; gap: 6px; overflow-x: auto; margin: -8px calc(var(--gut) * -1) 16px; padding: 2px var(--gut) 6px; scrollbar-width: none }
+.fa-tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 }
+.fa-18 { position: absolute; top: 8px; right: 8px; font: 700 11px var(--mono); padding: 3px 7px; border-radius: 6px; background: var(--ex); color: #2a0d12 }
+.fa-18.inline { position: static; display: inline-block; margin-right: 6px }
+.adult-chk { padding: 8px 10px; border: 1px solid var(--ex-soft); border-radius: 10px; background: linear-gradient(90deg, var(--ex-soft), transparent) }

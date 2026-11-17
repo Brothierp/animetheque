@@ -9,9 +9,9 @@ export const fanartUrl = path => path && supabase ? supabase.storage.from("fanar
 const keep = rows => { for (const r of rows || []) { r.url = fanartUrl(r.path); FA.cache.set(r.id, r); } return rows || []; };
 const isMissing = e => e && (e.code === "PGRST202" || e.code === "42883" || e.code === "PGRST205" || /could not find the function/i.test(e.message || ""));
 
-export async function listFanarts({ sort = "recent", character = null, anime = null, user = null, ids = null, limit = 48, offset = 0 } = {}) {
+export async function listFanarts({ sort = "recent", character = null, anime = null, user = null, ids = null, tag = null, limit = 48, offset = 0 } = {}) {
   try {
-    return keep(await call(supabase.rpc("fanarts_list", { p_sort: sort, p_character: character, p_anime: anime, p_user: user, p_ids: ids, p_limit: limit, p_offset: offset })));
+    return keep(await call(supabase.rpc("fanarts_list", { p_sort: sort, p_character: character, p_anime: anime, p_user: user, p_ids: ids, p_limit: limit, p_offset: offset, ...(tag ? { p_tag: tag } : {}) })));
   } catch (e) { if (isMissing(e)) FA.missing = true; throw e; }
 }
 export async function getFanart(id) {
@@ -58,14 +58,15 @@ export async function prepareImage(file) {
   throw new Error("size");
 }
 /** Publie un fan art (en attente de vérification) ; renvoie son identifiant. */
-export async function publishFanart(file, { title, description, credit, source_url, character_id, anime_id }) {
+export async function tagsTop() { try { return await call(supabase.rpc("fanart_tags_top", { n: 30 })); } catch { return []; } }
+export async function publishFanart(file, { title, description, credit, source_url, tags, adult, character_id, anime_id }) {
   const img = await prepareImage(file);
   const path = `${ME.user.id}/${crypto.randomUUID()}.${img.ext}`;
   const up = await supabase.storage.from("fanarts").upload(path, img.blob, { contentType: img.type, upsert: false });
   if (up.error) throw up.error;
   try {
     const row = await call(supabase.from("fanarts").insert({ path, width: img.w, height: img.h, title, description: description || null, character_id: character_id || null, anime_id: anime_id || null,
-      ...(credit ? { credit } : {}), ...(source_url ? { source_url } : {}) }).select("id").single());
+      ...(credit ? { credit } : {}), ...(source_url ? { source_url } : {}), ...(tags && tags.length ? { tags } : {}), ...(adult ? { adult: true } : {}) }).select("id").single());
     FA.cache.set(row.id, { id: row.id, path, url: fanartUrl(path), title, status: "pending", username: (ME.profile && ME.profile.username) || "Moi", mine: true });
     return row.id;
   } catch (e) { await supabase.storage.from("fanarts").remove([path]).catch(() => {}); throw e; }
