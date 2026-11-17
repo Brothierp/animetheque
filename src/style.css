@@ -943,3 +943,6 @@ img[src*="nocookie.net"] { object-position: 50% 10% }
 .ep-form textarea { flex: 1; min-width: 200px; resize: vertical; padding: 9px 11px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); color: var(--ink); font: inherit }
 .ep-form textarea:focus { border-color: var(--accent); outline: none }
 .ep-rep { width: 100%; margin: 0; font-size: 12.5px; color: var(--muted) }
+.nt-push { display: flex; gap: 10px; align-items: center; width: 100%; padding: 10px 14px; border: 0; border-bottom: 1px solid var(--line); background: linear-gradient(90deg, var(--accent-soft), transparent); color: var(--ink); font: inherit; font-size: 13.5px; text-align: left; cursor: pointer }
+.nt-push span { display: grid; gap: 1px } .nt-push small { color: var(--muted); font-size: 11.5px }
+.nt-push:hover { background: var(--accent-soft) }

@@ -220,3 +220,11 @@ ERROR:  too_young
 ERROR:  language
 message signalé : Épisode 7 : Cet épisode est incroyable, la fin m'a surpris
 Inès supprime le message d'Hugo : 1 restant(s)
+--- notifications sur l'appareil
+abonnement : 1
+test créé : test
+clé publique (pas encore créée) : aucune
+Alice voit les abonnements d'Hugo : 0
+ERROR:  permission denied for function push_config_get
+ERROR:  permission denied for function push_watchers
+ERROR:  new row for relation "push_subscriptions" violates check constraint "push_subscriptions_endpoint_check"
