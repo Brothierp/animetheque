@@ -8,7 +8,14 @@
 import webpush from "npm:web-push@3.6.7";
 import { createClient } from "npm:@supabase/supabase-js@2.45.4";
 
-const db = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, { auth: { persistSession: false } });
+// Clé serveur : ancienne « service_role » ou nouvelle clé secrète « sb_secret_… », selon le projet.
+function serverKey(): string {
+  const legacy = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (legacy) return legacy;
+  try { const keys = JSON.parse(Deno.env.get("SUPABASE_SECRET_KEYS") || "{}"); const k = Object.values(keys)[0]; if (typeof k === "string") return k; } catch { /* ignoré */ }
+  throw new Error("Clé serveur introuvable (SUPABASE_SERVICE_ROLE_KEY ou SUPABASE_SECRET_KEYS)");
+}
+const db = createClient(Deno.env.get("SUPABASE_URL")!, serverKey(), { auth: { persistSession: false } });
 const SITE = "https://animetheque.vercel.app";
 const json = (b: unknown, status = 200) => new Response(JSON.stringify(b), { status, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } });
 
