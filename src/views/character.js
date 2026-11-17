@@ -44,7 +44,7 @@ function html(c) {
   <div class="c-body">
     <div class="c-main">
       ${groups.length ? `<section><h2>Étiquettes</h2><div class="ctags">${groups.map(([cat, ts]) => `<div class="ctag-row"><span>${esc(cat)}</span><div class="tags">${ts.map(t => `<a class="g" href="#/personnages?tag=${encodeURIComponent(TAGS[t].label)}">${esc(TAGS[t].label)}</a>`).join("")}</div></div>`).join("")}</div></section>` : ""}
-      <section><h2>Description</h2><div class="cdesc" id="cDesc"><p class="hint">Chargement depuis AniList…</p></div></section>
+      <section><h2>Description</h2><div class="cdesc" id="cDesc"><p class="hint">Chargement…</p></div></section>
       <section><h2>Apparaît dans <small class="hint">${apps.length} animé${apps.length > 1 ? "s" : ""}</small></h2>
         <div class="grid apps">${apps.slice(0, 40).map(({ a, role }) => `<div class="app-w">${card(a)}<span class="role r-${role}">${ROLE_FR[role]}</span></div>`).join("")}</div></section>
     </div>
@@ -84,9 +84,10 @@ export async function openCharacter(id, onClose) {
   fetchCharacter(id).then(d => {
     if (curId !== id) return;
     $("cFacts").innerHTML = facts(d, c);
-    $("cDesc").innerHTML = d.description ? `<div id="cDescTxt">${descHTML(d.description)}</div><p class="hint src">Description issue d'<a href="https://anilist.co/character/${id}" target="_blank" rel="noopener">AniList ↗</a>. Les passages flous sont des spoilers : clique pour les révéler.</p>`
+    $("cDesc").innerHTML = d.local ? `<div id="cDescTxt">${descHTML(d.description)}</div><p class="hint src">Image et informations : <a href="${d.siteUrl}" target="_blank" rel="noopener">wiki de la série ↗</a></p>`
+      : d.description ? `<div id="cDescTxt">${descHTML(d.description)}</div><p class="hint src">Description issue d'<a href="https://anilist.co/character/${id}" target="_blank" rel="noopener">AniList ↗</a>. Les passages flous sont des spoilers : clique pour les révéler.</p>`
       : `<p class="hint">Pas de description sur AniList.</p>`;
-    if (d.description) attachTranslate($("cDescTxt"), "c" + id, true);
+    if (d.description && !d.local) attachTranslate($("cDescTxt"), "c" + id, true);
   }).catch(() => { if (curId === id) $("cDesc").innerHTML = `<p class="hint">Description indisponible pour le moment. <a href="https://anilist.co/character/${id}" target="_blank" rel="noopener">Voir sur AniList ↗</a></p>`; });
   return true;
 }

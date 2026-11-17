@@ -40,7 +40,7 @@ export function preventionDialog(name) {
 /** Bandeau affiché dans une conversation majeur / mineur. */
 export const mixedBanner = () => `<div class="safe-ban" role="note">🛡️ <span>${isAdultMe()
   ? "Conversation avec un·e mineur·e : coordonnées et liens bloqués, messages analysés automatiquement."
-  : "Conversation avec un·e majeur·e : ne donne jamais tes coordonnées. Messages analysés automatiquement. Un souci ? Signale-le ou appelle le 3018."}</span></div>`;
+  : "Conversation avec un·e majeur·e : ne donne jamais tes coordonnées. Messages analysés automatiquement. Un souci ? Bouton 🚩 Signaler en haut, ou appelle le 3018."}</span></div>`;
 
 // ---------- Partage d'images du site ----------
 // Un message peut contenir [[anime:123]], [[perso:456]] ou [[fanart:<uuid>]] : affichés comme des cartes.
@@ -196,5 +196,40 @@ export function sharePicker(extra, upload) {
     });
     d.addEventListener("close", () => res(out));
     draw(); if (kind !== "device") q.focus();
+  });
+}
+
+// ---------- Signalement manuel (message ou membre) ----------
+export const REPORT_CATS = [
+  ["contournement", "Contourne les contrôles", "numéro, réseau social ou lien écrit autrement, invitation à parler ailleurs…"],
+  ["sexuel", "Propos sexuels ou déplacés", "remarques sur le corps, questions intimes, contenu choquant"],
+  ["photos_rdv", "Demande de photos ou de rendez-vous", "photo de toi, webcam, se voir en vrai, adresse"],
+  ["harcelement", "Harcèlement, insultes ou menaces", ""],
+  ["age", "Ment sur son âge / faux profil", ""],
+  ["arnaque", "Spam, arnaque ou demande d'argent", ""],
+  ["autre", "Autre", ""],
+];
+/** Fenêtre de signalement ; renvoie { category, reason, context, block } ou null si annulé. */
+export function reportDialog({ name, message = false, canContext = true }) {
+  return new Promise(res => {
+    const d = dialog(`<h2>🚩 Signaler ${message ? "ce message" : esc(name)}</h2>
+      <p class="hint">Ton signalement est confidentiel : ${esc(name)} ne saura pas que c'est toi. L'administrateur le traite en priorité ${isAdultMe() ? "s'il concerne un mineur" : "quand un mineur est concerné"}.</p>
+      <div class="rep-cats" role="radiogroup" aria-label="Motif">${REPORT_CATS.map(([k, l, h], i) => `<label class="rep-cat"><input type="radio" name="rcat" value="${k}"${i ? "" : " checked"}><span><b>${l}</b>${h ? `<small>${h}</small>` : ""}</span></label>`).join("")}</div>
+      <label class="rep-more"><span>Précisions <small class="hint">(facultatif)</small></span><textarea maxlength="500" rows="2" style="min-height:64px" placeholder="Ce qui s'est passé, en quelques mots…"></textarea></label>
+      ${canContext ? `<label class="chk"><input type="checkbox" data-r="ctx" checked><span>Joindre les <b>15 derniers messages</b> de notre conversation, pour que l'administrateur comprenne la situation.</span></label>` : ""}
+      <label class="chk"><input type="checkbox" data-r="block"${isAdultMe() ? "" : " checked"}><span>Bloquer aussi ${esc(name)} (il ou elle ne pourra plus te contacter).</span></label>
+      ${isAdultMe() ? "" : `<p class="hint">Tu te sens en danger ou mal à l'aise ? Parles-en à un adulte de confiance, ou appelle le <b>3018</b> (gratuit et anonyme).</p>`}
+      <div class="fb-act"><button type="button" class="btn" data-x="0">Annuler</button><button type="button" class="btn danger" data-x="1">Envoyer le signalement</button></div>`);
+    let out = null;
+    d.addEventListener("click", e => {
+      const b = e.target.closest("[data-x]"); if (!b) return;
+      if (b.dataset.x === "1") {
+        const cat = d.querySelector("input[name=rcat]:checked").value, more = d.querySelector("textarea").value.trim();
+        const label = REPORT_CATS.find(c => c[0] === cat)[1];
+        out = { category: cat, reason: (label + (more ? " — " + more : "")).slice(0, 500), context: !!(d.querySelector("[data-r=ctx]") && d.querySelector("[data-r=ctx]").checked), block: d.querySelector("[data-r=block]").checked };
+      }
+      d.close();
+    });
+    d.addEventListener("close", () => res(out));
   });
 }

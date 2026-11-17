@@ -3,7 +3,7 @@
 import json, gzip, glob, re, sys, collections
 
 # Usage (dans le dossier de travail de characters_fetch.py) :
-#   python3 characters_build.py ../public/data.json ../public/characters.json
+#   python3 characters_build.py ../public/data.json ../public/characters.json [../scripts/extra/arcane-raw.json …]
 # Produit aussi public/characters-top.json (accueil) et public/cshards/*.json (visages par animé).
 DATA = sys.argv[1]           # public/data.json (pour l'ordre des animés)
 OUT = sys.argv[2]            # public/characters.json
@@ -124,8 +124,10 @@ def tags_for(c):
 
 chars = {}                    # id → données
 apps = collections.defaultdict(list)
-for fn in sorted(glob.glob("raw/*.json.gz")):
-    for m in json.load(gzip.open(fn)):
+# réponses AniList (raw/*.json.gz), puis séries ajoutées à la main (scripts/extra/*-raw.json, arguments suivants)
+sources = [json.load(gzip.open(fn)) for fn in sorted(glob.glob("raw/*.json.gz"))] + [json.load(open(fn)) for fn in sys.argv[3:]]
+for media in sources:
+    for m in media:
         ai = idx_of.get(m["id"])
         if ai is None: continue
         for e in m["characters"]["edges"]:

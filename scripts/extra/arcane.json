@@ -1,0 +1,590 @@
+{
+ "anime": [
+  {
+   "id": 900001,
+   "pos": 100,
+   "romaji": "Arcane",
+   "english": "Arcane",
+   "native": "Arcane",
+   "syn": [
+    "Arcane: League of Legends",
+    "Arcane : League of Legends",
+    "Arcane Saison 1"
+   ],
+   "format": "ONA",
+   "status": "FINISHED",
+   "eps": 9,
+   "dur": 40,
+   "season": "FALL",
+   "year": 2021,
+   "genres": [
+    "Action",
+    "Adventure",
+    "Drama",
+    "Sci-Fi",
+    "Fantasy"
+   ],
+   "tags": [
+    "Female Protagonist",
+    "Ensemble Cast",
+    "Steampunk",
+    "Politics",
+    "Crime",
+    "Gangs",
+    "Family Life",
+    "Anti-Hero",
+    "LGBTQ+ Themes",
+    "Primarily Adult Cast",
+    "Drugs",
+    "Revenge",
+    "Dystopian",
+    "Foreign"
+   ],
+   "studios": [
+    "Fortiche"
+   ],
+   "country": "FR",
+   "source": "VIDEO_GAME",
+   "lang": "FE",
+   "cover": "https://static.wikia.nocookie.net/arcane/images/d/d7/Arcane_Season_1_1.jpg/revision/latest/scale-to-width-down/{w}?cb=20211121084632",
+   "color": "e46a8c",
+   "ext": [
+    "https://arcane.fandom.com/wiki/Season_1",
+    "Wiki Arcane"
+   ],
+   "plats": [
+    [
+     "Netflix",
+     "https://www.netflix.com/title/81435684"
+    ]
+   ],
+   "desc": "Piltover, la cité du progrès, brille au-dessus de Zaun, ses bas-fonds misérables où règnent les gangs. Deux sœurs orphelines, Vi et Powder, y grandissent sous la protection de Vander. Pendant ce temps, à Piltover, le jeune scientifique Jayce et son assistant Viktor découvrent un moyen de maîtriser la magie grâce à une invention, l'Hextech. Une série d'animation française du studio Fortiche, inspirée de l'univers du jeu League of Legends, en trois actes de trois épisodes."
+  },
+  {
+   "id": 900002,
+   "pos": 259,
+   "romaji": "Arcane 2",
+   "english": "Arcane Season 2",
+   "native": "Arcane",
+   "syn": [
+    "Arcane: League of Legends Season 2",
+    "Arcane Saison 2"
+   ],
+   "format": "ONA",
+   "status": "FINISHED",
+   "eps": 9,
+   "dur": 40,
+   "season": "FALL",
+   "year": 2024,
+   "genres": [
+    "Action",
+    "Adventure",
+    "Drama",
+    "Sci-Fi",
+    "Fantasy"
+   ],
+   "tags": [
+    "Female Protagonist",
+    "Ensemble Cast",
+    "Steampunk",
+    "Politics",
+    "War",
+    "Family Life",
+    "Anti-Hero",
+    "LGBTQ+ Themes",
+    "Primarily Adult Cast",
+    "Dystopian",
+    "Foreign"
+   ],
+   "studios": [
+    "Fortiche"
+   ],
+   "country": "FR",
+   "source": "VIDEO_GAME",
+   "lang": "FE",
+   "cover": "https://static.wikia.nocookie.net/arcane/images/f/fe/Arcane-s2.jpg/revision/latest/scale-to-width-down/{w}?cb=20240611115952",
+   "color": "4a7fd6",
+   "ext": [
+    "https://arcane.fandom.com/wiki/Season_2",
+    "Wiki Arcane"
+   ],
+   "plats": [
+    [
+     "Netflix",
+     "https://www.netflix.com/title/81435684"
+    ]
+   ],
+   "desc": "Suite et fin d'Arcane. Les tensions entre Piltover et Zaun ont atteint le point de rupture, et les deux cités se préparent à la guerre. Vi, Jinx, Caitlyn, Jayce et Viktor doivent faire des choix qui changeront leur monde pour toujours, tandis que de puissantes forces venues de l'extérieur s'intéressent à l'Hextech. Neuf épisodes en trois actes, toujours réalisés par le studio français Fortiche."
+  }
+ ],
+ "chars": [
+  {
+   "id": 900000001,
+   "name": "Vi",
+   "wiki": "https://arcane.fandom.com/wiki/Vi",
+   "gender": "Female",
+   "roles": [
+    "M",
+    "M"
+   ],
+   "desc_fr": "Bagarreuse au grand cœur des bas-fonds de Zaun, Vi protège farouchement sa petite sœur Powder. Impulsive, loyale et redoutable aux poings, elle va devoir composer avec Piltover, la ville d'en haut qu'elle déteste.",
+   "desc_en": "Vi is a fighter and brawler from the undercity of Zaun with pink hair and a tattoo on her face. She is protective of her younger sister.",
+   "img": "https://static.wikia.nocookie.net/arcane/images/0/0a/Vi_Arcane_render.png/revision/latest/scale-to-width-down/300?cb=20240524011214"
+  },
+  {
+   "id": 900000002,
+   "name": "Jinx",
+   "wiki": "https://arcane.fandom.com/wiki/Jinx",
+   "gender": "Female",
+   "roles": [
+    "M",
+    "M"
+   ],
+   "desc_fr": "Petite sœur de Vi, connue enfant sous le nom de Powder. Génie du bricolage et des explosifs, imprévisible et tourmentée, elle devient une figure aussi fascinante qu'inquiétante des bas-fonds.",
+   "desc_en": "Jinx is a genius inventor with long blue hair braids and pink eyes. She is Vi's younger sister and an antagonist from Zaun.",
+   "img": "https://static.wikia.nocookie.net/arcane/images/2/2f/Jinx_Arcane_Season_2_Render.png/revision/latest/scale-to-width-down/300?cb=20241226153010"
+  },
+  {
+   "id": 900000003,
+   "name": "Caitlyn Kiramman",
+   "wiki": "https://arcane.fandom.com/wiki/Caitlyn_Kiramman",
+   "gender": "Female",
+   "roles": [
+    "M",
+    "M"
+   ],
+   "desc_fr": "Héritière d'une grande famille de Piltover, Caitlyn est une tireuse d'élite qui rejoint les forces de l'ordre. Idéaliste et tenace, elle enquête là où personne ne veut regarder.",
+   "desc_en": "Caitlyn is a sniper and police officer (enforcer) from Piltover with long dark blue hair. She is from a rich family.",
+   "img": "https://static.wikia.nocookie.net/arcane/images/9/95/Caitlyn_Arcane_Render.png/revision/latest?cb=20240524043129"
+  },
+  {
+   "id": 900000004,
+   "name": "Jayce Talis",
+   "wiki": "https://arcane.fandom.com/wiki/Jayce_Talis",
+   "gender": "Male",
+   "roles": [
+    "M",
+    "M"
+   ],
+   "desc_fr": "Jeune scientifique de Piltover, Jayce rêve de mettre la magie au service du progrès grâce à l'Hextech. Charismatique et ambitieux, il se retrouve vite au cœur de la politique.",
+   "desc_en": "Jayce is a scientist and inventor from Piltover with brown hair. He becomes a politician on the council.",
+   "img": "https://static.wikia.nocookie.net/arcane/images/f/f6/Jayce_Arcane_Season_2_Render.png/revision/latest/scale-to-width-down/300?cb=20250531145850"
+  },
+  {
+   "id": 900000005,
+   "name": "Viktor",
+   "wiki": "https://arcane.fandom.com/wiki/Viktor",
+   "gender": "Male",
+   "roles": [
+    "M",
+    "M"
+   ],
+   "desc_fr": "Assistant brillant venu des bas-fonds, Viktor partage avec Jayce le rêve de l'Hextech. Malade, discret et obstiné, il veut que la science aide tous ceux que la ville a oubliés.",
+   "desc_en": "Viktor is a scientist and genius inventor from Zaun with brown hair who walks with a cane.",
+   "img": "https://static.wikia.nocookie.net/arcane/images/2/2c/Viktor_Arcane_Render.png/revision/latest/scale-to-width-down/300?cb=20241021145429"
+  },
+  {
+   "id": 900000006,
+   "name": "Mel Medarda",
+   "wiki": "https://arcane.fandom.com/wiki/Mel_Medarda",
+   "gender": "Female",
+   "roles": [
+    "S",
+    "M"
+   ],
+   "desc_fr": "Conseillère de Piltover issue d'une puissante famille noxienne, Mel est une stratège élégante et habile. Elle voit dans l'Hextech une chance de changer le cours de l'histoire.",
+   "desc_en": "Mel is a politician and member of the council of Piltover. She comes from a noble family of Noxus.",
+   "img": "https://static.wikia.nocookie.net/arcane/images/2/2a/Mel_Arcane_Season_2_Render.png/revision/latest/scale-to-width-down/300?cb=20260227154407"
+  },
+  {
+   "id": 900000007,
+   "name": "Silco",
+   "wiki": "https://arcane.fandom.com/wiki/Silco",
+   "gender": "Male",
+   "roles": [
+    "M",
+    "S"
+   ],
+   "desc_fr": "Baron de la pègre de Zaun, Silco veut l'indépendance des bas-fonds coûte que coûte. Calculateur et implacable, il a pourtant ses propres failles.",
+   "desc_en": "Silco is a crime boss and villain of Zaun with a scar over his eye and black hair. He is an antagonist and leader.",
+   "img": "https://static.wikia.nocookie.net/arcane/images/4/46/Silco2_Arcane_Render.png/revision/latest/scale-to-width-down/300?cb=20240524011310"
+  },
+  {
+   "id": 900000008,
+   "name": "Vander",
+   "wiki": "https://arcane.fandom.com/wiki/Vander",
+   "gender": "Male",
+   "roles": [
+    "S",
+    "S"
+   ],
+   "desc_fr": "Ancien meneur de la révolte des bas-fonds devenu tenancier de bar, Vander veille sur Vi, Powder et les autres orphelins qu'il a recueillis.",
+   "desc_en": "Vander is a former leader of a rebellion from the undercity who runs a bar. He is a strong fighter and father figure.",
+   "img": "https://static.wikia.nocookie.net/arcane/images/5/5d/Vader_%28Human%29.png/revision/latest/scale-to-width-down/300?cb=20241202111630"
+  },
+  {
+   "id": 900000009,
+   "name": "Ekko",
+   "wiki": "https://arcane.fandom.com/wiki/Ekko",
+   "gender": "Male",
+   "roles": [
+    "S",
+    "M"
+   ],
+   "desc_fr": "Gamin débrouillard des bas-fonds devenu meneur d'un groupe de rebelles, Ekko est un inventeur ingénieux et un ami d'enfance de Powder.",
+   "desc_en": "Ekko is a young inventor and leader from Zaun with white hair. He fights with a wooden sword.",
+   "img": "https://static.wikia.nocookie.net/arcane/images/7/78/Ekko_Arcane_Render.png/revision/latest/scale-to-width-down/300?cb=20240524023846"
+  },
+  {
+   "id": 900000010,
+   "name": "Cecil B. Heimerdinger",
+   "wiki": "https://arcane.fandom.com/wiki/Heimerdinger",
+   "gender": "Male",
+   "roles": [
+    "S",
+    "S"
+   ],
+   "desc_fr": "Savant yordle plusieurs fois centenaire, le professeur Heimerdinger siège au Conseil de Piltover et prône la prudence face au progrès.",
+   "desc_en": "Heimerdinger is an immortal yordle scientist and professor with white hair. He is centuries old and a member of the council.",
+   "img": "https://static.wikia.nocookie.net/arcane/images/1/19/Heimer_Full.jpeg/revision/latest/scale-to-width-down/300?cb=20250131022948"
+  },
+  {
+   "id": 900000011,
+   "name": "Ambessa Medarda",
+   "wiki": "https://arcane.fandom.com/wiki/Ambessa_Medarda",
+   "gender": "Female",
+   "roles": [
+    "S",
+    "M"
+   ],
+   "desc_fr": "Mère de Mel et redoutable seigneure de guerre de Noxus, Ambessa ne recule devant rien pour protéger sa famille et étendre son influence.",
+   "desc_en": "Ambessa is a warlord and military commander of Noxus and Mel's mother. She is a warrior.",
+   "img": "https://static.wikia.nocookie.net/arcane/images/c/c7/Ambessa_Arcane_Season_2_Render.png/revision/latest/scale-to-width-down/300?cb=20250531145851"
+  },
+  {
+   "id": 900000012,
+   "name": "Sevika",
+   "wiki": "https://arcane.fandom.com/wiki/Sevika",
+   "gender": "Female",
+   "roles": [
+    "S",
+    "S"
+   ],
+   "desc_fr": "Bras droit de Silco, Sevika est une combattante endurcie au bras mécanique, aussi loyale que dangereuse.",
+   "desc_en": "Sevika is a fighter and gang member from Zaun with a mechanical arm and dark hair.",
+   "img": "https://static.wikia.nocookie.net/arcane/images/2/22/Sevika_Arcane_Render.png/revision/latest/scale-to-width-down/300?cb=20240524011316"
+  },
+  {
+   "id": 900000013,
+   "name": "Singed",
+   "wiki": "https://arcane.fandom.com/wiki/Singed",
+   "gender": "Male",
+   "roles": [
+    "S",
+    "S"
+   ],
+   "desc_fr": "Scientifique mystérieux des bas-fonds, Singed mène des expériences sans limites morales.",
+   "desc_en": "Singed is a scientist and inventor from Zaun with scars, working for Silco.",
+   "img": "https://static.wikia.nocookie.net/arcane/images/1/16/Singed_Arcane_render.png/revision/latest/scale-to-width-down/300?cb=20240524011212"
+  },
+  {
+   "id": 900000014,
+   "name": "Isha",
+   "wiki": "https://arcane.fandom.com/wiki/Isha",
+   "gender": "Female",
+   "roles": [
+    null,
+    "S"
+   ],
+   "desc_fr": "Fillette muette des bas-fonds qui croise la route de Jinx. Malgré son silence, elle a beaucoup de courage.",
+   "desc_en": "Isha is a young girl from Zaun who cannot speak.",
+   "img": "https://static.wikia.nocookie.net/arcane/images/3/3d/Normal.jpg/revision/latest/scale-to-width-down/300?cb=20250809230846"
+  },
+  {
+   "id": 900000015,
+   "name": "Cassandra Kiramman",
+   "wiki": "https://arcane.fandom.com/wiki/Cassandra_Kiramman",
+   "gender": "Female",
+   "roles": [
+    "S",
+    "S"
+   ],
+   "desc_fr": "Mère de Caitlyn et membre du Conseil de Piltover, Cassandra est une femme de principes, attachée à sa famille.",
+   "desc_en": "Cassandra is a member of the council of Piltover and Caitlyn's mother. She has blue hair.",
+   "img": "https://static.wikia.nocookie.net/arcane/images/3/33/Cassandra_kiramman.png/revision/latest/scale-to-width-down/300?cb=20260128192905"
+  },
+  {
+   "id": 900000016,
+   "name": "Smeech",
+   "wiki": "https://arcane.fandom.com/wiki/Smeech",
+   "gender": "Male",
+   "roles": [
+    "S",
+    null
+   ],
+   "desc_fr": "Chef de gang des bas-fonds au service de Silco, petit mais teigneux.",
+   "desc_en": "Smeech is a gang member and thief from Zaun.",
+   "img": "https://static.wikia.nocookie.net/arcane/images/5/5a/Smeech_Arcane_Render.png/revision/latest/scale-to-width-down/300?cb=20240612010347"
+  },
+  {
+   "id": 900000017,
+   "name": "Marcus",
+   "wiki": "https://arcane.fandom.com/wiki/Marcus",
+   "gender": "Male",
+   "roles": [
+    "S",
+    null
+   ],
+   "desc_fr": "Shérif des forces de l'ordre de Piltover, Marcus est un homme tiraillé par les compromis qu'il a acceptés.",
+   "desc_en": "Marcus is a police officer and commander (enforcer) of Piltover.",
+   "img": "https://static.wikia.nocookie.net/arcane/images/7/7f/Marcus_Season_1_Episode_5_001.png/revision/latest/scale-to-width-down/300?cb=20211212114331"
+  },
+  {
+   "id": 900000018,
+   "name": "Claggor",
+   "wiki": "https://arcane.fandom.com/wiki/Claggor",
+   "gender": "Male",
+   "roles": [
+    "S",
+    null
+   ],
+   "desc_fr": "Membre de la bande de Vi, Claggor est un garçon calme et habile de ses mains.",
+   "desc_en": "Claggor is a young member of a gang from the undercity, part of Vi's family.",
+   "img": "https://static.wikia.nocookie.net/arcane/images/b/b0/Claggor.jpeg/revision/latest/scale-to-width-down/300?cb=20250110170435"
+  },
+  {
+   "id": 900000019,
+   "name": "Mylo",
+   "wiki": "https://arcane.fandom.com/wiki/Mylo",
+   "gender": "Male",
+   "roles": [
+    "S",
+    null
+   ],
+   "desc_fr": "Membre de la bande de Vi, Mylo est un crocheteur de serrures à la langue bien pendue.",
+   "desc_en": "Mylo is a young thief from the undercity, part of Vi's family.",
+   "img": "https://static.wikia.nocookie.net/arcane/images/2/26/Mylo_Arcane_Render.png/revision/latest/scale-to-width-down/300?cb=20240705144919"
+  },
+  {
+   "id": 900000020,
+   "name": "Grayson",
+   "wiki": "https://arcane.fandom.com/wiki/Grayson",
+   "gender": "Female",
+   "roles": [
+    "S",
+    null
+   ],
+   "desc_fr": "Shérif de Piltover respectée, Grayson tente de maintenir une paix fragile avec les bas-fonds.",
+   "desc_en": "Grayson is a police officer and sheriff of Piltover with grey hair.",
+   "img": "https://static.wikia.nocookie.net/arcane/images/7/70/S1_EP1_Grayson_002.png/revision/latest/scale-to-width-down/300?cb=20220625120341"
+  },
+  {
+   "id": 900000021,
+   "name": "Benzo",
+   "wiki": "https://arcane.fandom.com/wiki/Benzo",
+   "gender": "Male",
+   "roles": [
+    "B",
+    null
+   ],
+   "desc_fr": "Marchand des bas-fonds et ami de Vander, toujours prêt à rendre service aux enfants.",
+   "desc_en": "Benzo is a merchant from the undercity.",
+   "img": "https://static.wikia.nocookie.net/arcane/images/b/bb/Benzo.png/revision/latest/scale-to-width-down/300?cb=20241129040341"
+  },
+  {
+   "id": 900000022,
+   "name": "Finn",
+   "wiki": "https://arcane.fandom.com/wiki/Finn",
+   "gender": "Male",
+   "roles": [
+    "B",
+    null
+   ],
+   "desc_fr": "Chef de gang de Zaun, fanfaron et opportuniste.",
+   "desc_en": "Finn is a gang member and leader from Zaun.",
+   "img": "https://static.wikia.nocookie.net/arcane/images/f/f1/Finn_Arcane_Render.png/revision/latest/scale-to-width-down/300?cb=20240524011210"
+  },
+  {
+   "id": 900000023,
+   "name": "Renni",
+   "wiki": "https://arcane.fandom.com/wiki/Renni",
+   "gender": "Female",
+   "roles": [
+    "B",
+    null
+   ],
+   "desc_fr": "Cheffe de gang des bas-fonds alliée de Silco.",
+   "desc_en": "Renni is a gang member from Zaun.",
+   "img": "https://static.wikia.nocookie.net/arcane/images/c/c0/Renni_Season_1_Episode_9_001.png/revision/latest/scale-to-width-down/300?cb=20211126220115"
+  },
+  {
+   "id": 900000024,
+   "name": "Tobias Kiramman",
+   "wiki": "https://arcane.fandom.com/wiki/Tobias_Kiramman",
+   "gender": "Male",
+   "roles": [
+    "B",
+    "B"
+   ],
+   "desc_fr": "Père de Caitlyn, Tobias est un homme doux qui s'inquiète pour sa fille.",
+   "desc_en": "Tobias is Caitlyn's father from a rich family of Piltover.",
+   "img": "https://static.wikia.nocookie.net/arcane/images/9/96/Tobias.jpeg/revision/latest/scale-to-width-down/300?cb=20250204171116"
+  },
+  {
+   "id": 900000025,
+   "name": "Scar",
+   "wiki": "https://arcane.fandom.com/wiki/Scar",
+   "gender": "Male",
+   "roles": [
+    null,
+    "S"
+   ],
+   "desc_fr": "Membre de la bande d'Ekko, marqué par la vie dans les bas-fonds.",
+   "desc_en": "Scar is a member of a rebel group from Zaun with a scar.",
+   "img": "https://static.wikia.nocookie.net/arcane/images/7/7b/Scar_Arcane_Render.png/revision/latest/scale-to-width-down/300?cb=20250322140509"
+  },
+  {
+   "id": 900000026,
+   "name": "Steb",
+   "wiki": "https://arcane.fandom.com/wiki/Steb",
+   "gender": "Male",
+   "roles": [
+    "B",
+    "B"
+   ],
+   "desc_fr": "Agent des forces de l'ordre de Piltover, fidèle collègue de Caitlyn.",
+   "desc_en": "Steb is a police officer (enforcer) of Piltover.",
+   "img": "https://static.wikia.nocookie.net/arcane/images/3/35/Steb_face.png/revision/latest/scale-to-width-down/300?cb=20241124022316"
+  },
+  {
+   "id": 900000027,
+   "name": "Loris",
+   "wiki": "https://arcane.fandom.com/wiki/Loris",
+   "gender": "Male",
+   "roles": [
+    "B",
+    "S"
+   ],
+   "desc_fr": "Agent des forces de l'ordre de Piltover au grand cœur, partenaire de Steb.",
+   "desc_en": "Loris is a police officer (enforcer) of Piltover.",
+   "img": "https://static.wikia.nocookie.net/arcane/images/0/00/Enforcer_Loris.png/revision/latest/scale-to-width-down/300?cb=20241212120426"
+  },
+  {
+   "id": 900000028,
+   "name": "Babette",
+   "wiki": "https://arcane.fandom.com/wiki/Babette",
+   "gender": "Female",
+   "roles": [
+    "B",
+    "B"
+   ],
+   "desc_fr": "Gérante d'une maison close élégante des bas-fonds, bien informée de tout ce qui s'y passe.",
+   "desc_en": "Babette is a business owner from the undercity.",
+   "img": "https://static.wikia.nocookie.net/arcane/images/9/98/Babette.png/revision/latest/scale-to-width-down/300?cb=20241129042203"
+  },
+  {
+   "id": 900000029,
+   "name": "Gert",
+   "wiki": "https://arcane.fandom.com/wiki/Gert",
+   "gender": "Female",
+   "roles": [
+    null,
+    "B"
+   ],
+   "desc_fr": "Habitante des bas-fonds croisée lors des événements de la saison 2.",
+   "desc_en": "Gert lives in the undercity.",
+   "img": "https://static.wikia.nocookie.net/arcane/images/f/fd/Gert.jpeg/revision/latest/scale-to-width-down/300?cb=20241128214429"
+  },
+  {
+   "id": 900000030,
+   "name": "Lest",
+   "wiki": "https://arcane.fandom.com/wiki/Lest",
+   "gender": "Male",
+   "roles": [
+    null,
+    "B"
+   ],
+   "desc_fr": "Agent de Piltover croisé lors de la saison 2.",
+   "desc_en": "Lest is a member of the forces of Piltover.",
+   "img": "https://static.wikia.nocookie.net/arcane/images/9/9f/Lest_Arcane_Season_2_Render.png/revision/latest/scale-to-width-down/300?cb=20250325154907"
+  },
+  {
+   "id": 900000031,
+   "name": "Maddie Nolen",
+   "wiki": "https://arcane.fandom.com/wiki/Maddie_Nolen",
+   "gender": "Female",
+   "roles": [
+    null,
+    "S"
+   ],
+   "desc_fr": "Jeune agente des forces de l'ordre qui admire Caitlyn.",
+   "desc_en": "Maddie is a police officer (enforcer) of Piltover with red hair.",
+   "img": "https://static.wikia.nocookie.net/arcane/images/a/a2/Maddie_Arcane_Season_2_Render.png/revision/latest/scale-to-width-down/300?cb=20250321155851"
+  },
+  {
+   "id": 900000032,
+   "name": "Gustove Jowler",
+   "wiki": "https://arcane.fandom.com/wiki/Jowler",
+   "gender": "Male",
+   "roles": [
+    null,
+    "B"
+   ],
+   "desc_fr": "Membre du Conseil de Piltover.",
+   "desc_en": "Jowler is a member of the council of Piltover.",
+   "img": "https://static.wikia.nocookie.net/arcane/images/9/91/The_Jowler.png/revision/latest/scale-to-width-down/300?cb=20250228183600"
+  },
+  {
+   "id": 900000033,
+   "name": "Kino Medarda",
+   "wiki": "https://arcane.fandom.com/wiki/Kino_Medarda",
+   "gender": "Male",
+   "roles": [
+    null,
+    "B"
+   ],
+   "desc_fr": "Frère de Mel, membre de la puissante famille Medarda.",
+   "desc_en": "Kino is a member of a noble family of Noxus and Mel's brother.",
+   "img": "https://static.wikia.nocookie.net/arcane/images/2/2c/Kino_Medarda.png/revision/latest/scale-to-width-down/300?cb=20241116175014"
+  },
+  {
+   "id": 900000034,
+   "name": "LeBlanc",
+   "wiki": "https://arcane.fandom.com/wiki/LeBlanc",
+   "gender": "Female",
+   "roles": [
+    null,
+    "S"
+   ],
+   "desc_fr": "Mystérieuse magicienne liée à une organisation secrète de Noxus.",
+   "desc_en": "LeBlanc is a mage and sorceress, leader of a secret society of Noxus.",
+   "img": "https://static.wikia.nocookie.net/arcane/images/f/fc/LeBlanc-render.png/revision/latest/scale-to-width-down/300?cb=20260218133053"
+  },
+  {
+   "id": 900000035,
+   "name": "Rictus",
+   "wiki": "https://arcane.fandom.com/wiki/Rictus",
+   "gender": "Male",
+   "roles": [
+    null,
+    "S"
+   ],
+   "desc_fr": "Lieutenant d'Ambessa, assassin silencieux et inquiétant.",
+   "desc_en": "Rictus is an assassin and soldier of Noxus serving Ambessa.",
+   "img": "https://static.wikia.nocookie.net/arcane/images/8/8f/Noxian_Lieutenant_Arcane.png/revision/latest/scale-to-width-down/300?cb=20240705035355"
+  },
+  {
+   "id": 900000036,
+   "name": "Shoola",
+   "wiki": "https://arcane.fandom.com/wiki/Shoola",
+   "gender": "Female",
+   "roles": [
+    "B",
+    "B"
+   ],
+   "desc_fr": "Habitante des bas-fonds alliée de la bande d'Ekko.",
+   "desc_en": "Shoola is a member of a rebel group from Zaun.",
+   "img": "https://static.wikia.nocookie.net/arcane/images/f/fa/End_Shoola.png/revision/latest?cb=20250203233114"
+  }
+ ]
+}

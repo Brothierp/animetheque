@@ -122,8 +122,9 @@ export async function markRead(uid) {
   refreshCounters();
 }
 export async function deleteMessage(id) { await call(supabase.from("messages").delete().eq("id", id)); }
-export async function report({ messageId, commentId, fanartId, targetUser, reason }) {
-  await call(supabase.from("reports").insert({ message_id: messageId || null, comment_id: commentId || null, ...(fanartId ? { fanart_id: fanartId } : {}), target_user: targetUser || null, reason: reason.trim().slice(0, 500) }));
+export async function report({ messageId, commentId, fanartId, targetUser, reason, category, context }) {
+  await call(supabase.from("reports").insert({ message_id: messageId || null, comment_id: commentId || null, ...(fanartId ? { fanart_id: fanartId } : {}),
+    ...(category ? { category } : {}), ...(context ? { with_context: true } : {}), target_user: targetUser || null, reason: reason.trim().slice(0, 500) }));
 }
 
 // ---------- Avis sous les animés (lisibles par tous) ----------

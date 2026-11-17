@@ -13,7 +13,7 @@ import { messageHTML, prepareTokens } from "../safety.js";
 import { charById, loadCharacters } from "../chars.js";
 
 let pendingFa = 0;
-const CAT = { secret: "secret demandé", photos: "demande de photo", rencontre: "rencontre / adresse", intime: "propos intimes", age: "question sur l'âge", cadeau: "cadeau / argent", avis: "avis", fanart: "fan art" };
+const CAT = { contournement: "contourne les contrôles", sexuel: "propos sexuels ou déplacés", photos_rdv: "demande de photos ou de rendez-vous", harcelement: "harcèlement / insultes", arnaque: "spam / arnaque", autre: "autre", secret: "secret demandé", photos: "demande de photo", rencontre: "rencontre / adresse", intime: "propos intimes", age: "question sur l'âge", cadeau: "cadeau / argent", avis: "avis", fanart: "fan art" };
 
 let root = null, rows = null, q = "", sort = "created";
 const isShown = () => !!(root && root.isConnected && root.dataset.view === "admin");   // page réellement affichée ?
@@ -115,10 +115,10 @@ async function renderReports(el) {
   if (SOC.enabled === false) { $("admRep").innerHTML = `<div class="empty"><p>Lance le script SQL 20261116000000 pour recevoir les signalements.</p></div>`; return; }
   const L = await adminReports();
   await prepareTokens(L.map(r => r.excerpt || ""));
-  $("admRep").innerHTML = L.length ? `<div class="rep-list">${L.map(r => `<article class="rep${r.handled ? " done" : ""}${r.auto ? " auto" : ""}" data-id="${r.id}" data-c="${r.comment_id || ""}">
+  $("admRep").innerHTML = L.length ? `<div class="rep-list">${L.map(r => `<article class="rep${r.handled ? " done" : ""}${r.auto ? " auto" : ""}${r.urgent && !r.handled ? " urgent" : ""}" data-id="${r.id}" data-c="${r.comment_id || ""}">
       ${r.auto ? `<p><span class="rep-auto">🛡️ Détection automatique</span> <b>${esc(CAT[r.category] || r.category || "")}</b> · message de <b>${esc(r.target_name || "Membre")}</b> <span class="hint">(${esc(r.target_email || "")})</span> dans une conversation majeur / mineur · <span class="hint">${new Date(r.created_at).toLocaleString("fr-FR")}</span></p>`
         : `<p><b>${esc(r.reporter_name || "Membre")}</b> <span class="hint">(${esc(r.reporter_email || "")})</span> signale ${r.comment_id ? "l'avis de" : r.fanart_id ? "le fan art de" : ""} <b>${esc(r.target_name || "Membre")}</b> <span class="hint">(${esc(r.target_email || "")})</span> · <span class="hint">${new Date(r.created_at).toLocaleString("fr-FR")}</span></p>
-      <p>Motif : ${esc(r.reason)}</p>`}${r.excerpt ? `<blockquote>${messageHTML(r.excerpt)}</blockquote>` : ""}
+      <p>${r.urgent ? `<span class="rep-urg">⚠️ Mineur concerné</span> ` : ""}${r.category && CAT[r.category] && !r.auto ? `<b>${esc(CAT[r.category])}</b> · ` : ""}Motif : ${esc(r.reason)}</p>`}${r.excerpt ? `<blockquote${r.with_context ? ` class="rep-ctx"` : ""}>${r.with_context ? `<small class="hint">Conversation jointe par la personne qui signale :</small><br>` : ""}${messageHTML(r.excerpt)}</blockquote>` : ""}
       <div class="rep-act"><button type="button" class="btn sm" data-h="${r.handled ? 0 : 1}">${r.handled ? "Rouvrir" : "Marquer comme traité"}</button>
       ${r.comment_id ? `<button type="button" class="btn sm danger-o" data-delc>Supprimer l'avis</button>` : ""}
       ${r.fanart_id ? `<a class="btn sm" href="#/fanarts/${r.fanart_id}">Voir le fan art</a>` : ""}</div></article>`).join("")}</div>

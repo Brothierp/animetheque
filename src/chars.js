@@ -114,8 +114,15 @@ export function similarChars(c, n = 14, adultOk = false) {
 
 // ---------- Détails en direct (AniList) ----------
 const cache = new Map();
+let extraP = null;
+/** Personnages des séries ajoutées à la main (Arcane…) : description française locale, lien vers leur wiki. */
+function extraCharacter(id) {
+  if (!extraP) extraP = fetch(dataUrl("/extra-chars.json")).then(r => r.json()).catch(e => { extraP = null; throw e; });
+  return extraP.then(m => { const x = m[id]; if (!x) throw new Error("extra"); return { id, description: x.d, gender: x.g, siteUrl: x.u, local: true }; });
+}
 export function fetchCharacter(id) {
   if (cache.has(id)) return cache.get(id);
+  if (id >= 900000000) { const p = extraCharacter(id); cache.set(id, p); return p; }
   const q = `query($id:Int){ Character(id:$id){ id name{ full native alternative alternativeSpoiler } description gender age bloodType dateOfBirth{ year month day } favourites siteUrl } }`;
   const pr = fetch("https://graphql.anilist.co", { method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json" }, body: JSON.stringify({ query: q, variables: { id } }) })
     .then(r => r.json()).then(d => { if (!d.data) throw new Error("anilist"); return d.data.Character; })

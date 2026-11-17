@@ -1,0 +1,1281 @@
+[
+{
+"id": 900001,
+"characters": {
+"edges": [
+{
+"role": "MAIN",
+"node": {
+"id": 900000001,
+"name": {
+"full": "Vi",
+"native": null,
+"alternative": []
+},
+"image": {
+"medium": "https://static.wikia.nocookie.net/arcane/images/0/0a/Vi_Arcane_render.png/revision/latest/scale-to-width-down/300?cb=20240524011214"
+},
+"gender": "Female",
+"age": null,
+"bloodType": null,
+"dateOfBirth": {
+"month": null,
+"day": null
+},
+"favourites": 0,
+"description": "Vi is a fighter and brawler from the undercity of Zaun with pink hair and a tattoo on her face. She is protective of her younger sister."
+}
+},
+{
+"role": "MAIN",
+"node": {
+"id": 900000002,
+"name": {
+"full": "Jinx",
+"native": null,
+"alternative": []
+},
+"image": {
+"medium": "https://static.wikia.nocookie.net/arcane/images/2/2f/Jinx_Arcane_Season_2_Render.png/revision/latest/scale-to-width-down/300?cb=20241226153010"
+},
+"gender": "Female",
+"age": null,
+"bloodType": null,
+"dateOfBirth": {
+"month": null,
+"day": null
+},
+"favourites": 0,
+"description": "Jinx is a genius inventor with long blue hair braids and pink eyes. She is Vi's younger sister and an antagonist from Zaun."
+}
+},
+{
+"role": "MAIN",
+"node": {
+"id": 900000003,
+"name": {
+"full": "Caitlyn Kiramman",
+"native": null,
+"alternative": []
+},
+"image": {
+"medium": "https://static.wikia.nocookie.net/arcane/images/9/95/Caitlyn_Arcane_Render.png/revision/latest?cb=20240524043129"
+},
+"gender": "Female",
+"age": null,
+"bloodType": null,
+"dateOfBirth": {
+"month": null,
+"day": null
+},
+"favourites": 0,
+"description": "Caitlyn is a sniper and police officer (enforcer) from Piltover with long dark blue hair. She is from a rich family."
+}
+},
+{
+"role": "MAIN",
+"node": {
+"id": 900000004,
+"name": {
+"full": "Jayce Talis",
+"native": null,
+"alternative": []
+},
+"image": {
+"medium": "https://static.wikia.nocookie.net/arcane/images/f/f6/Jayce_Arcane_Season_2_Render.png/revision/latest/scale-to-width-down/300?cb=20250531145850"
+},
+"gender": "Male",
+"age": null,
+"bloodType": null,
+"dateOfBirth": {
+"month": null,
+"day": null
+},
+"favourites": 0,
+"description": "Jayce is a scientist and inventor from Piltover with brown hair. He becomes a politician on the council."
+}
+},
+{
+"role": "MAIN",
+"node": {
+"id": 900000005,
+"name": {
+"full": "Viktor",
+"native": null,
+"alternative": []
+},
+"image": {
+"medium": "https://static.wikia.nocookie.net/arcane/images/2/2c/Viktor_Arcane_Render.png/revision/latest/scale-to-width-down/300?cb=20241021145429"
+},
+"gender": "Male",
+"age": null,
+"bloodType": null,
+"dateOfBirth": {
+"month": null,
+"day": null
+},
+"favourites": 0,
+"description": "Viktor is a scientist and genius inventor from Zaun with brown hair who walks with a cane."
+}
+},
+{
+"role": "SUPPORTING",
+"node": {
+"id": 900000006,
+"name": {
+"full": "Mel Medarda",
+"native": null,
+"alternative": []
+},
+"image": {
+"medium": "https://static.wikia.nocookie.net/arcane/images/2/2a/Mel_Arcane_Season_2_Render.png/revision/latest/scale-to-width-down/300?cb=20260227154407"
+},
+"gender": "Female",
+"age": null,
+"bloodType": null,
+"dateOfBirth": {
+"month": null,
+"day": null
+},
+"favourites": 0,
+"description": "Mel is a politician and member of the council of Piltover. She comes from a noble family of Noxus."
+}
+},
+{
+"role": "MAIN",
+"node": {
+"id": 900000007,
+"name": {
+"full": "Silco",
+"native": null,
+"alternative": []
+},
+"image": {
+"medium": "https://static.wikia.nocookie.net/arcane/images/4/46/Silco2_Arcane_Render.png/revision/latest/scale-to-width-down/300?cb=20240524011310"
+},
+"gender": "Male",
+"age": null,
+"bloodType": null,
+"dateOfBirth": {
+"month": null,
+"day": null
+},
+"favourites": 0,
+"description": "Silco is a crime boss and villain of Zaun with a scar over his eye and black hair. He is an antagonist and leader."
+}
+},
+{
+"role": "SUPPORTING",
+"node": {
+"id": 900000008,
+"name": {
+"full": "Vander",
+"native": null,
+"alternative": []
+},
+"image": {
+"medium": "https://static.wikia.nocookie.net/arcane/images/5/5d/Vader_%28Human%29.png/revision/latest/scale-to-width-down/300?cb=20241202111630"
+},
+"gender": "Male",
+"age": null,
+"bloodType": null,
+"dateOfBirth": {
+"month": null,
+"day": null
+},
+"favourites": 0,
+"description": "Vander is a former leader of a rebellion from the undercity who runs a bar. He is a strong fighter and father figure."
+}
+},
+{
+"role": "SUPPORTING",
+"node": {
+"id": 900000009,
+"name": {
+"full": "Ekko",
+"native": null,
+"alternative": []
+},
+"image": {
+"medium": "https://static.wikia.nocookie.net/arcane/images/7/78/Ekko_Arcane_Render.png/revision/latest/scale-to-width-down/300?cb=20240524023846"
+},
+"gender": "Male",
+"age": null,
+"bloodType": null,
+"dateOfBirth": {
+"month": null,
+"day": null
+},
+"favourites": 0,
+"description": "Ekko is a young inventor and leader from Zaun with white hair. He fights with a wooden sword."
+}
+},
+{
+"role": "SUPPORTING",
+"node": {
+"id": 900000010,
+"name": {
+"full": "Cecil B. Heimerdinger",
+"native": null,
+"alternative": []
+},
+"image": {
+"medium": "https://static.wikia.nocookie.net/arcane/images/1/19/Heimer_Full.jpeg/revision/latest/scale-to-width-down/300?cb=20250131022948"
+},
+"gender": "Male",
+"age": null,
+"bloodType": null,
+"dateOfBirth": {
+"month": null,
+"day": null
+},
+"favourites": 0,
+"description": "Heimerdinger is an immortal yordle scientist and professor with white hair. He is centuries old and a member of the council."
+}
+},
+{
+"role": "SUPPORTING",
+"node": {
+"id": 900000011,
+"name": {
+"full": "Ambessa Medarda",
+"native": null,
+"alternative": []
+},
+"image": {
+"medium": "https://static.wikia.nocookie.net/arcane/images/c/c7/Ambessa_Arcane_Season_2_Render.png/revision/latest/scale-to-width-down/300?cb=20250531145851"
+},
+"gender": "Female",
+"age": null,
+"bloodType": null,
+"dateOfBirth": {
+"month": null,
+"day": null
+},
+"favourites": 0,
+"description": "Ambessa is a warlord and military commander of Noxus and Mel's mother. She is a warrior."
+}
+},
+{
+"role": "SUPPORTING",
+"node": {
+"id": 900000012,
+"name": {
+"full": "Sevika",
+"native": null,
+"alternative": []
+},
+"image": {
+"medium": "https://static.wikia.nocookie.net/arcane/images/2/22/Sevika_Arcane_Render.png/revision/latest/scale-to-width-down/300?cb=20240524011316"
+},
+"gender": "Female",
+"age": null,
+"bloodType": null,
+"dateOfBirth": {
+"month": null,
+"day": null
+},
+"favourites": 0,
+"description": "Sevika is a fighter and gang member from Zaun with a mechanical arm and dark hair."
+}
+},
+{
+"role": "SUPPORTING",
+"node": {
+"id": 900000013,
+"name": {
+"full": "Singed",
+"native": null,
+"alternative": []
+},
+"image": {
+"medium": "https://static.wikia.nocookie.net/arcane/images/1/16/Singed_Arcane_render.png/revision/latest/scale-to-width-down/300?cb=20240524011212"
+},
+"gender": "Male",
+"age": null,
+"bloodType": null,
+"dateOfBirth": {
+"month": null,
+"day": null
+},
+"favourites": 0,
+"description": "Singed is a scientist and inventor from Zaun with scars, working for Silco."
+}
+},
+{
+"role": "SUPPORTING",
+"node": {
+"id": 900000015,
+"name": {
+"full": "Cassandra Kiramman",
+"native": null,
+"alternative": []
+},
+"image": {
+"medium": "https://static.wikia.nocookie.net/arcane/images/3/33/Cassandra_kiramman.png/revision/latest/scale-to-width-down/300?cb=20260128192905"
+},
+"gender": "Female",
+"age": null,
+"bloodType": null,
+"dateOfBirth": {
+"month": null,
+"day": null
+},
+"favourites": 0,
+"description": "Cassandra is a member of the council of Piltover and Caitlyn's mother. She has blue hair."
+}
+},
+{
+"role": "SUPPORTING",
+"node": {
+"id": 900000016,
+"name": {
+"full": "Smeech",
+"native": null,
+"alternative": []
+},
+"image": {
+"medium": "https://static.wikia.nocookie.net/arcane/images/5/5a/Smeech_Arcane_Render.png/revision/latest/scale-to-width-down/300?cb=20240612010347"
+},
+"gender": "Male",
+"age": null,
+"bloodType": null,
+"dateOfBirth": {
+"month": null,
+"day": null
+},
+"favourites": 0,
+"description": "Smeech is a gang member and thief from Zaun."
+}
+},
+{
+"role": "SUPPORTING",
+"node": {
+"id": 900000017,
+"name": {
+"full": "Marcus",
+"native": null,
+"alternative": []
+},
+"image": {
+"medium": "https://static.wikia.nocookie.net/arcane/images/7/7f/Marcus_Season_1_Episode_5_001.png/revision/latest/scale-to-width-down/300?cb=20211212114331"
+},
+"gender": "Male",
+"age": null,
+"bloodType": null,
+"dateOfBirth": {
+"month": null,
+"day": null
+},
+"favourites": 0,
+"description": "Marcus is a police officer and commander (enforcer) of Piltover."
+}
+},
+{
+"role": "SUPPORTING",
+"node": {
+"id": 900000018,
+"name": {
+"full": "Claggor",
+"native": null,
+"alternative": []
+},
+"image": {
+"medium": "https://static.wikia.nocookie.net/arcane/images/b/b0/Claggor.jpeg/revision/latest/scale-to-width-down/300?cb=20250110170435"
+},
+"gender": "Male",
+"age": null,
+"bloodType": null,
+"dateOfBirth": {
+"month": null,
+"day": null
+},
+"favourites": 0,
+"description": "Claggor is a young member of a gang from the undercity, part of Vi's family."
+}
+},
+{
+"role": "SUPPORTING",
+"node": {
+"id": 900000019,
+"name": {
+"full": "Mylo",
+"native": null,
+"alternative": []
+},
+"image": {
+"medium": "https://static.wikia.nocookie.net/arcane/images/2/26/Mylo_Arcane_Render.png/revision/latest/scale-to-width-down/300?cb=20240705144919"
+},
+"gender": "Male",
+"age": null,
+"bloodType": null,
+"dateOfBirth": {
+"month": null,
+"day": null
+},
+"favourites": 0,
+"description": "Mylo is a young thief from the undercity, part of Vi's family."
+}
+},
+{
+"role": "SUPPORTING",
+"node": {
+"id": 900000020,
+"name": {
+"full": "Grayson",
+"native": null,
+"alternative": []
+},
+"image": {
+"medium": "https://static.wikia.nocookie.net/arcane/images/7/70/S1_EP1_Grayson_002.png/revision/latest/scale-to-width-down/300?cb=20220625120341"
+},
+"gender": "Female",
+"age": null,
+"bloodType": null,
+"dateOfBirth": {
+"month": null,
+"day": null
+},
+"favourites": 0,
+"description": "Grayson is a police officer and sheriff of Piltover with grey hair."
+}
+},
+{
+"role": "BACKGROUND",
+"node": {
+"id": 900000021,
+"name": {
+"full": "Benzo",
+"native": null,
+"alternative": []
+},
+"image": {
+"medium": "https://static.wikia.nocookie.net/arcane/images/b/bb/Benzo.png/revision/latest/scale-to-width-down/300?cb=20241129040341"
+},
+"gender": "Male",
+"age": null,
+"bloodType": null,
+"dateOfBirth": {
+"month": null,
+"day": null
+},
+"favourites": 0,
+"description": "Benzo is a merchant from the undercity."
+}
+},
+{
+"role": "BACKGROUND",
+"node": {
+"id": 900000022,
+"name": {
+"full": "Finn",
+"native": null,
+"alternative": []
+},
+"image": {
+"medium": "https://static.wikia.nocookie.net/arcane/images/f/f1/Finn_Arcane_Render.png/revision/latest/scale-to-width-down/300?cb=20240524011210"
+},
+"gender": "Male",
+"age": null,
+"bloodType": null,
+"dateOfBirth": {
+"month": null,
+"day": null
+},
+"favourites": 0,
+"description": "Finn is a gang member and leader from Zaun."
+}
+},
+{
+"role": "BACKGROUND",
+"node": {
+"id": 900000023,
+"name": {
+"full": "Renni",
+"native": null,
+"alternative": []
+},
+"image": {
+"medium": "https://static.wikia.nocookie.net/arcane/images/c/c0/Renni_Season_1_Episode_9_001.png/revision/latest/scale-to-width-down/300?cb=20211126220115"
+},
+"gender": "Female",
+"age": null,
+"bloodType": null,
+"dateOfBirth": {
+"month": null,
+"day": null
+},
+"favourites": 0,
+"description": "Renni is a gang member from Zaun."
+}
+},
+{
+"role": "BACKGROUND",
+"node": {
+"id": 900000024,
+"name": {
+"full": "Tobias Kiramman",
+"native": null,
+"alternative": []
+},
+"image": {
+"medium": "https://static.wikia.nocookie.net/arcane/images/9/96/Tobias.jpeg/revision/latest/scale-to-width-down/300?cb=20250204171116"
+},
+"gender": "Male",
+"age": null,
+"bloodType": null,
+"dateOfBirth": {
+"month": null,
+"day": null
+},
+"favourites": 0,
+"description": "Tobias is Caitlyn's father from a rich family of Piltover."
+}
+},
+{
+"role": "BACKGROUND",
+"node": {
+"id": 900000026,
+"name": {
+"full": "Steb",
+"native": null,
+"alternative": []
+},
+"image": {
+"medium": "https://static.wikia.nocookie.net/arcane/images/3/35/Steb_face.png/revision/latest/scale-to-width-down/300?cb=20241124022316"
+},
+"gender": "Male",
+"age": null,
+"bloodType": null,
+"dateOfBirth": {
+"month": null,
+"day": null
+},
+"favourites": 0,
+"description": "Steb is a police officer (enforcer) of Piltover."
+}
+},
+{
+"role": "BACKGROUND",
+"node": {
+"id": 900000027,
+"name": {
+"full": "Loris",
+"native": null,
+"alternative": []
+},
+"image": {
+"medium": "https://static.wikia.nocookie.net/arcane/images/0/00/Enforcer_Loris.png/revision/latest/scale-to-width-down/300?cb=20241212120426"
+},
+"gender": "Male",
+"age": null,
+"bloodType": null,
+"dateOfBirth": {
+"month": null,
+"day": null
+},
+"favourites": 0,
+"description": "Loris is a police officer (enforcer) of Piltover."
+}
+},
+{
+"role": "BACKGROUND",
+"node": {
+"id": 900000028,
+"name": {
+"full": "Babette",
+"native": null,
+"alternative": []
+},
+"image": {
+"medium": "https://static.wikia.nocookie.net/arcane/images/9/98/Babette.png/revision/latest/scale-to-width-down/300?cb=20241129042203"
+},
+"gender": "Female",
+"age": null,
+"bloodType": null,
+"dateOfBirth": {
+"month": null,
+"day": null
+},
+"favourites": 0,
+"description": "Babette is a business owner from the undercity."
+}
+},
+{
+"role": "BACKGROUND",
+"node": {
+"id": 900000036,
+"name": {
+"full": "Shoola",
+"native": null,
+"alternative": []
+},
+"image": {
+"medium": "https://static.wikia.nocookie.net/arcane/images/f/fa/End_Shoola.png/revision/latest?cb=20250203233114"
+},
+"gender": "Female",
+"age": null,
+"bloodType": null,
+"dateOfBirth": {
+"month": null,
+"day": null
+},
+"favourites": 0,
+"description": "Shoola is a member of a rebel group from Zaun."
+}
+}
+]
+}
+},
+{
+"id": 900002,
+"characters": {
+"edges": [
+{
+"role": "MAIN",
+"node": {
+"id": 900000001,
+"name": {
+"full": "Vi",
+"native": null,
+"alternative": []
+},
+"image": {
+"medium": "https://static.wikia.nocookie.net/arcane/images/0/0a/Vi_Arcane_render.png/revision/latest/scale-to-width-down/300?cb=20240524011214"
+},
+"gender": "Female",
+"age": null,
+"bloodType": null,
+"dateOfBirth": {
+"month": null,
+"day": null
+},
+"favourites": 0,
+"description": "Vi is a fighter and brawler from the undercity of Zaun with pink hair and a tattoo on her face. She is protective of her younger sister."
+}
+},
+{
+"role": "MAIN",
+"node": {
+"id": 900000002,
+"name": {
+"full": "Jinx",
+"native": null,
+"alternative": []
+},
+"image": {
+"medium": "https://static.wikia.nocookie.net/arcane/images/2/2f/Jinx_Arcane_Season_2_Render.png/revision/latest/scale-to-width-down/300?cb=20241226153010"
+},
+"gender": "Female",
+"age": null,
+"bloodType": null,
+"dateOfBirth": {
+"month": null,
+"day": null
+},
+"favourites": 0,
+"description": "Jinx is a genius inventor with long blue hair braids and pink eyes. She is Vi's younger sister and an antagonist from Zaun."
+}
+},
+{
+"role": "MAIN",
+"node": {
+"id": 900000003,
+"name": {
+"full": "Caitlyn Kiramman",
+"native": null,
+"alternative": []
+},
+"image": {
+"medium": "https://static.wikia.nocookie.net/arcane/images/9/95/Caitlyn_Arcane_Render.png/revision/latest?cb=20240524043129"
+},
+"gender": "Female",
+"age": null,
+"bloodType": null,
+"dateOfBirth": {
+"month": null,
+"day": null
+},
+"favourites": 0,
+"description": "Caitlyn is a sniper and police officer (enforcer) from Piltover with long dark blue hair. She is from a rich family."
+}
+},
+{
+"role": "MAIN",
+"node": {
+"id": 900000004,
+"name": {
+"full": "Jayce Talis",
+"native": null,
+"alternative": []
+},
+"image": {
+"medium": "https://static.wikia.nocookie.net/arcane/images/f/f6/Jayce_Arcane_Season_2_Render.png/revision/latest/scale-to-width-down/300?cb=20250531145850"
+},
+"gender": "Male",
+"age": null,
+"bloodType": null,
+"dateOfBirth": {
+"month": null,
+"day": null
+},
+"favourites": 0,
+"description": "Jayce is a scientist and inventor from Piltover with brown hair. He becomes a politician on the council."
+}
+},
+{
+"role": "MAIN",
+"node": {
+"id": 900000005,
+"name": {
+"full": "Viktor",
+"native": null,
+"alternative": []
+},
+"image": {
+"medium": "https://static.wikia.nocookie.net/arcane/images/2/2c/Viktor_Arcane_Render.png/revision/latest/scale-to-width-down/300?cb=20241021145429"
+},
+"gender": "Male",
+"age": null,
+"bloodType": null,
+"dateOfBirth": {
+"month": null,
+"day": null
+},
+"favourites": 0,
+"description": "Viktor is a scientist and genius inventor from Zaun with brown hair who walks with a cane."
+}
+},
+{
+"role": "MAIN",
+"node": {
+"id": 900000006,
+"name": {
+"full": "Mel Medarda",
+"native": null,
+"alternative": []
+},
+"image": {
+"medium": "https://static.wikia.nocookie.net/arcane/images/2/2a/Mel_Arcane_Season_2_Render.png/revision/latest/scale-to-width-down/300?cb=20260227154407"
+},
+"gender": "Female",
+"age": null,
+"bloodType": null,
+"dateOfBirth": {
+"month": null,
+"day": null
+},
+"favourites": 0,
+"description": "Mel is a politician and member of the council of Piltover. She comes from a noble family of Noxus."
+}
+},
+{
+"role": "SUPPORTING",
+"node": {
+"id": 900000007,
+"name": {
+"full": "Silco",
+"native": null,
+"alternative": []
+},
+"image": {
+"medium": "https://static.wikia.nocookie.net/arcane/images/4/46/Silco2_Arcane_Render.png/revision/latest/scale-to-width-down/300?cb=20240524011310"
+},
+"gender": "Male",
+"age": null,
+"bloodType": null,
+"dateOfBirth": {
+"month": null,
+"day": null
+},
+"favourites": 0,
+"description": "Silco is a crime boss and villain of Zaun with a scar over his eye and black hair. He is an antagonist and leader."
+}
+},
+{
+"role": "SUPPORTING",
+"node": {
+"id": 900000008,
+"name": {
+"full": "Vander",
+"native": null,
+"alternative": []
+},
+"image": {
+"medium": "https://static.wikia.nocookie.net/arcane/images/5/5d/Vader_%28Human%29.png/revision/latest/scale-to-width-down/300?cb=20241202111630"
+},
+"gender": "Male",
+"age": null,
+"bloodType": null,
+"dateOfBirth": {
+"month": null,
+"day": null
+},
+"favourites": 0,
+"description": "Vander is a former leader of a rebellion from the undercity who runs a bar. He is a strong fighter and father figure."
+}
+},
+{
+"role": "MAIN",
+"node": {
+"id": 900000009,
+"name": {
+"full": "Ekko",
+"native": null,
+"alternative": []
+},
+"image": {
+"medium": "https://static.wikia.nocookie.net/arcane/images/7/78/Ekko_Arcane_Render.png/revision/latest/scale-to-width-down/300?cb=20240524023846"
+},
+"gender": "Male",
+"age": null,
+"bloodType": null,
+"dateOfBirth": {
+"month": null,
+"day": null
+},
+"favourites": 0,
+"description": "Ekko is a young inventor and leader from Zaun with white hair. He fights with a wooden sword."
+}
+},
+{
+"role": "SUPPORTING",
+"node": {
+"id": 900000010,
+"name": {
+"full": "Cecil B. Heimerdinger",
+"native": null,
+"alternative": []
+},
+"image": {
+"medium": "https://static.wikia.nocookie.net/arcane/images/1/19/Heimer_Full.jpeg/revision/latest/scale-to-width-down/300?cb=20250131022948"
+},
+"gender": "Male",
+"age": null,
+"bloodType": null,
+"dateOfBirth": {
+"month": null,
+"day": null
+},
+"favourites": 0,
+"description": "Heimerdinger is an immortal yordle scientist and professor with white hair. He is centuries old and a member of the council."
+}
+},
+{
+"role": "MAIN",
+"node": {
+"id": 900000011,
+"name": {
+"full": "Ambessa Medarda",
+"native": null,
+"alternative": []
+},
+"image": {
+"medium": "https://static.wikia.nocookie.net/arcane/images/c/c7/Ambessa_Arcane_Season_2_Render.png/revision/latest/scale-to-width-down/300?cb=20250531145851"
+},
+"gender": "Female",
+"age": null,
+"bloodType": null,
+"dateOfBirth": {
+"month": null,
+"day": null
+},
+"favourites": 0,
+"description": "Ambessa is a warlord and military commander of Noxus and Mel's mother. She is a warrior."
+}
+},
+{
+"role": "SUPPORTING",
+"node": {
+"id": 900000012,
+"name": {
+"full": "Sevika",
+"native": null,
+"alternative": []
+},
+"image": {
+"medium": "https://static.wikia.nocookie.net/arcane/images/2/22/Sevika_Arcane_Render.png/revision/latest/scale-to-width-down/300?cb=20240524011316"
+},
+"gender": "Female",
+"age": null,
+"bloodType": null,
+"dateOfBirth": {
+"month": null,
+"day": null
+},
+"favourites": 0,
+"description": "Sevika is a fighter and gang member from Zaun with a mechanical arm and dark hair."
+}
+},
+{
+"role": "SUPPORTING",
+"node": {
+"id": 900000013,
+"name": {
+"full": "Singed",
+"native": null,
+"alternative": []
+},
+"image": {
+"medium": "https://static.wikia.nocookie.net/arcane/images/1/16/Singed_Arcane_render.png/revision/latest/scale-to-width-down/300?cb=20240524011212"
+},
+"gender": "Male",
+"age": null,
+"bloodType": null,
+"dateOfBirth": {
+"month": null,
+"day": null
+},
+"favourites": 0,
+"description": "Singed is a scientist and inventor from Zaun with scars, working for Silco."
+}
+},
+{
+"role": "SUPPORTING",
+"node": {
+"id": 900000014,
+"name": {
+"full": "Isha",
+"native": null,
+"alternative": []
+},
+"image": {
+"medium": "https://static.wikia.nocookie.net/arcane/images/3/3d/Normal.jpg/revision/latest/scale-to-width-down/300?cb=20250809230846"
+},
+"gender": "Female",
+"age": null,
+"bloodType": null,
+"dateOfBirth": {
+"month": null,
+"day": null
+},
+"favourites": 0,
+"description": "Isha is a young girl from Zaun who cannot speak."
+}
+},
+{
+"role": "SUPPORTING",
+"node": {
+"id": 900000015,
+"name": {
+"full": "Cassandra Kiramman",
+"native": null,
+"alternative": []
+},
+"image": {
+"medium": "https://static.wikia.nocookie.net/arcane/images/3/33/Cassandra_kiramman.png/revision/latest/scale-to-width-down/300?cb=20260128192905"
+},
+"gender": "Female",
+"age": null,
+"bloodType": null,
+"dateOfBirth": {
+"month": null,
+"day": null
+},
+"favourites": 0,
+"description": "Cassandra is a member of the council of Piltover and Caitlyn's mother. She has blue hair."
+}
+},
+{
+"role": "BACKGROUND",
+"node": {
+"id": 900000024,
+"name": {
+"full": "Tobias Kiramman",
+"native": null,
+"alternative": []
+},
+"image": {
+"medium": "https://static.wikia.nocookie.net/arcane/images/9/96/Tobias.jpeg/revision/latest/scale-to-width-down/300?cb=20250204171116"
+},
+"gender": "Male",
+"age": null,
+"bloodType": null,
+"dateOfBirth": {
+"month": null,
+"day": null
+},
+"favourites": 0,
+"description": "Tobias is Caitlyn's father from a rich family of Piltover."
+}
+},
+{
+"role": "SUPPORTING",
+"node": {
+"id": 900000025,
+"name": {
+"full": "Scar",
+"native": null,
+"alternative": []
+},
+"image": {
+"medium": "https://static.wikia.nocookie.net/arcane/images/7/7b/Scar_Arcane_Render.png/revision/latest/scale-to-width-down/300?cb=20250322140509"
+},
+"gender": "Male",
+"age": null,
+"bloodType": null,
+"dateOfBirth": {
+"month": null,
+"day": null
+},
+"favourites": 0,
+"description": "Scar is a member of a rebel group from Zaun with a scar."
+}
+},
+{
+"role": "BACKGROUND",
+"node": {
+"id": 900000026,
+"name": {
+"full": "Steb",
+"native": null,
+"alternative": []
+},
+"image": {
+"medium": "https://static.wikia.nocookie.net/arcane/images/3/35/Steb_face.png/revision/latest/scale-to-width-down/300?cb=20241124022316"
+},
+"gender": "Male",
+"age": null,
+"bloodType": null,
+"dateOfBirth": {
+"month": null,
+"day": null
+},
+"favourites": 0,
+"description": "Steb is a police officer (enforcer) of Piltover."
+}
+},
+{
+"role": "SUPPORTING",
+"node": {
+"id": 900000027,
+"name": {
+"full": "Loris",
+"native": null,
+"alternative": []
+},
+"image": {
+"medium": "https://static.wikia.nocookie.net/arcane/images/0/00/Enforcer_Loris.png/revision/latest/scale-to-width-down/300?cb=20241212120426"
+},
+"gender": "Male",
+"age": null,
+"bloodType": null,
+"dateOfBirth": {
+"month": null,
+"day": null
+},
+"favourites": 0,
+"description": "Loris is a police officer (enforcer) of Piltover."
+}
+},
+{
+"role": "BACKGROUND",
+"node": {
+"id": 900000028,
+"name": {
+"full": "Babette",
+"native": null,
+"alternative": []
+},
+"image": {
+"medium": "https://static.wikia.nocookie.net/arcane/images/9/98/Babette.png/revision/latest/scale-to-width-down/300?cb=20241129042203"
+},
+"gender": "Female",
+"age": null,
+"bloodType": null,
+"dateOfBirth": {
+"month": null,
+"day": null
+},
+"favourites": 0,
+"description": "Babette is a business owner from the undercity."
+}
+},
+{
+"role": "BACKGROUND",
+"node": {
+"id": 900000029,
+"name": {
+"full": "Gert",
+"native": null,
+"alternative": []
+},
+"image": {
+"medium": "https://static.wikia.nocookie.net/arcane/images/f/fd/Gert.jpeg/revision/latest/scale-to-width-down/300?cb=20241128214429"
+},
+"gender": "Female",
+"age": null,
+"bloodType": null,
+"dateOfBirth": {
+"month": null,
+"day": null
+},
+"favourites": 0,
+"description": "Gert lives in the undercity."
+}
+},
+{
+"role": "BACKGROUND",
+"node": {
+"id": 900000030,
+"name": {
+"full": "Lest",
+"native": null,
+"alternative": []
+},
+"image": {
+"medium": "https://static.wikia.nocookie.net/arcane/images/9/9f/Lest_Arcane_Season_2_Render.png/revision/latest/scale-to-width-down/300?cb=20250325154907"
+},
+"gender": "Male",
+"age": null,
+"bloodType": null,
+"dateOfBirth": {
+"month": null,
+"day": null
+},
+"favourites": 0,
+"description": "Lest is a member of the forces of Piltover."
+}
+},
+{
+"role": "SUPPORTING",
+"node": {
+"id": 900000031,
+"name": {
+"full": "Maddie Nolen",
+"native": null,
+"alternative": []
+},
+"image": {
+"medium": "https://static.wikia.nocookie.net/arcane/images/a/a2/Maddie_Arcane_Season_2_Render.png/revision/latest/scale-to-width-down/300?cb=20250321155851"
+},
+"gender": "Female",
+"age": null,
+"bloodType": null,
+"dateOfBirth": {
+"month": null,
+"day": null
+},
+"favourites": 0,
+"description": "Maddie is a police officer (enforcer) of Piltover with red hair."
+}
+},
+{
+"role": "BACKGROUND",
+"node": {
+"id": 900000032,
+"name": {
+"full": "Gustove Jowler",
+"native": null,
+"alternative": []
+},
+"image": {
+"medium": "https://static.wikia.nocookie.net/arcane/images/9/91/The_Jowler.png/revision/latest/scale-to-width-down/300?cb=20250228183600"
+},
+"gender": "Male",
+"age": null,
+"bloodType": null,
+"dateOfBirth": {
+"month": null,
+"day": null
+},
+"favourites": 0,
+"description": "Jowler is a member of the council of Piltover."
+}
+},
+{
+"role": "BACKGROUND",
+"node": {
+"id": 900000033,
+"name": {
+"full": "Kino Medarda",
+"native": null,
+"alternative": []
+},
+"image": {
+"medium": "https://static.wikia.nocookie.net/arcane/images/2/2c/Kino_Medarda.png/revision/latest/scale-to-width-down/300?cb=20241116175014"
+},
+"gender": "Male",
+"age": null,
+"bloodType": null,
+"dateOfBirth": {
+"month": null,
+"day": null
+},
+"favourites": 0,
+"description": "Kino is a member of a noble family of Noxus and Mel's brother."
+}
+},
+{
+"role": "SUPPORTING",
+"node": {
+"id": 900000034,
+"name": {
+"full": "LeBlanc",
+"native": null,
+"alternative": []
+},
+"image": {
+"medium": "https://static.wikia.nocookie.net/arcane/images/f/fc/LeBlanc-render.png/revision/latest/scale-to-width-down/300?cb=20260218133053"
+},
+"gender": "Female",
+"age": null,
+"bloodType": null,
+"dateOfBirth": {
+"month": null,
+"day": null
+},
+"favourites": 0,
+"description": "LeBlanc is a mage and sorceress, leader of a secret society of Noxus."
+}
+},
+{
+"role": "SUPPORTING",
+"node": {
+"id": 900000035,
+"name": {
+"full": "Rictus",
+"native": null,
+"alternative": []
+},
+"image": {
+"medium": "https://static.wikia.nocookie.net/arcane/images/8/8f/Noxian_Lieutenant_Arcane.png/revision/latest/scale-to-width-down/300?cb=20240705035355"
+},
+"gender": "Male",
+"age": null,
+"bloodType": null,
+"dateOfBirth": {
+"month": null,
+"day": null
+},
+"favourites": 0,
+"description": "Rictus is an assassin and soldier of Noxus serving Ambessa."
+}
+},
+{
+"role": "BACKGROUND",
+"node": {
+"id": 900000036,
+"name": {
+"full": "Shoola",
+"native": null,
+"alternative": []
+},
+"image": {
+"medium": "https://static.wikia.nocookie.net/arcane/images/f/fa/End_Shoola.png/revision/latest?cb=20250203233114"
+},
+"gender": "Female",
+"age": null,
+"bloodType": null,
+"dateOfBirth": {
+"month": null,
+"day": null
+},
+"favourites": 0,
+"description": "Shoola is a member of a rebel group from Zaun."
+}
+}
+]
+}
+}
+]

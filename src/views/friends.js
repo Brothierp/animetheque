@@ -11,7 +11,7 @@ import {
   removeFriend, blockUser, listBlocks, unblock, loadConversations, loadThread, sendMessage, markRead, deleteMessage, report,
   sharedLists, listItemsOf, refreshCounters, addToSharedList, removeFromSharedList, listMembers, socialError
 } from "../social.js";
-import { preventionDialog, mixedBanner, messageHTML, prepareTokens, tokenPreview, sharePicker } from "../safety.js";
+import { preventionDialog, mixedBanner, messageHTML, prepareTokens, tokenPreview, sharePicker, reportDialog } from "../safety.js";
 import { fanartPickerSource, SOURCE_RE } from "../fanart-api.js";
 import { uploadChatImage } from "../chat-images.js";
 
@@ -71,7 +71,7 @@ async function renderChat(el, uid) {
   await loadPeople([uid]);
   const friend = isFriend(uid);
   el.innerHTML = `<div class="page soc chat-page">
-    <div class="chat-h"><a class="back" href="#/amis">←</a>${av(uid)}<a class="chat-name" href="#/amis/membre/${uid}">${esc(person(uid).username)}</a></div>
+    <div class="chat-h"><a class="back" href="#/amis">←</a>${av(uid)}<a class="chat-name" href="#/amis/membre/${uid}">${esc(person(uid).username)}</a><button type="button" class="btn sm danger-o chat-rep" id="chatReport" title="Signaler ${esc(person(uid).username)}">🚩 Signaler</button></div>
     ${person(uid).mixed ? mixedBanner() : ""}
     <div class="thread" id="thread"><p class="loading">Chargement…</p></div>
     ${friend ? `<form class="composer" id="composer"><button type="button" class="btn icon" id="shareBtn" title="Partager un animé, un personnage ou un fan art" aria-label="Partager une image">🖼️</button><textarea id="msgIn" rows="1" maxlength="2000" placeholder="Écrire un message…" aria-label="Message"></textarea><button class="btn primary" type="submit">Envoyer</button></form>
@@ -82,13 +82,14 @@ async function renderChat(el, uid) {
   await prepareTokens(thread.map(m => m.body));
   paintThread();
   markRead(uid).catch(() => {});
+  $("chatReport").addEventListener("click", () => reportFlow(uid, {}));
   const box = $("thread");
   box.addEventListener("click", async e => {
     if (e.target.id === "older") { const more = await loadThread(uid, thread[0].created_at); thread = more.concat(thread); paintThread(false); return; }
     const b = e.target.closest("[data-msg]"); if (!b) return;
     const id = +b.closest(".msg").dataset.id, m = thread.find(x => x.id === id);
     if (b.dataset.msg === "del") { if (!confirm("Supprimer ce message (pour vous deux) ?")) return; try { await deleteMessage(id); thread = thread.filter(x => x.id !== id); paintThread(false); } catch (err) { toast(socialError(err)); } }
-    else { const r = prompt("Pourquoi signales-tu ce message ? (l'administrateur ne verra que ce message)", "Message insultant"); if (r) { try { await report({ messageId: id, reason: r }); toast("Merci, le message a été signalé."); } catch (err) { toast(socialError(err)); } } }
+    else await reportFlow(uid, { messageId: id });
   });
   const f = $("composer");
   if (f) {
@@ -124,6 +125,18 @@ async function renderChat(el, uid) {
     if (chatUid === uid && m.sender === uid && $("thread")) { await prepareTokens([m.body]); thread.push(m); paintThread(); markRead(uid).catch(() => {}); }
     else if (m.sender !== uid) toast(`💬 Nouveau message de ${person(m.sender).username}`);
   });
+}
+
+/** Signaler un message ou un membre, avec motif, contexte facultatif et blocage. */
+async function reportFlow(uid, { messageId }) {
+  const name = person(uid).username;
+  const r = await reportDialog({ name, message: !!messageId, canContext: true });
+  if (!r) return;
+  try {
+    await report({ messageId, targetUser: uid, reason: r.reason, category: r.category, context: r.context });
+    if (r.block) { await blockUser(uid); toast(`Signalement envoyé et ${name} bloqué·e. Merci 🙏`, 4500); location.hash = "#/amis"; }
+    else toast("Merci, le signalement a été transmis à l'administrateur 🙏", 4500);
+  } catch (err) { toast(socialError(err)); }
 }
 
 // ---------- Amis ----------
@@ -247,7 +260,7 @@ async function renderMember(el, uid) {
     try {
       if (b.dataset.m === "remove") { if (!confirm(`Retirer ${name} de tes amis ? Vos listes communes ne seront plus partagées.`)) return; await removeFriend(uid); toast("Retiré de tes amis"); location.hash = "#/amis/amis"; }
       else if (b.dataset.m === "block") { if (!confirm(`Bloquer ${name} ? Il ou elle ne pourra plus te contacter ni te retrouver.`)) return; await blockUser(uid); toast(`${name} est bloqué·e`); location.hash = "#/amis/amis"; }
-      else { const r = prompt(`Pourquoi signales-tu ${name} ?`, ""); if (r) { await report({ targetUser: uid, reason: r }); toast("Merci, le signalement a été transmis à l'administrateur."); } }
+      else await reportFlow(uid, {});
     } catch (err) { toast(socialError(err)); }
   });
 }

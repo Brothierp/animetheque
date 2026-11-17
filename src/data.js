@@ -2,14 +2,14 @@
 
 /** Version des fichiers de données : à changer à chaque régénération, pour qu'aucun navigateur ne mélange
  *  une ancienne copie en cache avec les nouveaux fichiers. */
-export const DATA_V = "20261112e";
+export const DATA_V = "20261117a";
 export const dataUrl = path => `${path}?v=${DATA_V}`;
 
 export const FR = {
   format: { TV: "Série TV", TV_SHORT: "Série courte", MOVIE: "Film", SPECIAL: "Spécial", OVA: "OAV", ONA: "ONA (web)", MUSIC: "Clip musical" },
   status: { FINISHED: "Terminé", RELEASING: "En cours de diffusion", NOT_YET_RELEASED: "À venir", CANCELLED: "Annulé", HIATUS: "En pause" },
   season: { WINTER: "Hiver", SPRING: "Printemps", SUMMER: "Été", FALL: "Automne" },
-  country: { JP: "Japon", CN: "Chine", KR: "Corée du Sud", TW: "Taïwan" },
+  country: { JP: "Japon", CN: "Chine", KR: "Corée du Sud", TW: "Taïwan", FR: "France" },
   source: { ORIGINAL: "Original", MANGA: "Manga", LIGHT_NOVEL: "Light novel", VISUAL_NOVEL: "Visual novel", VIDEO_GAME: "Jeu vidéo", NOVEL: "Roman",
     WEB_NOVEL: "Web novel", OTHER: "Autre", DOUJINSHI: "Doujinshi", ANIME: "Anime", WEB_MANGA: "Web manga", LIVE_ACTION: "Film live", GAME: "Jeu",
     COMIC: "Comic", MULTIMEDIA_PROJECT: "Projet multimédia", PICTURE_BOOK: "Livre illustré", MULTIMEDIA: "Multimédia" },
@@ -51,7 +51,7 @@ export function loadCatalogue() {
     T = d.tables;
     A = d.items.map((x, i) => Object.assign(Object.create(ANIME), { id: x[0], mal: x[1], romaji: x[2], english: x[3], native: x[4], syn: x[5], format: x[6], status: x[7], eps: x[8], dur: x[9],
       season: x[10], year: x[11], genres: x[12], tags: x[13], studios: x[14], score: x[15], pop: x[16], country: x[17], source: x[18], hasDesc: !!x[19], desc: typeof x[19] === "string" ? x[19] : null,
-      plats: Array.isArray(x[20]) ? x[20] : null, nPlats: Array.isArray(x[20]) ? x[20].length : x[20], lang: x[21], adult: x[22] === 1, cov: x[23], rank: i, chars: [], charHay: "",
+      plats: Array.isArray(x[20]) ? x[20] : null, nPlats: Array.isArray(x[20]) ? x[20].length : x[20], lang: x[21], adult: x[22] === 1, cov: x[23], ext: x[24] || null, rank: i, chars: [], charHay: "",
       _hay: null, _sh: null }));
     for (const a of A) byId.set(a.id, a);
     if (hd) { HD_BASE = hd.base; hd.c.forEach((f, i) => { if (!A[i] || !f) return; const [file, color] = f.split("|"); A[i].hdMax = file[0] === "*" ? "medium" : "large"; A[i].hd = file.replace("*", "").replace("~", A[i].id + "-"); A[i].color = color || ""; }); }
@@ -90,11 +90,13 @@ export const loadDesc = a => loadDetails(a).then(x => x.desc || "");
 export const titleOf = a => a.english || a.romaji;
 export const altTitles = a => { const m = titleOf(a); return [...new Set([a.romaji, a.native].filter(t => t && t.toLowerCase() !== m.toLowerCase()))]; };
 /** Lien externe : MyAnimeList pour les titres adultes (AniList les cache aux visiteurs), AniList sinon. */
-export const extLink = a => a.adult && a.mal ? `https://myanimelist.net/anime/${a.mal}` : `https://anilist.co/anime/${a.id}`;
+export const extLink = a => a.ext ? a.ext[0] : a.adult && a.mal ? `https://myanimelist.net/anime/${a.mal}` : `https://anilist.co/anime/${a.id}`;
 
 /** Affiches haute définition (CDN AniList) : medium ≈ 230 px de large, large ≈ 460 px. */
 let HD_BASE = "";
-export const hdUrl = (a, size) => a && a.hd ? `${HD_BASE}${size}/${a.hd}` : "";
+export const hdUrl = (a, size) => !a || !a.hd ? "" : a.hd.startsWith("http") ? a.hd.replace("{w}", size === "large" ? 460 : 230) : `${HD_BASE}${size}/${a.hd}`;
+/** Séries ajoutées à la main (absentes d'AniList, ex. Arcane) : identifiants à partir de 900 000. */
+export const isExtra = a => a && a.id >= 900000;
 
 /** Style CSS d'une affiche (planches de 10 × 20 affiches de 96 × 136 px). */
 export function coverStyle(a) {

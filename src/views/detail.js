@@ -96,7 +96,7 @@ function html(a) {
       ${studio ? `<div><h3>Studio</h3><p>${studio}</p></div>` : ""}
       ${a.source >= 0 ? `<div><h3>D'après</h3><p>${esc(tr("source", T.source[a.source]))}</p></div>` : ""}
       ${a.tags.length ? `<div><h3>Thèmes</h3><div class="tags">${a.tags.slice(0, 14).map(i => `<a class="tg" href="#/catalogue?tag=${encodeURIComponent(T.tags[i])}">${esc(T.tags[i])}</a>`).join("")}</div></div>` : ""}
-      <div><h3>Fiches externes</h3><p class="ext"><a href="${extLink(a)}" target="_blank" rel="noopener">${a.adult && a.mal ? "MyAnimeList" : "AniList"} ↗</a>${a.mal && !a.adult ? ` · <a href="https://myanimelist.net/anime/${a.mal}" target="_blank" rel="noopener">MyAnimeList ↗</a>` : ""}</p></div>
+      <div><h3>Fiches externes</h3><p class="ext"><a href="${extLink(a)}" target="_blank" rel="noopener">${a.ext ? esc(a.ext[1]) : a.adult && a.mal ? "MyAnimeList" : "AniList"} ↗</a>${a.mal && !a.adult ? ` · <a href="https://myanimelist.net/anime/${a.mal}" target="_blank" rel="noopener">MyAnimeList ↗</a>` : ""}</p></div>
     </aside>
   </div>
   <div class="d-sim" id="dSim"></div>`;
@@ -120,10 +120,10 @@ export function openDetail(id, onClose) {
   panel.focus({ preventScroll: true });
   setTimeout(() => { if (curId === id) $("dSim").innerHTML = row("Dans le même esprit", similar(a, 14, adultAllowed())); }, 30);
   mountComments($("dComments"), id);
-  if (a.desc && $("dSyn")) attachTranslate($("dSyn"), "a" + a.id);
+  if (a.desc && $("dSyn") && !a.ext) attachTranslate($("dSyn"), "a" + a.id);
   if ((a.hasDesc && a.desc == null) || (a.nPlats && !a.plats)) loadDetails(a).then(() => {
     if (curId !== id) return;
-    if ($("dSyn")) { $("dSyn").textContent = a.desc; if (a.desc) attachTranslate($("dSyn"), "a" + a.id); }
+    if ($("dSyn")) { $("dSyn").textContent = a.desc; if (a.desc && !a.ext) attachTranslate($("dSyn"), "a" + a.id); }
     if ($("dPlats")) $("dPlats").innerHTML = platsHTML(a);
   }).catch(() => { if ($("dSyn")) $("dSyn").textContent = "Synopsis indisponible pour le moment."; });
   charsOfAnime(a).then(L => { if (curId === id) renderFaces(L); })
