@@ -58,7 +58,8 @@ export function profileErrorMessage(err) {
 }
 
 export async function loadProfile() {
-  const { data, error } = await supabase.from("profiles").select("username, birth_year, avatar_path").maybeSingle();
+  let { data, error } = await supabase.from("profiles").select("username, birth_year, avatar_path, share_activity").maybeSingle();
+  if (error && /share_activity|42703|PGRST204/.test(error.message + error.code)) ({ data, error } = await supabase.from("profiles").select("username, birth_year, avatar_path").maybeSingle());
   if (error) throw error;
   return data || { username: null, birth_year: null, avatar_path: null, missing: true };
 }

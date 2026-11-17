@@ -20,6 +20,7 @@ import * as friends from "./views/friends.js";
 import * as fanarts from "./views/fanarts.js";
 import { SOC, onSocial } from "./social.js";
 import { initFeedback } from "./feedback.js";
+import { initNotifications } from "./notify.js";
 import { openDetail, closeDetail, isDetailOpen } from "./views/detail.js";
 import { openCharacter, closeCharacter, isCharacterOpen } from "./views/character.js";
 const isModalOpen = () => isDetailOpen() || isCharacterOpen();
@@ -195,7 +196,7 @@ function paintBadges() {
 onSocial(what => { if (what === "counters") paintBadges(); });
 
 // ---------- Démarrage ----------
-if (supabase) initFeedback();
+if (supabase) { initFeedback(); initNotifications(); }
 view.innerHTML = `<div class="page"><div class="boot"><div class="spinner" aria-hidden="true"></div><p>Chargement du catalogue…</p></div></div>`;
 // Lien direct vers les personnages : on télécharge leurs fichiers en même temps que le catalogue.
 // (seulement le petit fichier : le gros complément attend l'affichage, pour ne pas ralentir le catalogue)

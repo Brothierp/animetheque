@@ -46,6 +46,8 @@ function html() {
       ${providers.includes("email") ? `<div class="field"><span>Mot de passe</span><form id="pwdForm" novalidate><input type="password" name="password" autocomplete="new-password" minlength="8" placeholder="Nouveau mot de passe (8 caractères min.)"><button class="btn" type="submit">Modifier</button></form></div>` : ""}
       <div class="field"><span>Membre depuis</span><div class="val">${new Date(u.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}</div></div>
     </div></section>
+    ${"share_activity" in p ? `<section class="card2"><h2>Partage avec mes amis</h2>
+      <label class="chk"><input type="checkbox" id="shareAct"${p.share_activity ? " checked" : ""}><span><b>Partager mon activité avec mes amis</b> : titres commencés et terminés, notes de 4 ou 5 étoiles, coups de cœur, avis et fan arts publiés. Visible uniquement par tes amis, dans « Amis → Activité ». Ta collection complète reste privée.</span></label></section>` : ""}
     ${mySuggestionsHTML()}
     ${importHTML()}
     <section class="card2"><h2>Exporter mes données</h2>
@@ -92,6 +94,11 @@ function bind() {
     const btn = uf.querySelector("button"); btn.disabled = true;
     try { const pb = await usernameProblem(u); if (pb) { toast(pb); return; } await updateProfile({ username: u }); toast("Pseudo enregistré"); }
     catch (err) { console.error(err); toast(frError(err)); } finally { btn.disabled = false; }
+  });
+  const sa = $("shareAct");
+  if (sa) sa.addEventListener("change", async () => {
+    try { await updateProfile({ share_activity: sa.checked }); toast(sa.checked ? "Ton activité est partagée avec tes amis" : "Ton activité n'est plus partagée"); }
+    catch (err) { sa.checked = !sa.checked; toast(frError(err)); }
   });
   const bf = $("birthForm");
   if (bf) bf.addEventListener("submit", async e => {

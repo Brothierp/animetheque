@@ -9,7 +9,7 @@ import { gate } from "./collection.js";
 import {
   SOC, onSocial, onMessage, person, loadPeople, loadFriends, friendsList, isFriend, findMember, sendRequest, acceptRequest,
   removeFriend, blockUser, listBlocks, unblock, loadConversations, loadThread, sendMessage, markRead, deleteMessage, report,
-  sharedLists, listItemsOf, refreshCounters, addToSharedList, removeFromSharedList, listMembers, socialError
+  sharedLists, listItemsOf, refreshCounters, friendsActivity, addToSharedList, removeFromSharedList, listMembers, socialError
 } from "../social.js";
 import { preventionDialog, mixedBanner, messageHTML, prepareTokens, tokenPreview, sharePicker, reportDialog, isAdultMe } from "../safety.js";
 import { fanartPickerSource, SOURCE_RE } from "../fanart-api.js";
@@ -31,6 +31,7 @@ const tabsHTML = cur => {
   return `<nav class="tabs2" aria-label="Amis">
     <a href="#/amis" class="${cur === "messages" ? "on" : ""}">💬 Messages${c.messages ? ` <span class="nb">${c.messages}</span>` : ""}</a>
     <a href="#/amis/amis" class="${cur === "amis" ? "on" : ""}">👥 Amis${c.friend_requests ? ` <span class="nb">${c.friend_requests}</span>` : ""}</a>
+    <a href="#/amis/activite" class="${cur === "activite" ? "on" : ""}">📰 Activité</a>
     <a href="#/amis/listes" class="${cur === "listes" ? "on" : ""}">📋 Listes partagées</a></nav>`;
 };
 const page = (cur, body) => (curTab = cur, `<div class="page soc"><div class="cat-top"><div><h1>Amis</h1><div class="count">Messagerie et listes entre amis · privé</div></div></div>${tabsHTML(cur)}${body}</div>`);
@@ -137,6 +138,26 @@ async function reportFlow(uid, { messageId }) {
     if (r.block) { await blockUser(uid); toast(`Signalement envoyé et ${name} bloqué·e. Merci 🙏`, 4500); location.hash = "#/amis"; }
     else toast("Merci, le signalement a été transmis à l'administrateur 🙏", 4500);
   } catch (err) { toast(socialError(err)); }
+}
+
+// ---------- Activité des amis ----------
+const ACT = { status_watched: "a terminé", status_watching: "a commencé", rating: "a noté", favorite: "a eu un coup de cœur pour", fanart: "a publié un fan art", comment: "a donné son avis sur" };
+async function renderActivity(el) {
+  el.innerHTML = page("activite", `<div id="act"><p class="loading">Chargement…</p></div>`);
+  let L;
+  try { L = await friendsActivity(); } catch { $("act").innerHTML = `<div class="empty"><p>Le fil d'activité arrive bientôt.</p><p class="hint">Il s'active dès que la base de données est mise à jour (script SQL 20261117080000).</p></div>`; return; }
+  const ok = adultAllowed();
+  L = L.filter(x => !x.anime_id || !byId.get(x.anime_id) || !byId.get(x.anime_id).adult || ok);
+  await loadPeople(L.map(x => x.user_id)).catch(() => {});
+  const share = ME.profile && ME.profile.share_activity;
+  const tip = `<p class="hint act-tip">${share ? "✓ Tes amis voient aussi ton activité." : "Ton activité n'est pas partagée."} <a href="#/compte">Régler dans Mon compte</a></p>`;
+  if (!L.length) { $("act").innerHTML = tip + `<div class="empty"><p>Rien pour l'instant.</p><p class="hint">Quand tes amis activent le partage d'activité, tu vois ici ce qu'ils commencent, terminent, notent ou publient.</p></div>`; return; }
+  $("act").innerHTML = tip + `<ul class="acts">${L.map(x => {
+    const a = x.anime_id ? byId.get(x.anime_id) : null;
+    const what = x.kind === "rating" ? `${ACT.rating} ${"★".repeat(x.value || 0)}` : ACT[x.kind] || "";
+    const href = x.kind === "fanart" ? `#/fanarts/${x.ref}` : a ? `#/anime/${a.id}` : "#/amis";
+    return `<li><a class="act" href="${href}">${av(x.user_id)}<span><span><b>${esc(person(x.user_id).username)}</b> ${what}${a ? ` <b>${esc(titleOf(a))}</b>` : ""}</span><small>${ago(x.created_at)}</small></span>${a && hdUrl(a, "medium") ? `<img src="${esc(hdUrl(a, "medium"))}" alt="" loading="lazy" referrerpolicy="no-referrer">` : ""}</a></li>`;
+  }).join("")}</ul>`;
 }
 
 // ---------- Amis ----------
@@ -275,7 +296,7 @@ export function render(el, sub, rest) {
     $("socRetry").addEventListener("click", () => refreshCounters());
     refreshCounters(); return; }
   if (!ME.profile || !ME.profile.username) { el.innerHTML = page("", `<div class="empty"><p>Choisis d'abord un pseudo : c'est grâce à lui que tes amis te trouvent.</p><a class="btn primary" href="#/compte">Choisir mon pseudo</a></div>`); return; }
-  const go = { messages: renderConvos, amis: renderFriends, listes: renderShared }[sub || "messages"];
+  const go = { messages: renderConvos, amis: renderFriends, listes: renderShared, activite: renderActivity }[sub || "messages"];
   const p = go ? go(el) : sub === "chat" ? renderChat(el, rest[0]) : sub === "membre" ? renderMember(el, rest[0]) : sub === "liste" ? renderSharedList(el, rest[0]) : renderConvos(el);
   Promise.resolve(p).catch(err => { console.error(err); el.innerHTML = page("", `<div class="empty"><p>${esc(socialError(err))}</p></div>`); });
 }

@@ -138,6 +138,9 @@ export async function saveComment(aid, body, spoiler, id) {
 export async function deleteComment(id) { await call(supabase.from("anime_comments").delete().eq("id", id)); }
 export const isMissing = missing;
 
+// ---------- Activité des amis ----------
+export async function friendsActivity() { return call(supabase.rpc("friends_activity", { p_limit: 60 })); }
+
 // Messages en direct : un abonnement par session.
 let channel = null;
 const msgListeners = new Set();
