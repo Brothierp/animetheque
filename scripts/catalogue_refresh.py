@@ -229,7 +229,7 @@ dump = lambda o, f: json.dump(o, open(P(f), "w"), ensure_ascii=False, separators
 dump(data, "data.json"); dump(hd, "covers-hd.json"); dump(cc, "chars.json"); dump(fr, "franchises.json")
 for s in range(SH): dump(dsh[s], f"dshards/{s}.json"); dump({"img": IMG, "a": cshards[s]}, f"cshards/{s}.json")
 dump(CH, "characters.json"); dump(MORE, "characters-more.json"); dump({"img": IMG, "chars": top}, "characters-top.json")
-# nouvelle version des données : les navigateurs ne mélangent pas l'ancien cache et les nouveaux fichiers
+# nouvelle version des données (date et heure) : les navigateurs ne mélangent jamais l'ancien cache et les nouveaux fichiers
 src = os.path.join(HERE, "..", "src", "data.js"); s = open(src).read()
-s = re.sub(r'export const DATA_V = "[^"]*";', f'export const DATA_V = "{datetime.date.today():%Y%m%d}r";', s); open(src, "w").write(s)
+s = re.sub(r'export const DATA_V = "[^"]*";', f'export const DATA_V = "{datetime.datetime.utcnow():%Y%m%d%H%M}r";', s); open(src, "w").write(s)
 print(f"catalogue : {n_before} → {len(items)} titres")
