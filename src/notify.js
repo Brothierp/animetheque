@@ -32,6 +32,8 @@ function text(n) {
       return [`${who} t'a répondu sur l'épisode ${esc(ep)}${a ? ` de <b>${esc(titleOf(a))}</b>` : ""}`, `#/anime/${aid}`, "💬"]; }
     case "episode": { const [aid, ep] = String(n.ref || "").split(":"); const a = byId.get(+aid);
       return [`<b>Épisode ${esc(ep)}</b> de ${esc(a ? titleOf(a) : n.title || "ta série")} est sorti`, `#/anime/${aid}`, "📺"]; }
+    case "comment_like": { const a = byId.get(+n.ref);
+      return [`${who} a trouvé utile ton avis${a ? ` sur <b>${esc(titleOf(a))}</b>` : ""}`, `#/anime/${n.ref}`, "👍"]; }
     case "test": return ["Notification de test : tout fonctionne 🔔", "#/compte", "🔔"];
     case "chat_image": return [`Une image envoyée par ${who} est maintenant visible`, `#/amis/chat/${n.actor}`, "🖼️"];
     default: return ["Nouvelle notification", "#/", "🔔"];

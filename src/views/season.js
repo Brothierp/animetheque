@@ -5,6 +5,7 @@ import { ME, adultAllowed, inCollection } from "../state.js";
 import { esc, grid, row } from "../ui.js";
 import { friendsActivity } from "../social.js";
 import { supabase } from "../supabase.js";
+import { mountPoll } from "../poll.js";
 
 let root = null;
 const isShown = () => !!(root && root.isConnected && root.dataset.view === "saison");
@@ -43,6 +44,7 @@ export function render(el, sub) {
       <div class="count"><b>${L.length}</b> titres ${isNext ? "annoncés" : "cette saison"} · ${series.length} séries, ${films.length} films et spéciaux</div></div></div>
     ${tabsHTML(isNext ? "next" : "cur")}
     <div id="seasonFriends"></div>
+    ${isNext ? "" : `<div id="seasonPoll"></div>`}
     ${row(isNext ? "Les plus attendus" : "Les plus populaires de la saison", series.slice(0, 20), `#/catalogue?season=${which.s}&year=${which.y}`, isNext ? "D'après le nombre de fans qui les suivent déjà sur AniList" : "")}
     ${row("Nouvelles séries", fresh.slice(0, 20), "", "Des histoires qui commencent : idéal pour découvrir")}
     ${row("Le retour de…", sequels.slice(0, 20), "", "Nouvelles saisons de séries déjà connues")}
@@ -51,6 +53,10 @@ export function render(el, sub) {
       <div class="grid">${grid(series.slice(0, 120))}</div></section>
   </div>`;
   if (ME.user && supabase) friendsWatching(which);
+  if (!isNext) {
+    const i = SEASONS.indexOf(cur.s), prev = { s: SEASONS[(i + 3) % 4], y: i === 0 ? cur.y - 1 : cur.y };
+    mountPoll(el.querySelector("#seasonPoll"), cur, prev, series, seasonLabel(cur).toLowerCase(), seasonLabel(prev).toLowerCase());
+  }
 }
 
 async function friendsWatching(which) {

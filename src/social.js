@@ -123,6 +123,11 @@ export async function markRead(uid) {
   await call(supabase.from("messages").update({ read_at: new Date().toISOString() }).eq("sender", uid).eq("recipient", me()).is("read_at", null));
   refreshCounters();
 }
+/** Supprime la conversation de ton côté (l'autre personne garde sa copie). */
+export async function clearConversation(uid) {
+  await call(supabase.rpc("clear_conversation", { p_other: uid }));
+  SOC.convos = (SOC.convos || []).filter(c => c.uid !== uid); emit("convos"); refreshCounters();
+}
 export async function deleteMessage(id) { await call(supabase.from("messages").delete().eq("id", id)); }
 export async function report({ messageId, commentId, fanartId, postId, targetUser, reason, category, context }) {
   await call(supabase.from("reports").insert({ message_id: messageId || null, comment_id: commentId || null, ...(fanartId ? { fanart_id: fanartId } : {}), ...(postId ? { post_id: postId } : {}),
@@ -137,6 +142,15 @@ export async function saveComment(aid, body, spoiler, id) {
   else await call(supabase.from("anime_comments").insert({ anime_id: aid, body, spoiler }));
 }
 export async function deleteComment(id) { await call(supabase.from("anime_comments").delete().eq("id", id)); }
+export async function likeComment(id, on) {
+  if (on) await call(supabase.from("comment_likes").insert({ comment_id: id }));
+  else await call(supabase.from("comment_likes").delete().eq("comment_id", id));
+}
+
+// ---------- Communauté (totaux anonymes) ----------
+export async function communityStats(aid) { const d = await call(supabase.rpc("community_stats", { aid })); return (d || [])[0] || null; }
+export async function communityTopWeek(n = 20) { return call(supabase.rpc("community_top_week", { p_limit: n })); }
+export async function friendsLoved(n = 20) { return call(supabase.rpc("friends_loved", { p_limit: n })); }
 export const isMissing = missing;
 
 // ---------- Activité des amis ----------

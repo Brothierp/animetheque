@@ -198,6 +198,7 @@ drop trigger if exists comments_check on public.anime_comments;
 create trigger comments_check before insert or update on public.anime_comments for each row execute function public.comments_check();
 
 -- Avis d'un animé avec le pseudo de leur auteur (lisible par tous, même sans compte).
+drop function if exists public.anime_comments_list(integer);   -- la version suivante ajoute des colonnes
 create or replace function public.anime_comments_list(aid integer)
 returns table (id uuid, body text, spoiler boolean, created_at timestamptz, updated_at timestamptz, user_id uuid, username text, mine boolean)
 language sql stable security definer set search_path = '' as $$

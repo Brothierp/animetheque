@@ -8,7 +8,7 @@ import { toast } from "../toast.js";
 import { gate } from "./collection.js";
 import {
   SOC, onSocial, onMessage, person, loadPeople, loadFriends, friendsList, isFriend, findMember, sendRequest, acceptRequest,
-  removeFriend, blockUser, listBlocks, unblock, loadConversations, loadThread, sendMessage, markRead, deleteMessage, report,
+  removeFriend, blockUser, listBlocks, unblock, loadConversations, loadThread, sendMessage, markRead, deleteMessage, clearConversation, report,
   sharedLists, listItemsOf, refreshCounters, friendsActivity, addToSharedList, removeFromSharedList, listMembers, socialError
 } from "../social.js";
 import { preventionDialog, mixedBanner, messageHTML, prepareTokens, tokenPreview, sharePicker, reportDialog, isAdultMe } from "../safety.js";
@@ -44,9 +44,21 @@ async function renderConvos(el) {
   $("convos").innerHTML = (fr.length ? `<div class="soc-new"><label class="sortsel">Nouveau message à <select id="newChat"><option value="">choisir un ami…</option>${fr.map(f => `<option value="${f.uid}">${esc(person(f.uid).username)}</option>`).join("")}</select></label></div>` : "")
     + (L.length ? `<ul class="convos">${L.map(c => `<li><a class="convo${c.unread ? " unread" : ""}" href="#/amis/chat/${c.uid}">${av(c.uid)}
         <span class="cv-t"><b>${esc(person(c.uid).username)}</b><span>${c.last.sender === ME.user.id ? "Toi : " : ""}${esc(tokenPreview(c.last.body).slice(0, 90))}</span></span>
-        <span class="cv-m"><time>${ago(c.last.created_at)}</time>${c.unread ? `<span class="nb">${c.unread}</span>` : ""}</span></a></li>`).join("")}</ul>`
+        <span class="cv-m"><time>${ago(c.last.created_at)}</time>${c.unread ? `<span class="nb">${c.unread}</span>` : ""}</span></a>
+        <button type="button" class="cv-del" data-clear="${c.uid}" title="Supprimer la conversation" aria-label="Supprimer la conversation avec ${esc(person(c.uid).username)}">🗑</button></li>`).join("")}</ul>`
       : `<div class="empty"><p>Aucune conversation pour l'instant.</p><p class="hint">${fr.length ? "Choisis un ami ci-dessus pour lui écrire." : "Ajoute d'abord des amis (onglet « Amis ») : la messagerie est réservée aux amis."}</p>${fr.length ? "" : `<a class="btn primary" href="#/amis/amis">Ajouter un ami</a>`}</div>`);
   const s = $("newChat"); if (s) s.addEventListener("change", () => { if (s.value) location.hash = "#/amis/chat/" + s.value; });
+  $("convos").onclick = async e => {
+    const b = e.target.closest("[data-clear]"); if (!b) return;
+    if (await askClear(b.dataset.clear)) renderConvos(el);
+  };
+}
+/** Confirmation puis suppression de la conversation (de ton côté uniquement). */
+async function askClear(uid) {
+  const name = person(uid).username;
+  if (!confirm(`Supprimer la conversation avec ${name} ?\n\nElle disparaît de ta messagerie uniquement : ${name} garde sa copie. Si quelque chose ne va pas avec cette personne, signale-la avant de supprimer.`)) return false;
+  try { await clearConversation(uid); toast("Conversation supprimée"); return true; }
+  catch (err) { toast(/clear_conversation|PGRST202|42883/.test((err && (err.message + err.code)) || "") ? "Cette fonction sera disponible après la mise à jour de la base de données." : socialError(err)); return false; }
 }
 
 function bubble(m) {
@@ -72,7 +84,7 @@ async function renderChat(el, uid) {
   await loadPeople([uid]);
   const friend = isFriend(uid);
   el.innerHTML = `<div class="page soc chat-page">
-    <div class="chat-h"><a class="back" href="#/amis">←</a>${av(uid)}<a class="chat-name" href="#/amis/membre/${uid}">${esc(person(uid).username)}</a><button type="button" class="btn sm danger-o chat-rep" id="chatReport" title="Signaler ${esc(person(uid).username)}">🚩 Signaler</button></div>
+    <div class="chat-h"><a class="back" href="#/amis">←</a>${av(uid)}<a class="chat-name" href="#/amis/membre/${uid}">${esc(person(uid).username)}</a><button type="button" class="btn sm danger-o chat-rep" id="chatReport" title="Signaler ${esc(person(uid).username)}">🚩 Signaler</button><button type="button" class="btn sm" id="chatClear" title="Supprimer la conversation" aria-label="Supprimer la conversation">🗑</button></div>
     ${person(uid).mixed ? mixedBanner() : ""}
     <div class="thread" id="thread"><p class="loading">Chargement…</p></div>
     ${friend ? `<form class="composer" id="composer"><button type="button" class="btn icon" id="shareBtn" title="Partager un animé, un personnage ou un fan art" aria-label="Partager une image">🖼️</button><textarea id="msgIn" rows="1" maxlength="2000" placeholder="Écrire un message…" aria-label="Message"></textarea><button class="btn primary" type="submit">Envoyer</button></form>
@@ -84,6 +96,7 @@ async function renderChat(el, uid) {
   paintThread();
   markRead(uid).catch(() => {});
   $("chatReport").addEventListener("click", () => reportFlow(uid, {}));
+  $("chatClear").addEventListener("click", async () => { if (await askClear(uid)) location.hash = "#/amis"; });
   const box = $("thread");
   box.addEventListener("click", async e => {
     if (e.target.id === "older") { const more = await loadThread(uid, thread[0].created_at); thread = more.concat(thread); paintThread(false); return; }

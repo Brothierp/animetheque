@@ -5,7 +5,7 @@ import { ME, requireUser } from "./state.js";
 import { esc } from "./ui.js";
 import { toast } from "./toast.js";
 import { tooYoungYear } from "./profile.js";
-import { animeComments, saveComment, deleteComment, report, socialError, isMissing } from "./social.js";
+import { animeComments, saveComment, deleteComment, likeComment, report, socialError, isMissing } from "./social.js";
 
 const MAX = 1500;
 let cur = null;   // { box, aid, rows, editing }
@@ -34,13 +34,16 @@ function itemHTML(c) {
       <span class="cm-act">${c.mine ? `<button type="button" class="linkbtn" data-cm="edit">modifier</button><button type="button" class="linkbtn" data-cm="del">supprimer</button>`
         : ME.user ? `<button type="button" class="linkbtn" data-cm="report">signaler</button>${ME.isStaff ? `<button type="button" class="linkbtn danger" data-cm="adel">supprimer (modération)</button>` : ""}` : ""}</span></div>
     ${c.spoiler ? `<button type="button" class="cm-spb" data-cm="reveal">⚠️ Spoiler : cliquer pour afficher</button>` : ""}
-    <div class="cm-b"><p>${para(c.body)}</p></div></li>`;
+    <div class="cm-b"><p>${para(c.body)}</p></div>
+    ${c.likes != null ? `<div class="cm-like">${c.mine || !ME.user
+      ? (+c.likes ? `<span class="hint">👍 ${c.likes} membre${c.likes > 1 ? "s ont" : " a"} trouvé cet avis utile</span>` : "")
+      : `<button type="button" class="cm-lk${c.liked ? " on" : ""}" data-cm="like" aria-pressed="${!!c.liked}">👍 Utile${+c.likes ? ` · ${c.likes}` : ""}</button>`}</div>` : ""}</li>`;
 }
 function paint() {
   if (!cur || !cur.box.isConnected) return;
   const { rows } = cur, mine = rows.find(r => r.mine);
   const showForm = !mine || cur.editing;
-  cur.box.innerHTML = `<h2>Avis des membres <small class="hint">${rows.length ? rows.length : ""}</small></h2>
+  cur.box.innerHTML = `<h2>Avis des membres <small class="hint">${rows.length ? rows.length : ""}</small></h2>${rows.length > 1 ? `<p class="hint">Les avis jugés les plus utiles par les membres apparaissent en premier.</p>` : ""}
     ${showForm ? formHTML(cur.editing ? mine : null) : ""}
     ${rows.length ? `<ul class="cms">${rows.filter(r => !(r.mine && cur.editing)).map(itemHTML).join("")}</ul>` : `<p class="hint">Aucun avis pour l'instant${ME.user ? " : sois le premier ou la première !" : "."}</p>`}
     <p class="hint cm-rules">Avis publics, en français ou en anglais. Pas d'insulte, de propos haineux ni de spoiler non signalé.</p>`;
@@ -76,6 +79,10 @@ export function mountComments(box, aid) {
     try {
       if (k === "login") requireUser();
       else if (k === "reveal") { li.classList.remove("sp"); b.remove(); }
+      else if (k === "like") {
+        const on = !c.liked; c.liked = on; c.likes = +c.likes + (on ? 1 : -1); paint();
+        try { await likeComment(c.id, on); } catch (err) { c.liked = !on; c.likes = +c.likes + (on ? -1 : 1); paint(); throw err; }
+      }
       else if (k === "edit") { cur.editing = true; paint(); }
       else if (k === "cancel") { cur.editing = false; paint(); }
       else if (k === "del" || k === "adel") {

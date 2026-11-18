@@ -7,6 +7,8 @@ import { charCard } from "./characters.js";
 import { listFanarts } from "../fanart-api.js";
 import { currentSeason, seasonLabel, seasonTitles } from "./season.js";
 import { supabase } from "../supabase.js";
+import { communityTopWeek, friendsLoved } from "../social.js";
+import { achievements, collectionStats, xpOf, levelOf, goal, myQuiz } from "../game.js";
 
 let root = null, featured = null;
 const isShown = () => !!(root && root.isConnected && root.dataset.view === "home");   // page réellement affichée ?
@@ -118,6 +120,7 @@ export function render(el) {
     ${row("Pépites à découvrir", gems, "#/catalogue?sort=score&minscore=78", "Très bien notés, moins connus")}
     ${(() => { const sc = currentSeason().cur; return row(`Saison ${esc(seasonLabel(sc).toLowerCase())}`, seasonTitles(sc).filter(safe).slice(0, 20), "#/saison", "Les nouveautés et retours de la saison"); })()}
     ${row("Bientôt", soon, "#/catalogue?status=NOT_YET_RELEASED", "Pas encore sortis")}
+    <div id="homeTop"></div>
     <div id="homeChars"></div>
     <div id="homeFa"></div>
     ${genreTiles()}
@@ -126,6 +129,11 @@ export function render(el) {
   if (w) w.addEventListener("click", () => { try { localStorage.setItem(TIP_KEY, "1"); } catch {} el.querySelector("#welcome").remove(); });
   renderPersonal();
   if (featured.desc == null) loadDesc(featured).then(t => { const h = el.querySelector("#heroSyn"); if (h) h.textContent = t.slice(0, 260) + (t.length > 260 ? "…" : ""); }).catch(() => {});
+  if (supabase) communityTopWeek(20).then(L => {
+    const h = isShown() && el.querySelector("#homeTop"); if (!h) return;
+    const items = (L || []).map(r => byId.get(r.anime_id)).filter(a => a && safe(a));
+    if (items.length >= 3) h.innerHTML = row("Le top de la semaine des membres", items, "", "Ce que la communauté a le plus regardé, noté et aimé ces 7 derniers jours");
+  }).catch(() => {});
   if (supabase) listFanarts({ sort: "recent", limit: 16 }).then(L => {
     const h = isShown() && el.querySelector("#homeFa"); if (!h || !L.length) return;
     h.innerHTML = `<section class="row"><div class="row-h"><h2>Fan arts des membres</h2><span class="row-sub">Les dessins de la communauté</span><a class="more-link" href="#/fanarts">Tout voir →</a></div><div class="row-s fa-row">${L.map(f => `<a class="fa-mini" href="#/fanarts/${f.id}"><img src="${esc(f.url)}" alt="${esc(f.title)}" loading="lazy"><small>${esc(f.title)}</small></a>`).join("")}</div></section>`;
@@ -143,10 +151,35 @@ function renderPersonal() {
   const plan = [...ME.entries.entries()].filter(([, e]) => e.s === "plan").sort((a, b) => b[1].t - a[1].t).map(([id]) => byId.get(id)).filter(Boolean);
   const recs = recommendations(), next = nextUp();
   const name = ME.profile && ME.profile.username;
-  p.innerHTML = row("Reprendre", watching.slice(0, 20), "#/collection/watching", FEATURES.progress ? "Un clic sur +1 à chaque épisode vu" : "Tes séries en cours")
+  p.innerHTML = `<div id="gameStrip"></div>`
+    + row("Continuer à regarder", watching.slice(0, 20), "#/collection/watching", FEATURES.progress ? "Un clic sur +1 à chaque épisode vu" : "Tes séries en cours")
     + row("La suite de tes séries", next, "", "La saison ou le film suivant de ce que tu as terminé")
-    + row(name ? `Recommandé pour ${esc(name)}` : "Recommandé pour toi", recs, "", "D'après tes coups de cœur, notes et visionnages")
+    + row(name ? `Pour toi, ${esc(name)}` : "Pour toi", recs, "", "D'après tes coups de cœur, notes et visionnages")
+    + `<div id="friendsLoved"></div>`
     + row("Ma liste « à voir »", plan.slice(0, 20), "#/collection/plan");
-  if (!watching.length && !recs.length && !plan.length && !next.length) p.innerHTML = `<div class="tip">Ajoute des titres à ta collection (♥, note, statut) : l'accueil te proposera des recommandations personnalisées.</div>`;
+  if (!watching.length && !recs.length && !plan.length && !next.length) p.innerHTML = `<div id="gameStrip"></div><div class="tip">Ajoute des titres à ta collection (♥, note, statut) : l'accueil te proposera des recommandations personnalisées.</div><div id="friendsLoved"></div>`;
+  if (supabase) {
+    friendsLoved(20).then(L => {
+      const h = isShown() && root.querySelector("#friendsLoved"); if (!h) return;
+      const rows = (L || []).filter(r => { const a = byId.get(r.anime_id); return a && safe(a) && !inCollection(a.id); });
+      if (!rows.length) return;
+      const names = [...new Set(rows.flatMap(r => String(r.names || "").split(", ")).filter(Boolean))];
+      h.innerHTML = row("Adorés par tes amis", rows.map(r => byId.get(r.anime_id)), "#/amis/activite", esc(`Coups de cœur et meilleures notes de ${names.slice(0, 3).join(", ")}${names.length > 3 ? " et d'autres" : ""}`));
+    }).catch(() => {});
+    gameStrip();
+  }
+}
+
+/** Bandeau « jeu » : niveau, objectif de l'année, défi de la semaine. */
+async function gameStrip() {
+  const year = new Date().getFullYear();
+  const [ach, target, q] = await Promise.all([achievements(), goal(year), myQuiz()]);
+  const h = isShown() && root.querySelector("#gameStrip"); if (!h || q === undefined) return;   // script SQL pas encore lancé
+  const s = collectionStats(year), L = levelOf(xpOf(s, ach));
+  h.innerHTML = `<section class="gstrip">
+    <a class="gs-i" href="#/jeu"><span class="gs-ic">🏅</span><span><small>Niveau ${L.level}</small><b>${esc(L.title)}</b><span class="lv-bar"><i style="width:${L.pct}%"></i></span></span></a>
+    <a class="gs-i" href="#/jeu"><span class="gs-ic">🏁</span><span><small>Objectif ${year}</small>${target ? `<b>${s.yearDone} / ${target} animés</b><span class="lv-bar"><i style="width:${Math.min(100, s.yearDone / target * 100)}%"></i></span>` : `<b>Fixe-toi un objectif</b>`}</span></a>
+    <a class="gs-i${q ? "" : " hot"}" href="#/jeu/defi"><span class="gs-ic">🎯</span><span><small>Défi de la semaine</small><b>${q ? `${q.score}/${q.total} · voir le classement` : "À toi de jouer !"}</b></span></a>
+  </section>`;
 }
 onChange(what => { if (isShown() && (what === "collection" || what === "session" || what === "profile")) renderPersonal(); });
