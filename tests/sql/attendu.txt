@@ -234,3 +234,23 @@ profil public : {"lists": [{"id": "22222222-0000-0000-0000-000000000001", "name"
 liste publique : Mes isekai préférés par Hugo
 ERROR:  public_minor
 ERROR:  public_minor
+--- jeu et communauté
+ERROR:  new row violates row-level security policy for table "comment_likes"
+avis vu par Inès : 1 like(s), liké=true
+notifications « like » pour Hugo : 1
+avis vu sans compte : 1 like(s), liké=false
+stats à 2 membres : note=masquée membres=0
+stats à 3 membres : note=4.0 (3 notes, 2 cœurs)
+top de la semaine : 5114 (3 membres)
+Inès, amis (partage désactivé) : 0
+Inès, amis (partage activé) : 5114 par Hugo, 21 par Hugo
+ERROR:  new row violates row-level security policy for table "season_votes"
+ERROR:  new row violates row-level security policy for table "season_votes"
+sondage : 21=2
+ERROR:  duplicate key value violates unique constraint "quiz_scores_pkey"
+ERROR:  new row violates row-level security policy for table "quiz_scores"
+ERROR:  new row for relation "quiz_scores" violates check constraint "quiz_scores_check"
+classement : 1. Ines 10/10 (ami) | 2. Hugo 8/10 (moi)
+objectif 2027 : 60
+badges Hugo : {"likes": 1, "posts": 1, "votes": 1, "fanarts": 0, "friends": 1, "perfect": 0, "quizzes": 1, "reviews": 1}
+objectifs vus par Inès : 0

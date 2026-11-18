@@ -8,6 +8,8 @@ import { toast } from "../toast.js";
 import { mountComments, refreshComments } from "../comments.js";
 import { fetchLive, liveHTML, bindTrailer } from "../live.js";
 import { mountEpisodes, refreshEpisodes } from "../episodes.js";
+import { supabase } from "../supabase.js";
+import { communityStats } from "../social.js";
 
 let el = null, curId = null, onCloseCb = null;
 const ROLE = { M: "Principal", S: "Secondaire", B: "Figurant" };
@@ -82,6 +84,7 @@ function html(a) {
       ${alts.length ? `<p class="d-alt">${esc(alts.join(" · "))}</p>` : ""}
       <div class="d-meta">${meta.map(m => `<span>${esc(m)}</span>`).join("")}</div>
       <div class="d-score">${a.score ? `<b>${a.score}</b><small>/100</small>` : `<small>Pas encore noté</small>`} ${a.adult ? `<span class="lg A">18+</span>` : ""} ${langs}</div>
+      <div class="d-comm" id="dComm"></div>
     </div>
   </div>
   <div class="d-body">
@@ -108,6 +111,13 @@ function html(a) {
 
 function renderMine() { const m = $("dMine"); if (m && curId != null) m.innerHTML = mineHTML(byId.get(curId)); }
 
+/** Note des membres de l'Animéthèque (affichée à partir de 3 notes, totaux anonymes). */
+function commHTML(st) {
+  const r = +st.ratings, m = +st.members, f = +st.favorites;
+  if (!m) return "";
+  return `<span class="d-comm-in" title="Moyenne des notes des membres de l'Animéthèque">${r ? `<b>★ ${String(st.avg_rating).replace(".", ",")}</b><small>/5 · ${r} note${r > 1 ? "s" : ""} des membres</small>` : `<small>${m} membres l'ont dans leur collection</small>`}${f ? `<small> · ♥ ${f}</small>` : ""}</span>`;
+}
+
 export function openDetail(id, onClose) {
   const a = byId.get(id);
   if (!a) return false;
@@ -124,6 +134,7 @@ export function openDetail(id, onClose) {
   panel.focus({ preventScroll: true });
   setTimeout(() => { if (curId === id) $("dSim").innerHTML = row("Dans le même esprit", similar(a, 14, adultAllowed())); }, 30);
   mountComments($("dComments"), id);
+  if (supabase) communityStats(id).then(st => { const b = curId === id && $("dComm"); if (b && st) b.innerHTML = commHTML(st); }).catch(() => {});
   const liveP = fetchLive(id);
   liveP.then(m => { const b = curId === id && $("dLive"); if (b) b.innerHTML = liveHTML(m); });
   mountEpisodes($("dEpisodes"), id, liveP);

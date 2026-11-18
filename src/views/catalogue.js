@@ -76,10 +76,13 @@ function compute() {
 }
 
 // ---------- Rendu ----------
+const alpha = (x, y) => x.localeCompare(y, "fr", { sensitivity: "base" });
+const ALPHA_KEYS = new Set(["genres", "format", "source", "country"]);   // saisons et diffusion gardent leur ordre naturel
 function genreBar() {
   const counts = new Array(T.genres.length).fill(0);
   for (const a of A) if (!a.adult) a.genres.forEach(g => counts[g]++);
-  const order = T.genres.map((_, i) => i).filter(i => counts[i] > 0 && T.genres[i] !== "Hentai").sort((a, b) => counts[b] - counts[a]);
+  const order = T.genres.map((_, i) => i).filter(i => counts[i] > 0 && T.genres[i] !== "Hentai")
+    .sort((a, b) => alpha(tr("genres", T.genres[a]), tr("genres", T.genres[b])));   // ordre alphabétique
   return order.map(i => `<button type="button" class="gchip${S.genreIn.has(i) ? " on" : S.genreEx.has(i) ? " ex" : ""}" data-g="${i}"
     title="${fmt(counts[i])} titres · 1er clic : inclure, 2e : exclure, 3e : retirer">${S.genreEx.has(i) ? "− " : S.genreIn.has(i) ? "✓ " : ""}${esc(tr("genres", T.genres[i]))}</button>`).join("");
 }
@@ -122,7 +125,9 @@ function chipSet(key, set, opts = {}) {
   const counts = new Array(T[key].length).fill(0);
   const field = { genres: "genres", format: "format", status: "status", season: "season", source: "source", country: "country" }[key];
   for (const a of A) { const v = a[field]; if (Array.isArray(v)) v.forEach(i => counts[i]++); else if (v >= 0) counts[v]++; }
-  return T[key].map((v, i) => i).filter(i => counts[i] >= (opts.min || 1) && T[key][i] !== opts.skip)
+  const ids = T[key].map((v, i) => i).filter(i => counts[i] >= (opts.min || 1) && T[key][i] !== opts.skip);
+  if (ALPHA_KEYS.has(key)) ids.sort((a, b) => alpha(tr(key, T[key][a]), tr(key, T[key][b])));
+  return ids
     .map(i => `<button type="button" class="chip${set.has(i) ? " on" : ""}" data-set="${opts.name || key}" data-i="${i}">${esc(tr(key, T[key][i]))}</button>`).join("");
 }
 function drawerHTML() {
@@ -140,7 +145,7 @@ function drawerHTML() {
     <section><h3>Personnage</h3><input type="text" data-text="chara" value="${esc(S.chara)}" placeholder="Ex. Luffy, Levi, Frieren…">
       <p class="hint">${ready.chars ? "25 personnages principaux indexés par animé." : "Chargement des personnages…"}</p></section>
     <section><h3>Thèmes</h3><input type="text" data-tag list="tagList" placeholder="Ex. Time Travel, Female Protagonist…">
-      <datalist id="tagList">${T.tags.map(t => `<option value="${esc(t)}"></option>`).join("")}</datalist>
+      <datalist id="tagList">${[...T.tags].sort(alpha).map(t => `<option value="${esc(t)}"></option>`).join("")}</datalist>
       <div class="chips">${[...S.tagIn].map(i => `<button type="button" class="chip on" data-tagchip="${i}">${esc(T.tags[i])}</button>`).join("")}${[...S.tagEx].map(i => `<button type="button" class="chip ex" data-tagchip="${i}">${esc(T.tags[i])}</button>`).join("")}</div></section>
     <section><h3>Nombre d'épisodes</h3><div class="range"><input type="number" inputmode="numeric" data-num="eMin" placeholder="min" value="${S.eMin ?? ""}"><span>–</span><input type="number" inputmode="numeric" data-num="eMax" placeholder="max" value="${S.eMax ?? ""}"></div></section>
     <section><h3>Durée d'un épisode (min)</h3><div class="range"><input type="number" inputmode="numeric" data-num="dMin" placeholder="min" value="${S.dMin ?? ""}"><span>–</span><input type="number" inputmode="numeric" data-num="dMax" placeholder="max" value="${S.dMax ?? ""}"></div></section>

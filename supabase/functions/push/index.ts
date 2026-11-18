@@ -71,6 +71,7 @@ async function notification(id: number) {
     chat_image: ["Image visible", `L'image envoyée par ${who} a été vérifiée`, `/#/amis/chat/${n.actor}`],
     episode_reply: ["Nouvelle réponse 💬", `${who} t'a répondu sur l'épisode ${ep}${n.title ? ` de ${n.title}` : ""}`, `/#/anime/${aid}`],
     episode: [`Épisode ${ep} disponible 📺`, `${n.title || "Une série que tu suis"} : le nouvel épisode vient de sortir`, `/#/anime/${aid}`],
+    comment_like: ["Ton avis plaît 👍", `${who} a trouvé ton avis utile`, `/#/anime/${n.ref}`],
     test: ["Ça marche ! 🔔", "Les notifications de l'Animéthèque sont activées sur cet appareil.", "/#/compte"],
   };
   const [title, body, url] = m[n.kind] || ["Animéthèque", "Nouvelle notification", "/"];
