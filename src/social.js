@@ -123,6 +123,11 @@ export async function markRead(uid) {
   await call(supabase.from("messages").update({ read_at: new Date().toISOString() }).eq("sender", uid).eq("recipient", me()).is("read_at", null));
   refreshCounters();
 }
+/** Supprime la conversation de ton côté (l'autre personne garde sa copie). */
+export async function clearConversation(uid) {
+  await call(supabase.rpc("clear_conversation", { p_other: uid }));
+  SOC.convos = (SOC.convos || []).filter(c => c.uid !== uid); emit("convos"); refreshCounters();
+}
 export async function deleteMessage(id) { await call(supabase.from("messages").delete().eq("id", id)); }
 export async function report({ messageId, commentId, fanartId, postId, targetUser, reason, category, context }) {
   await call(supabase.from("reports").insert({ message_id: messageId || null, comment_id: commentId || null, ...(fanartId ? { fanart_id: fanartId } : {}), ...(postId ? { post_id: postId } : {}),

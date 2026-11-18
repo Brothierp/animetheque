@@ -254,3 +254,10 @@ classement : 1. Ines 10/10 (ami) | 2. Hugo 8/10 (moi)
 objectif 2027 : 60
 badges Hugo : {"likes": 1, "posts": 1, "votes": 1, "fanarts": 0, "friends": 1, "perfect": 0, "quizzes": 1, "reviews": 1}
 objectifs vus par Inès : 0
+--- suppression d'une conversation
+Hugo, messages avec Inès avant : 1
+Hugo, messages avec Inès après suppression : 0
+Hugo, non lus : 0
+Inès garde sa copie : true
+Hugo voit le nouveau message : Tu es là ?
+ERROR:  no_target

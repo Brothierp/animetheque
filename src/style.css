@@ -1053,3 +1053,8 @@ img[src*="nocookie.net"] { object-position: 50% 10% }
 .qb li.is-me { background: color-mix(in srgb, var(--accent) 12%, transparent) } .qb li.fr { background: color-mix(in srgb, var(--violet) 10%, transparent) }
 .qb b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap } .qb-r { color: var(--muted); font-family: var(--mono) } .qb-s { font-family: var(--mono); color: var(--accent) } .qb small { color: var(--muted); font-size: 12px }
 .qb-f { font-size: 11px; color: var(--violet) }
+
+/* Suppression d'une conversation */
+.convos li { display: flex; align-items: stretch; gap: 6px } .convos li .convo { flex: 1; min-width: 0 }
+.cv-del { flex: none; width: 40px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); color: var(--muted); cursor: pointer; font-size: 15px }
+.cv-del:hover { border-color: var(--ex); color: var(--ex) }
