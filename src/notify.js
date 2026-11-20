@@ -34,6 +34,8 @@ function text(n) {
       return [`<b>Épisode ${esc(ep)}</b> de ${esc(a ? titleOf(a) : n.title || "ta série")} est sorti`, `#/anime/${aid}`, "📺"]; }
     case "comment_like": { const a = byId.get(+n.ref);
       return [`${who} a trouvé utile ton avis${a ? ` sur <b>${esc(titleOf(a))}</b>` : ""}`, `#/anime/${n.ref}`, "👍"]; }
+    case "age_flag": return ["L'équipe de modération a ajusté les accès de ton compte selon ton âge (détails dans « Mon compte »)", "#/compte", "🛡️"];
+    case "age_flag_removed": return ["Les accès de ton compte ont été rétablis selon l'année de naissance indiquée", "#/compte", "🛡️"];
     case "test": return ["Notification de test : tout fonctionne 🔔", "#/compte", "🔔"];
     case "chat_image": return [`Une image envoyée par ${who} est maintenant visible`, `#/amis/chat/${n.actor}`, "🖼️"];
     default: return ["Nouvelle notification", "#/", "🔔"];

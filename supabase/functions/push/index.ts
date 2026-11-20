@@ -72,6 +72,8 @@ async function notification(id: number) {
     episode_reply: ["Nouvelle réponse 💬", `${who} t'a répondu sur l'épisode ${ep}${n.title ? ` de ${n.title}` : ""}`, `/#/anime/${aid}`],
     episode: [`Épisode ${ep} disponible 📺`, `${n.title || "Une série que tu suis"} : le nouvel épisode vient de sortir`, `/#/anime/${aid}`],
     comment_like: ["Ton avis plaît 👍", `${who} a trouvé ton avis utile`, `/#/anime/${n.ref}`],
+    age_flag: ["Ton compte a été ajusté 🛡️", "L'équipe de modération a ajusté les accès de ton compte selon ton âge", "/#/compte"],
+    age_flag_removed: ["Accès rétablis 🛡️", "Les accès de ton compte ont été rétablis", "/#/compte"],
     test: ["Ça marche ! 🔔", "Les notifications de l'Animéthèque sont activées sur cet appareil.", "/#/compte"],
   };
   const [title, body, url] = m[n.kind] || ["Animéthèque", "Nouvelle notification", "/"];

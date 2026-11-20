@@ -5,7 +5,7 @@ import { $, esc, fmt } from "../ui.js";
 import { toast } from "../toast.js";
 import { SOC, onSocial, adminFeedback, feedbackReplies, replyFeedback, setFeedbackStatus, adminReports, setReportHandled, socialError } from "../social.js";
 import { KIND, STATUS, threadHTML } from "../feedback.js";
-import { deleteComment } from "../social.js";
+import { deleteComment, adminAgeFlags, adminSetAgeFlag } from "../social.js";
 import { adminFanarts, updateFanart, deleteFanart, adminPending } from "../fanart-api.js";
 import { adminChatImages, adminPendingChatImages, reviewChatImage, deleteChatImage } from "../chat-images.js";
 import { byId, titleOf } from "../data.js";
@@ -13,7 +13,7 @@ import { messageHTML, prepareTokens } from "../safety.js";
 import { charById, loadCharacters } from "../chars.js";
 
 let pendingFa = 0;
-const CAT = { discussion: "discussion d'épisode", contournement: "contourne les contrôles", sexuel: "propos sexuels ou déplacés", photos_rdv: "demande de photos ou de rendez-vous", harcelement: "harcèlement / insultes", arnaque: "spam / arnaque", autre: "autre", secret: "secret demandé", photos: "demande de photo", rencontre: "rencontre / adresse", intime: "propos intimes", age: "question sur l'âge", cadeau: "cadeau / argent", avis: "avis", fanart: "fan art" };
+const CAT = { discussion: "discussion d'épisode", contournement: "contourne les contrôles", sexuel: "propos sexuels ou déplacés", photos_rdv: "demande de photos ou de rendez-vous", harcelement: "harcèlement / insultes", arnaque: "spam / arnaque", autre: "autre", secret: "secret demandé", photos: "demande de photo", rencontre: "rencontre / adresse", intime: "propos intimes", age: "question sur l'âge", cadeau: "cadeau / argent", avis: "avis", fanart: "fan art", indice_age: "semble mineur·e (indice d'âge)" };
 
 let root = null, rows = null, q = "", sort = "created";
 const isShown = () => !!(root && root.isConnected && root.dataset.view === "admin");   // page réellement affichée ?
@@ -54,12 +54,14 @@ function paint() {
   $("admBody").innerHTML = L.length ? L.map(r => `<tr>
       <td>${r.username ? `<b>${esc(r.username)}</b>` : `<span class="hint">sans pseudo</span>`}${r.user_id === ME.user.id ? ` <span class="adm-me">toi</span>` : ""}</td>
       <td><a href="mailto:${esc(r.email || "")}">${esc(r.email || "—")}</a>${r.email_confirmed ? "" : ` <span class="adm-warn" title="Adresse pas encore confirmée">non confirmé</span>`}</td>
-      <td>${age(r.birth_year)}${r.birth_year ? ` <span class="hint">(${r.birth_year})</span>` : ""}</td>
+      <td>${age(r.birth_year)}${r.birth_year ? ` <span class="hint">(${r.birth_year})</span>` : ""}${r.birth_year && r.user_id !== ME.user.id ? `<br><span class="age-box" data-age-user="${r.user_id}" data-age-name="${esc(r.username || "ce membre")}"></span>` : ""}</td>
       <td>${esc((r.providers || "").split(", ").map(p => PROV[p] || p).join(", ") || "—")}</td>
       <td>${date(r.created_at)}</td>
       <td>${ago(r.last_sign_in_at)}</td>
       <td class="num">${fmt(r.titles)}</td></tr>`).join("")
     : `<tr><td colspan="7" class="hint">Aucun compte ne correspond.</td></tr>`;
+  paintAgeBoxes();
+  $("admBody").onclick = e => { const ag = e.target.closest("[data-age]"); if (ag) ageClick(ag); };
 }
 
 function exportCsv() {
@@ -116,20 +118,46 @@ async function renderReports(el) {
   const L = await adminReports();
   await prepareTokens(L.map(r => r.excerpt || ""));
   $("admRep").innerHTML = L.length ? `<div class="rep-list">${L.map(r => `<article class="rep${r.handled ? " done" : ""}${r.auto ? " auto" : ""}${r.urgent && !r.handled ? " urgent" : ""}" data-id="${r.id}" data-c="${r.comment_id || ""}">
-      ${r.auto ? `<p><span class="rep-auto">🛡️ Détection automatique</span> <b>${esc(CAT[r.category] || r.category || "")}</b> · message de <b>${esc(r.target_name || "Membre")}</b> ${r.target_email ? `<span class="hint">(${esc(r.target_email)})</span>` : ""} dans une conversation majeur / mineur · <span class="hint">${new Date(r.created_at).toLocaleString("fr-FR")}</span></p>`
+      ${r.auto ? `<p><span class="rep-auto">🛡️ Détection automatique</span> <b>${esc(CAT[r.category] || r.category || "")}</b> · ${r.category === "indice_age" ? "écrit par" : "message de"} <b>${esc(r.target_name || "Membre")}</b> ${r.target_email ? `<span class="hint">(${esc(r.target_email)})</span>` : ""} ${r.category === "indice_age" ? "(déclaré·e majeur·e)" : "dans une conversation majeur / mineur"} · <span class="hint">${new Date(r.created_at).toLocaleString("fr-FR")}</span></p>`
         : `<p><b>${esc(r.reporter_name || "Membre")}</b> ${r.reporter_email ? `<span class="hint">(${esc(r.reporter_email)})</span>` : ""} signale ${r.comment_id ? "l'avis de" : r.fanart_id ? "le fan art de" : ""} <b>${esc(r.target_name || "Membre")}</b> ${r.target_email ? `<span class="hint">(${esc(r.target_email)})</span>` : ""} · <span class="hint">${new Date(r.created_at).toLocaleString("fr-FR")}</span></p>
       <p>${r.urgent ? `<span class="rep-urg">⚠️ Mineur concerné</span> ` : ""}${r.category && CAT[r.category] && !r.auto ? `<b>${esc(CAT[r.category])}</b> · ` : ""}Motif : ${esc(r.reason)}</p>`}${r.excerpt ? `<blockquote${r.with_context ? ` class="rep-ctx"` : ""}>${r.with_context ? `<small class="hint">Conversation jointe par la personne qui signale :</small><br>` : ""}${messageHTML(r.excerpt)}</blockquote>` : ""}
       <div class="rep-act"><button type="button" class="btn sm" data-h="${r.handled ? 0 : 1}">${r.handled ? "Rouvrir" : "Marquer comme traité"}</button>
       ${r.comment_id ? `<button type="button" class="btn sm danger-o" data-delc>Supprimer l'avis</button>` : ""}
-      ${r.fanart_id ? `<a class="btn sm" href="#/fanarts/${r.fanart_id}">Voir le fan art</a>` : ""}</div></article>`).join("")}</div>
-      <p class="hint">Les détections automatiques concernent uniquement les conversations entre un majeur et un mineur (secret, photo, rendez-vous, propos intimes, âge, cadeaux). Les coordonnées et les liens y sont bloqués avant l'envoi. Pour sanctionner un compte : supprime-le dans Supabase (Authentication → Users), ou ajoute le mot en cause à la table banned_words. En cas de danger pour un mineur : signalement sur internet-signalement.gouv.fr (PHAROS).</p>`
+      ${r.fanart_id ? `<a class="btn sm" href="#/fanarts/${r.fanart_id}">Voir le fan art</a>` : ""}
+      ${r.target_id ? `<span class="age-box" data-age-user="${r.target_id}" data-age-name="${esc(r.target_name || "Membre")}"></span>` : ""}</div></article>`).join("")}</div>
+      <p class="hint">Les détections automatiques concernent les conversations entre un majeur et un mineur (secret, photo, rendez-vous, propos intimes, âge, cadeaux), ainsi que les membres déclarés majeurs qui écrivent un indice d'âge (« j'ai 13 ans », « je suis en 4e »…) dans un message, un avis ou une discussion. En cas de doute sur l'âge, utilise « 🛡️ Traiter comme mineur·e » ou « Moins de 15 ans » : le membre est prévenu et peut contester. Les coordonnées et les liens y sont bloqués avant l'envoi. Pour sanctionner un compte : supprime-le dans Supabase (Authentication → Users), ou ajoute le mot en cause à la table banned_words. En cas de danger pour un mineur : signalement sur internet-signalement.gouv.fr (PHAROS).</p>`
     : `<div class="empty"><p>Aucun signalement 👍</p></div>`;
+  paintAgeBoxes();
   $("admRep").addEventListener("click", async e => {
+    const ag = e.target.closest("[data-age]");
+    if (ag) return ageClick(ag);
     const d = e.target.closest("[data-delc]");
     if (d) { if (!confirm("Supprimer définitivement cet avis ?")) return; const r = d.closest(".rep"); try { await deleteComment(r.dataset.c); await setReportHandled(r.dataset.id, true); toast("Avis supprimé"); renderReports(el); } catch (err) { toast(socialError(err)); } return; }
     const b = e.target.closest("[data-h]"); if (!b) return;
     try { await setReportHandled(b.closest(".rep").dataset.id, b.dataset.h === "1"); renderReports(el); } catch (err) { toast(socialError(err)); }
   });
+}
+
+async function ageClick(ag) {
+  const box = ag.closest(".age-box"), uid = box.dataset.ageUser, name = box.dataset.ageName, flag = ag.dataset.age || null;
+  const msg = flag === "minor" ? `Traiter ${name} comme mineur·e ?\n\n• plus d'accès au contenu 18+ ni de profil public ;\n• ses amitiés avec des majeurs sont supprimées ;\n• protections majeurs / mineurs activées.\n\nLe membre est prévenu et peut contester.`
+    : flag === "under15" ? `Traiter ${name} comme ayant moins de 15 ans ?\n\nAmis, messagerie, avis, discussions et fan arts seront désactivés pour ce compte (sa collection reste accessible). Le membre est prévenu et peut contester.`
+    : `Rétablir les accès de ${name} selon l'année de naissance déclarée ?`;
+  if (!confirm(msg)) return;
+  try { await adminSetAgeFlag(uid, flag); toast(flag ? `🛡️ ${name} est désormais traité·e comme ${flag === "minor" ? "mineur·e" : "ayant moins de 15 ans"}` : `Accès de ${name} rétablis`); paintAgeBoxes(); }
+  catch (err) { toast(/not_admin/.test(err && err.message) ? "Réservé à l'équipe de modération." : /admin_set_age_flag|PGRST202/.test((err && err.message) || "") ? "Lance d'abord le script SQL 20261120000000 dans Supabase." : socialError(err)); }
+}
+/** Boutons « Traiter comme mineur·e » sous chaque signalement, selon le statut actuel du membre. */
+async function paintAgeBoxes() {
+  const boxes = [...document.querySelectorAll(".age-box")]; if (!boxes.length) return;
+  const flags = new Map((await adminAgeFlags([...new Set(boxes.map(b => b.dataset.ageUser))])).map(f => [f.user_id, f]));
+  for (const b of boxes) {
+    const f = flags.get(b.dataset.ageUser); if (!f) continue;
+    b.innerHTML = f.age_flag
+      ? `<span class="age-st">🛡️ Traité·e comme ${f.age_flag === "minor" ? "mineur·e" : "moins de 15 ans"}</span>${f.age_flag === "minor" ? `<button type="button" class="btn sm" data-age="under15">Moins de 15 ans</button>` : ""}<button type="button" class="linkbtn" data-age="">rétablir</button>`
+      : f.adult ? `<button type="button" class="btn sm danger-o" data-age="minor" title="L'âge déclaré semble faux">🛡️ Traiter comme mineur·e</button><button type="button" class="btn sm" data-age="under15" title="Semble avoir moins de 15 ans">Moins de 15 ans</button>`
+      : `<button type="button" class="btn sm" data-age="under15" title="Semble avoir moins de 15 ans">🛡️ Moins de 15 ans</button>`;
+  }
 }
 
 // ---------- Images des conversations avec un mineur ----------

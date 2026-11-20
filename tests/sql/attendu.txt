@@ -261,3 +261,17 @@ Hugo, non lus : 0
 Inès garde sa copie : true
 Hugo voit le nouveau message : Tu es là ?
 ERROR:  no_target
+--- fausses dates de naissance
+indices : J'ai 13 ans et j'adore Frieren=true | jai 14ans mdr=true | Je suis en 4ème au collège=true | I'm 15 years old=true | J'ai 15 ans de retard sur cet anime=false | Quand j'avais 13 ans je regardais Naruto=false | I'm 15 minutes late=false | Je révise le brevet ce soir=true | Épisode 13 : les 100 ans de Frieren=false
+signalements indice d'âge pour Inès : 1 (Message privé )
+ERROR:  permission denied for table profiles
+ERROR:  not_admin
+Inès majeure avant : true
+après : majeure=false 15 ans et plus=true
+état vu par la modération : minor majeure=false
+profil public d'Inès : false
+amitié Hugo / Inès (majeur / mineure) : 0
+notification à Inès : age_flag minor
+nouvel indice (déjà traitée comme mineure) : 1
+moins de 15 ans : 15 ans et plus=false
+statut retiré : majeure=true
