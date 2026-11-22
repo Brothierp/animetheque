@@ -58,7 +58,13 @@ export function profileErrorMessage(err) {
 }
 
 export async function loadProfile() {
-  let { data, error } = await supabase.from("profiles").select("username, birth_year, avatar_path, share_activity, public_profile").maybeSingle();
+  let { data, error } = await supabase.from("profiles").select("username, birth_year, avatar_path, share_activity, public_profile, age_flag").maybeSingle();
+  if (error && /age_flag|42703|PGRST204/.test(error.message + error.code)) ({ data, error } = await supabase.from("profiles").select("username, birth_year, avatar_path, share_activity, public_profile").maybeSingle());
+  if (!error && data && data.age_flag) {
+    // statut décidé par la modération : il prime sur l'année déclarée (toutes les vérifications du site utilisent birth_year)
+    data.declared_year = data.birth_year;
+    data.birth_year = new Date().getFullYear() - (data.age_flag === "under15" ? 13 : 16);
+  }
   if (error && /share_activity|public_profile|42703|PGRST204/.test(error.message + error.code)) ({ data, error } = await supabase.from("profiles").select("username, birth_year, avatar_path, share_activity").maybeSingle());
   if (error && /share_activity|42703|PGRST204/.test(error.message + error.code)) ({ data, error } = await supabase.from("profiles").select("username, birth_year, avatar_path").maybeSingle());
   if (error) throw error;

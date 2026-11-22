@@ -205,6 +205,9 @@ export async function adminFeedback() { return call(supabase.rpc("admin_feedback
 export async function feedbackReplies(id) { return call(supabase.from("feedback_replies").select("id, body, from_admin, created_at").eq("feedback_id", id).order("created_at")); }
 export async function setFeedbackStatus(id, status) { await call(supabase.from("feedback").update({ status }).eq("id", id)); refreshCounters(); }
 export async function adminReports() { return call(supabase.rpc("admin_reports")); }
+/** Statut d'âge décidé par la modération : "minor", "under15" ou null (retirer). */
+export async function adminAgeFlags(ids) { if (!ids.length) return []; const r = await supabase.rpc("admin_age_flags", { ids }); return r.error ? [] : r.data || []; }
+export async function adminSetAgeFlag(uid, flag) { await call(supabase.rpc("admin_set_age_flag", { p_user: uid, p_flag: flag })); }
 export async function setReportHandled(id, handled) { await call(supabase.from("reports").update({ handled }).eq("id", id)); refreshCounters(); }
 
 // ---------- Session ----------

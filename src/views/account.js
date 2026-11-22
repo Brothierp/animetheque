@@ -42,10 +42,12 @@ function html() {
       <div class="field"><span>E-mail</span><div class="val">${esc(u.email || "—")}</div></div>
       <div class="field"><span>Connexion</span><div class="val">${providers.map(x => x === "google" ? "Google" : x === "email" ? "E-mail et mot de passe" : esc(x)).join(" · ") || "—"}</div></div>
       <div class="field"><span>Année de naissance</span>
-        ${p.birth_year ? `<div class="val">${p.birth_year} · ${isAdultYear(p.birth_year) ? "accès au contenu 18+" : "contenu 18+ non accessible"}</div>`
+        ${p.age_flag ? `<div class="val">${p.declared_year || ""} · <b>compte traité comme ${p.age_flag === "under15" ? "ayant moins de 15 ans" : "mineur"}</b> par l'équipe de modération</div>`
+          : p.birth_year ? `<div class="val">${p.birth_year} · ${isAdultYear(p.birth_year) ? "accès au contenu 18+" : "contenu 18+ non accessible"}</div>`
           : `<form id="birthForm" novalidate><input type="number" name="birth" inputmode="numeric" min="1900" placeholder="ex. 1998"><button class="btn primary" type="submit">Enregistrer</button></form>`}
         <small>Inscription à partir de 15 ans ; sert aussi à réserver le contenu adulte aux majeurs. Ne peut être saisie qu'une fois.</small></div>
-      ${tooYoungYear(p.birth_year) ? `<p class="imp-err">Ton compte est limité : l'Animéthèque est désormais réservée aux 15 ans et plus (en France, avant 15 ans, il faut l'accord d'un parent). Ta collection reste accessible, mais les amis, la messagerie, les avis et les fan arts sont désactivés jusqu'à l'année de tes 15 ans. Tu peux aussi supprimer ton compte en bas de cette page.</p>` : ""}
+      ${p.age_flag ? `<p class="imp-err">D'après des éléments de ton activité, l'équipe de modération pense que ton âge réel ne correspond pas à l'année indiquée. Ton compte est donc traité comme celui ${p.age_flag === "under15" ? "d'une personne de moins de 15 ans : amis, messagerie, avis et fan arts sont désactivés" : "d'une personne mineure : pas de contenu 18+, pas de profil public, et les échanges avec des majeurs ne sont pas possibles"}. Ta collection reste accessible. Si c'est une erreur, explique-le-nous avec le bouton « 💡 Suggestion » : l'administrateur te répondra ici.</p>`
+        : tooYoungYear(p.birth_year) ? `<p class="imp-err">Ton compte est limité : l'Animéthèque est désormais réservée aux 15 ans et plus (en France, avant 15 ans, il faut l'accord d'un parent). Ta collection reste accessible, mais les amis, la messagerie, les avis et les fan arts sont désactivés jusqu'à l'année de tes 15 ans. Tu peux aussi supprimer ton compte en bas de cette page.</p>` : ""}
       ${providers.includes("email") ? `<div class="field"><span>Mot de passe</span><form id="pwdForm" novalidate><input type="password" name="password" autocomplete="new-password" minlength="8" placeholder="Nouveau mot de passe (8 caractères min.)"><button class="btn" type="submit">Modifier</button></form></div>` : ""}
       <div class="field"><span>Membre depuis</span><div class="val">${new Date(u.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}</div></div>
     </div></section>
@@ -73,7 +75,7 @@ function exportData() {
   const titleOf = id => { const a = byId.get(id); return a ? a.english || a.romaji : null; };
   const out = {
     export: "Animéthèque", date: new Date().toISOString(),
-    profil: { pseudo: ME.profile.username, email: ME.user.email, annee_naissance: ME.profile.birth_year, inscrit_le: ME.user.created_at },
+    profil: { pseudo: ME.profile.username, email: ME.user.email, annee_naissance: ME.profile.declared_year || ME.profile.birth_year, inscrit_le: ME.user.created_at },
     collection: [...ME.entries.entries()].map(([id, e]) => ({ anilist_id: id, titre: titleOf(id), statut: e.s || null, note_sur_5: e.r || null,
       coup_de_coeur: !!e.f, avis: e.c || null, episodes_vus: e.p || null, listes: Object.keys(e.l).map(k => ME.lists[k] && ME.lists[k].n).filter(Boolean) })),
     listes: Object.values(ME.lists).map(l => l.n),

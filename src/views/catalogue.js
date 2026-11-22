@@ -5,9 +5,9 @@ import { $, esc, fmt, grid } from "../ui.js";
 
 export const S = { q: "", chara: "", lang: "FE", genreIn: new Set(), genreEx: new Set(), tagIn: new Set(), tagEx: new Set(),
   format: new Set(), status: new Set(), season: new Set(), source: new Set(), country: new Set(), yMin: null, yMax: null,
-  eMin: null, eMax: null, dMin: null, dMax: null, score: 0, studio: "", sort: "pop", adult: false, upcoming: false, group: false };
+  eMin: null, eMax: null, dMin: null, dMax: null, score: 0, studio: "", sort: "pop", adult: false, upcoming: false, group: false, ghibli: false };
 const SETS = ["genreIn", "genreEx", "tagIn", "tagEx", "format", "status", "season", "source", "country"];
-const DEFAULTS = { q: "", chara: "", lang: "FE", yMin: null, yMax: null, eMin: null, eMax: null, dMin: null, dMax: null, score: 0, studio: "", sort: "pop", adult: false, upcoming: false };
+const DEFAULTS = { q: "", chara: "", lang: "FE", yMin: null, yMax: null, eMin: null, eMax: null, dMin: null, dMax: null, score: 0, studio: "", sort: "pop", adult: false, upcoming: false, ghibli: false };
 export function resetFilters() { Object.assign(S, DEFAULTS); SETS.forEach(k => S[k].clear()); }
 
 const SORTS = { pop: "Popularité", score: "Mieux notés", new: "Plus récents", old: "Plus anciens", az: "Titre A → Z", eps: "Nombre d'épisodes" };
@@ -27,6 +27,7 @@ export function applyParams(p) {
   for (const g of p.getAll("format")) { const i = idx("format", g); if (i >= 0) S.format.add(i); }
   for (const g of p.getAll("status")) { const i = idx("status", g); if (i >= 0) { S.status.add(i); if (i === UP) S.upcoming = true; } }
   for (const g of p.getAll("studio")) S.studio = norm(g);
+  if (p.get("ghibli")) S.ghibli = true;
   for (const g of p.getAll("season")) { const i = idx("season", g); if (i >= 0) S.season.add(i); }
   if (p.get("year")) { S.yMin = S.yMax = +p.get("year"); S.upcoming = true; }
   if (p.get("lang")) S.lang = p.get("lang");
@@ -37,7 +38,7 @@ export function applyParams(p) {
 function filterCount() {
   let n = SETS.reduce((s, k) => s + (k.startsWith("genre") ? 0 : S[k].size), 0);
   for (const k of ["yMin", "yMax", "eMin", "eMax", "dMin", "dMax"]) if (S[k] != null) n++;
-  if (S.score) n++; if (S.studio) n++; if (S.chara) n++; if (S.lang !== "FE") n++; if (S.adult) n++; if (S.upcoming) n++;
+  if (S.score) n++; if (S.studio) n++; if (S.chara) n++; if (S.lang !== "FE") n++; if (S.adult) n++; if (S.upcoming) n++; if (S.ghibli) n++;
   return n;
 }
 
@@ -66,6 +67,7 @@ function compute() {
     if (!inRange(a.year, S.yMin, S.yMax) || !inRange(a.eps, S.eMin, S.eMax) || !inRange(a.dur, S.dMin, S.dMax)) return false;
     if (S.score && a.score < S.score) return false;
     if (S.studio && !a.studioHay.includes(S.studio)) return false;
+    if (S.ghibli && !isGhibliFilm(a)) return false;
     return true;
   });
   const title = a => (a.english || a.romaji).toLowerCase();
@@ -73,6 +75,14 @@ function compute() {
     new: (a, b) => (b.year || 0) - (a.year || 0) || a.rank - b.rank, old: (a, b) => (a.year || 9999) - (b.year || 9999) || a.rank - b.rank,
     az: (a, b) => title(a).localeCompare(title(b), "fr"), eps: (a, b) => b.eps - a.eps || a.rank - b.rank }[S.sort]);
   if (S.group) view = onePerFranchise(view);
+}
+
+/** Films du Studio Ghibli (plus Nausicaä, produit par Topcraft avant la création du studio mais considéré comme le premier « Ghibli »). */
+const GHIBLI_EXTRA = new Set([572]);
+let ghibliIdx = null;
+function isGhibliFilm(a) {
+  if (ghibliIdx === null) ghibliIdx = T.studios.indexOf("Studio Ghibli");
+  return T.format[a.format] === "MOVIE" && (GHIBLI_EXTRA.has(a.id) || a.studios.includes(ghibliIdx));
 }
 
 // ---------- Rendu ----------
@@ -102,6 +112,7 @@ function activeChips() {
   if (S.dMin != null || S.dMax != null) add(`Durée ${S.dMin ?? "…"}–${S.dMax ?? "…"} min`, "dur");
   if (S.score) add(`Note ≥ ${S.score}`, "score");
   if (S.studio) add(`Studio : ${S.studioLabel || S.studio}`, "studio");
+  if (S.ghibli) add("Films du Studio Ghibli", "ghibli");
   if (S.upcoming) add("Avec les titres à venir", "upcoming");
   if (S.adult) add("Contenu 18+ uniquement", "adult");
   if (L.length > 1) L.push(`<button type="button" class="linkbtn" data-rm="all">Tout effacer</button>`);
@@ -150,7 +161,8 @@ function drawerHTML() {
     <section><h3>Nombre d'épisodes</h3><div class="range"><input type="number" inputmode="numeric" data-num="eMin" placeholder="min" value="${S.eMin ?? ""}"><span>–</span><input type="number" inputmode="numeric" data-num="eMax" placeholder="max" value="${S.eMax ?? ""}"></div></section>
     <section><h3>Durée d'un épisode (min)</h3><div class="range"><input type="number" inputmode="numeric" data-num="dMin" placeholder="min" value="${S.dMin ?? ""}"><span>–</span><input type="number" inputmode="numeric" data-num="dMax" placeholder="max" value="${S.dMax ?? ""}"></div></section>
     <section><h3>Note minimale <output id="scoreOut">${S.score ? "≥ " + S.score : "toutes"}</output></h3><input type="range" min="0" max="95" step="5" data-num="score" value="${S.score}"></section>
-    <section><h3>Studio</h3><input type="text" data-studio list="studioList" value="${esc(S.studioLabel || "")}" placeholder="Ex. MAPPA, Kyoto Animation…">
+    <section><h3>Studio</h3>
+      <div class="chips"><button type="button" class="chip${S.ghibli ? " on" : ""}" data-ghibli>🍃 Films du Studio Ghibli</button></div><input type="text" data-studio list="studioList" value="${esc(S.studioLabel || "")}" placeholder="Ex. MAPPA, Kyoto Animation…">
       <datalist id="studioList">${T.studios.slice(0, 1500).map(t => `<option value="${esc(t)}"></option>`).join("")}</datalist></section>
     <section><h3>Œuvre d'origine</h3><div class="chips">${chipSet("source", S.source, { min: 20 })}</div></section>
     <section><h3>Pays de production</h3><div class="chips">${chipSet("country", S.country)}</div></section>
@@ -204,6 +216,7 @@ function bindDrawer(d) {
     if (b.dataset.dr === "close") return closeDrawer();
     if (b.dataset.dr === "reset") { const q = S.q; resetFilters(); S.q = q; d.innerHTML = drawerHTML(); return refresh(); }
     if (b.dataset.set) { const s = S[b.dataset.set], i = +b.dataset.i; s.has(i) ? s.delete(i) : s.add(i); b.classList.toggle("on"); return refresh(); }
+    if (b.hasAttribute("data-ghibli")) { S.ghibli = !S.ghibli; b.classList.toggle("on", S.ghibli); return refresh(); }
     if (b.dataset.tagchip) { const i = +b.dataset.tagchip; if (S.tagIn.has(i)) { S.tagIn.delete(i); S.tagEx.add(i); } else S.tagEx.delete(i); d.innerHTML = drawerHTML(); return refresh(); }
     const seg = b.closest("[data-seg]"); if (seg) { S[seg.dataset.seg] = b.dataset.v; seg.querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b)); return refresh(); }
   });
