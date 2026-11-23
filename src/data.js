@@ -2,7 +2,7 @@
 
 /** Version des fichiers de données : à changer à chaque régénération, pour qu'aucun navigateur ne mélange
  *  une ancienne copie en cache avec les nouveaux fichiers. */
-export const DATA_V = "20261117r";
+export const DATA_V = "202611231503r";
 export const dataUrl = path => `${path}?v=${DATA_V}`;
 
 export const FR = {
